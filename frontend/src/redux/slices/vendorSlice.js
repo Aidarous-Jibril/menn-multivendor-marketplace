@@ -1,0 +1,374 @@
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
+
+
+// Helper function to check if we are in the browser environment
+const isBrowser = () => typeof window !== "undefined";
+
+
+// Helper function to get storeInfo from localStorage
+const getVendorInfoFromLocalStorage = () => {
+  if (isBrowser()) {
+    const vendorInfo = localStorage.getItem("vendorInfo");
+    return vendorInfo ? JSON.parse(vendorInfo) : {};
+  }
+  return null;
+};
+
+// Vendor register
+export const registerVendor = createAsyncThunk(
+  "vendor/registerVendor",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const { data } = await axios.post("/api/vendors/register", credentials, config);
+      localStorage.setItem("vendorInfo", JSON.stringify(data));
+      return data
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Vendor login
+export const loginVendor = createAsyncThunk(
+  "vendor/loginVendor",
+  async (vendorData, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const { data } = await axios.post("/api/vendors/login", vendorData, config);
+      localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
+      return data
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Vendor logout
+export const logoutVendor = createAsyncThunk(
+  "vendor/logoutVendor",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/vendors/logout", { withCredentials: true });
+      localStorage.removeItem("vendorInfo");
+      localStorage.removeItem("cartItems");
+      localStorage.removeItem("wishListItems");
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Get all vendors
+export const getAllVendors = createAsyncThunk(
+  "vendor/getAllVendors",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/vendors");
+      return data.vendors;
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Get vendor info
+export const getVendorInfo = createAsyncThunk(
+  "vendor/getVendorInfo",
+  async (id, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const { data } = await axios.get(`/api/vendors/get-vendor-info/${id}`, config);
+      localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
+      return data.vendor;
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Update vendor information
+export const updateVendorInformation = createAsyncThunk(
+  "vendor/updateVendorInformation",
+  async ({ name, description, address, phoneNumber, zipCode, email, id }, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.put(
+        "/api/vendors/update-vendor-info",
+        { name, description, address, phoneNumber, zipCode, email, id },
+        { withCredentials: true }
+      );
+      localStorage.setItem("vendorInfo", JSON.stringify(data.vendor)); // Ensure localStorage is updated
+      return data.vendor; // Return updated vendor
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Async thunk for updating vendor avatar
+export const updateVendorAvatar = createAsyncThunk(
+  'vendor/updateVendorAvatar',
+  async ({ id, avatar }, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", avatar); // Attach the file
+
+      const response = await axios.put(
+        `/api/vendors/update-avatar/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
+      return response.data.vendor; // Updated vendor information
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Fetch vendor info by ID
+export const fetchVendorById = createAsyncThunk(
+  'vendor/fetchVendorById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`/api/vendors/${id}`);
+      localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
+      return data.vendor;
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Get vendor statistics
+export const getVendorStatistics = createAsyncThunk(
+  "vendor/getVendorStatistics",
+  async (vendorId, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`/api/vendors/${vendorId}/statistics`);
+      return { vendorId, ...data };
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Update vendor bank info
+export const createVendorBankInfo = createAsyncThunk(
+  "vendor/createVendorBankInfo",
+  async ({ bankDetails, vendorId }, { rejectWithValue }) => {
+    console.log("BANK:", bankDetails, vendorId);
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const { data } = await axios.post(`/api/vendors/${vendorId}/bank-info`, bankDetails, config); // Changed to POST
+      localStorage.setItem("vendorInfo", JSON.stringify(data));
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+// Update Bank Info
+export const updateVendorBankInfo = createAsyncThunk(
+  "vendors/updateVendorBankInfo",
+  async ({ bankDetails, vendorId }, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.put(`/api/vendors/${vendorId}/bank-info`, bankDetails);
+      console.log("DATA:", data);
+      localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+
+
+const initialState = {
+  isLoading: false,
+  vendorInfo: getVendorInfoFromLocalStorage(),
+  error: null,
+  vendorStatistics: {},
+  success: false,
+};
+
+const vendorSlice = createSlice({
+  name: "vendor",
+  initialState,
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      // Vendor register
+      .addCase(registerVendor.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(registerVendor.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendorInfo = action.payload.vendor;
+        state.success = true;
+      })
+      .addCase(registerVendor.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.success = false;
+      })
+      // Vendor login
+      .addCase(loginVendor.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(loginVendor.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendorInfo = action.payload.vendor;
+        state.success = action.payload.success;
+      })
+      .addCase(loginVendor.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.success = false;
+      })
+      // Vendor logout
+      .addCase(logoutVendor.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(logoutVendor.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendorInfo = null;
+      })
+      .addCase(logoutVendor.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Handle getAllVendors
+      .addCase(getAllVendors.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getAllVendors.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendors = action.payload;
+        state.success = true;
+      })
+      .addCase(getAllVendors.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.success = false;
+      })
+      // Get vendor info
+      .addCase(getVendorInfo.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(getVendorInfo.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendorInfo = action.payload.vendor;
+        state.success = true;
+      })
+      .addCase(getVendorInfo.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        state.success = false;
+      })
+      // Update vendor information
+      .addCase(updateVendorInformation.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateVendorInformation.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendorInfo = action.payload; 
+        state.status = 'success';
+      })
+      .addCase(updateVendorInformation.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateVendorAvatar.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(updateVendorAvatar.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.vendorInfo = { ...state.vendorInfo, avatar: action.payload.avatar };
+        localStorage.setItem('vendorInfo', JSON.stringify(state.vendorInfo)); 
+      })      
+      .addCase(updateVendorAvatar.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || 'Error updating avatar';
+      })
+      .addCase(fetchVendorById.pending, (state) => {
+        state.status = 'loading';
+      })
+      .addCase(fetchVendorById.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.vendorInfo = action.payload;
+      })
+      .addCase(fetchVendorById.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      })
+    .addCase(getVendorStatistics.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase(getVendorStatistics.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const { vendorId, productCount, averageRating, reviewCount } = action.payload;
+      
+      // Update the vendor statistics for the specific vendor
+      state.vendorStatistics[vendorId] = {
+        productCount,
+        averageRating,
+        reviewCount
+      };
+    })
+    .addCase(getVendorStatistics.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // Handle update vendor bank info
+    .addCase(createVendorBankInfo.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(createVendorBankInfo.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.vendorInfo = action.payload.vendor;
+    })
+    .addCase(createVendorBankInfo.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    .addCase(updateVendorBankInfo.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(updateVendorBankInfo.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.vendorInfo = action.payload; // Directly assign the vendor object
+    })
+    .addCase(updateVendorBankInfo.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    });
+
+  },
+});
+
+export default vendorSlice.reducer;

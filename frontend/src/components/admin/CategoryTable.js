@@ -1,0 +1,216 @@
+import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Tooltip,
+  CircularProgress,
+} from '@mui/material';
+import { createMainCategory, fetchCategories, updateMainCategory, deleteMainCategory } from '@/redux/slices/adminSlice';
+import { toast } from 'react-toastify';
+import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
+import EditProductModal from '../common/ProductEditModal';
+import ProductTable from '../common/ProductTable';
+
+const CategoryTable = () => {
+  const dispatch = useDispatch();
+  const { categories, loading, error } = useSelector((state) => state.admin); // Correct state path
+
+  const [openFormModal, setOpenFormModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredCategories, setFilteredCategories] = useState([]);
+
+  const [categoryData, setCategoryData] = useState({
+    name: '',
+    slug: '',
+    imageUrl: '',
+  });
+
+  // Fetch categories when component mounts
+  useEffect(() => {
+    dispatch(fetchCategories());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Filter categories based on search query
+    const filtered = categories.filter((cat) =>
+      cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredCategories(filtered);
+  }, [categories, searchQuery]);
+
+  // Open the form modal for creating or editing a category
+  const handleOpenForm = (category = null) => {
+    if (category) {
+      setIsEditMode(true);
+      setSelectedCategoryId(category._id);
+      setCategoryData({
+        name: category.name,
+        slug: category.slug,
+        imageUrl: category.imageUrl,
+      });
+    } else {
+      setIsEditMode(false);
+      setCategoryData({ name: '', slug: '', imageUrl: '' });
+    }
+    setOpenFormModal(true);
+  };
+
+  // Close the form modal
+  const handleCloseForm = () => {
+    setOpenFormModal(false);
+    setSelectedCategoryId(null);
+    setCategoryData({ name: '', slug: '', imageUrl: '' });
+  };
+
+  // Handle form submission (create or update category)
+  const handleFormSubmit = async () => {
+    const action = isEditMode
+      ? updateMainCategory({ categoryId: selectedCategoryId, categoryData })
+      : createMainCategory(categoryData);
+
+    const result = await dispatch(action);
+
+    if (result.meta.requestStatus === 'fulfilled') {
+      toast.success(`Category ${isEditMode ? 'updated' : 'created'} successfully!`);
+      handleCloseForm();
+    } else {
+      toast.error(result.payload || 'Something went wrong.');
+    }
+  };
+
+  // Handle category deletion
+  const handleDeleteCategory = async () => {
+    const result = await dispatch(deleteMainCategory(selectedCategoryId));
+    if (result.meta.requestStatus === 'fulfilled') {
+      toast.success('Category deleted!');
+    } else {
+      toast.error(result.payload || 'Failed to delete.');
+    }
+    setDeleteDialogOpen(false);
+  };
+
+  // Table columns definition
+  const columns = [
+    { field: 'name', headerName: 'Name', flex: 1 },
+    { field: 'slug', headerName: 'Slug', flex: 1 },
+    {
+      field: 'imageUrl',
+      headerName: 'Image',
+      flex: 1,
+      renderCell: (params) => (
+        params.value ? (
+          <img src={params.value} alt="category" width="40" height="40" />
+        ) : (
+          'No Image'
+        )
+      ),
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 1,
+      sortable: false,
+      renderCell: (params) => (
+        <div className="flex gap-2">
+          <Tooltip title="Edit">
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpenForm(params.row)}
+            >
+              <AiOutlineEdit size={16} />
+            </Button>
+          </Tooltip>
+          <Tooltip title="Delete">
+            <Button
+              size="small"
+              variant="contained"
+              color="error"
+              onClick={() => {
+                setSelectedCategoryId(params.row._id);
+                setDeleteDialogOpen(true);
+              }}
+            >
+              <AiOutlineDelete size={16} />
+            </Button>
+          </Tooltip>
+        </div>
+      ),
+    },
+  ];
+
+  // Transform categories into rows for the table
+  const rows = filteredCategories.map((cat) => ({
+    id: cat._id,
+    ...cat,
+  }));
+
+  return (
+    <div className="w-full p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">Main Categories</h2>
+        <Button variant="contained" color="primary" onClick={() => handleOpenForm()}>
+          Create Category
+        </Button>
+      </div>
+
+      {/* Search */}
+      <div className="mb-4">
+        <TextField
+          fullWidth
+          placeholder="Search by name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      {/* Table */}
+      <div className="bg-white p-4 rounded shadow">
+        {loading ? (
+          <div className="flex justify-center items-center p-8">
+            <CircularProgress />
+          </div>
+        ) : (
+          <ProductTable rows={rows} columns={columns} />
+        )}
+      </div>
+
+      {/* Create/Edit Modal */}
+      <EditProductModal
+        open={openFormModal}
+        onClose={handleCloseForm}
+        data={categoryData}
+        onInputChange={(e) =>
+          setCategoryData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+        }
+        onSave={handleFormSubmit}
+        isCategoryEdit={true} // Flag for category edit
+      />
+
+      {/* Delete Confirmation */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Deletion</DialogTitle>
+        <DialogContent>Are you sure you want to delete this category?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteCategory} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </div>
+  );
+};
+
+export default CategoryTable;
