@@ -9,6 +9,7 @@ const {
   getProductById,
   getProductsBySubSubCategory,
   updateProduct,
+  getVendorSingleProduct,
 } = require('../controllers/productController');
 const multer = require('multer');
 const path = require('path');
@@ -52,10 +53,10 @@ router.get('/', async (req, res, next) => {
 
 
 router.get('/:vendorId/products', getVendorAllProducts);
+router.get("/vendor/product/:id", isVendor, getVendorSingleProduct);
 router.post('/create-product',isVendor,  upload.array("images", 5), createProduct); 
 router.delete('/:id', isVendor, deleteProduct);
 router.put("/update-product/:id", isVendor, updateProduct); 
 router.post('/reviews', createProductReview);
-
 
 module.exports = router;

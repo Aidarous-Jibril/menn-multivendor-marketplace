@@ -8,12 +8,11 @@ import { HiOutlineReceiptRefund } from "react-icons/hi";
 import { LuLogOut } from "react-icons/lu";
 import Link from "next/link";
 import { useDispatch } from "react-redux";
-import { logoutVendor } from "@/redux/slices/vendorSlice";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
-import { BsAlexa } from "react-icons/bs";
-import { IoIosAddCircle, IoMdAdd, IoMdPeople } from "react-icons/io";
+import {  IoMdPeople } from "react-icons/io";
 import { FaStoreAlt } from "react-icons/fa";
+import { logoutAdmin } from "@/redux/slices/adminSlice";
 
 const DashboardSideBar = ({ active }) => {
   const router = useRouter();
@@ -21,27 +20,22 @@ const DashboardSideBar = ({ active }) => {
 
   //logout vendor
   const handleAdminLogout = async () => {
-    // try {
-    //   const result = await dispatch(logoutAdmin());
-
-    //   if (result.type === "vendor/logoutVendor/fulfilled") {
-    //     toast.success("You have logged out successfully!");
-    //     router.push("/vendor/login");
-    //   } else {
-    //     toast.error("Failed to log out. Please try again.");
-    //   }
-    // } catch (error) {
-    //   console.error("Error during logout:", error);
-    //   toast.error("An unexpected error occurred during logout.");
-    // }
+    try {
+      await dispatch(logoutAdmin()).unwrap();
+      toast.success("You have logged out successfully!");
+      router.push("/admin/login");
+    } catch (error) {
+      toast.error(error || "Failed to log out.");
+      console.error("Logout Error:", error);
+    }
   };
-
+  
   return (
-    <div className="w-full h-[94vh] bg-white shadow-sm overflow-y-scroll sticky top-0 left-0 z-10 flex flex-col justify-between">
-      <div className="flex-grow">
+    <div className="w-full h-full bg-white shadow-sm flex flex-col justify-between">
+     <div className="flex-grow">
         {/* Sidebar Items */}
         <div className="w-full flex items-center p-4">
-          <Link href="/admin/" className="w-full flex items-center">
+          <Link href="/admin/dashboard" className="w-full flex items-center">
             <MdOutlineDashboard
               size={30}
               color={`${active === 1 ? "crimson" : "#555"}`}
@@ -138,7 +132,7 @@ const DashboardSideBar = ({ active }) => {
         <div className="w-full flex items-center p-4">
           <Link href="/admin/inbox" className="w-full flex items-center">
             <BiMessageSquareDetail size={30} color={active === 11 ? "crimson" : "#555"} />
-            <h5 className={`pl-2 text-[18px] font-[400] ${active === 11 ? "text-[crimson]" : "text-[#555]"} hidden 800px:block`}>
+            <h5 className={`pl-2 text-[18px] font-[400] ${active === 12 ? "text-[crimson]" : "text-[#555]"} hidden 800px:block`}>
               Inbox
             </h5>
           </Link>
@@ -146,7 +140,7 @@ const DashboardSideBar = ({ active }) => {
         <div className="w-full flex items-center p-4">
           <Link href="/admin/bank" className="w-full flex items-center">
             <CiBank size={30} color={active === 12 ? "crimson" : "#555"} />
-            <h5 className={`pl-2 text-[18px] font-[400] ${active === 12 ? "text-[crimson]" : "text-[#555]"} hidden 800px:block`}>
+            <h5 className={`pl-2 text-[18px] font-[400] ${active === 13 ? "text-[crimson]" : "text-[#555]"} hidden 800px:block`}>
               Bank
             </h5>
           </Link>
@@ -154,7 +148,7 @@ const DashboardSideBar = ({ active }) => {
         <div className="w-full flex items-center p-4">
           <Link href="/admin/settings" className="w-full flex items-center">
             <CiSettings size={30} color={active === 13 ? "crimson" : "#555"} />
-            <h5 className={`pl-2 text-[18px] font-[400] ${active === 13 ? "text-[crimson]" : "text-[#555]"} hidden 800px:block`}>
+            <h5 className={`pl-2 text-[18px] font-[400] ${active === 14 ? "text-[crimson]" : "text-[#555]"} hidden 800px:block`}>
               Settings
             </h5>
           </Link>

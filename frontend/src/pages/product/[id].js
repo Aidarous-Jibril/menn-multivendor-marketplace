@@ -494,6 +494,7 @@ export async function getServerSideProps({ params }) {
           return null;
         }),
       ]);
+      console.log("vendorProducts ARE:", vendorProductsRes?.data?.products  )
 
     return {
       props: {

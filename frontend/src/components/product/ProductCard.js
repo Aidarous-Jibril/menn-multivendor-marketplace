@@ -14,12 +14,7 @@ const priceFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
-const ProductCard = ({
-  product,
-  isSale = false,
-  saleEndDate,
-  isMoreFromSeller = false,
-}) => {
+const ProductCard = ({ product, isSale = false, saleEndDate, isMoreFromSeller = false, }) => {
   const [sampleRating, setSampleRating] = useState(0);
 
   useEffect(() => {
@@ -42,7 +37,7 @@ const ProductCard = ({
   const imageUrl = product?.images?.[0]?.url;
 
   return (
-    <Link href={isSale ? `/flash-sale/${product._id}` : `/product/${product._id}`} legacyBehavior>
+    <Link href={isSale ? `/sale/${product._id}` : `/product/${product._id}`} legacyBehavior>
       <Card
         sx={{
           width: isSale ? 220 : isMoreFromSeller ? 350 : 280,

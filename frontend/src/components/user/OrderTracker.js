@@ -8,9 +8,11 @@ import Button from '@mui/material/Button';
 
 // Local imports
 import { getUserAllOrders } from '@/redux/slices/orderSlice';
+import ProductTable from '../common/ProductTable';
+import { Tooltip } from '@mui/material';
 
 
-const OrderTracker = ({ active }) => {
+const OrderTracker = () => {
   const { userInfo } = useSelector((state) => state.user);
   const { orders } = useSelector((state) => state.orders);
   const dispatch = useDispatch();
@@ -21,52 +23,105 @@ const OrderTracker = ({ active }) => {
     }
   }, [dispatch, userInfo?._id]);
 
+
   const columns = [
-    { field: 'id', headerName: 'Order ID', minWidth: 150, flex: 0.7 },
+    {
+      field: 'id',
+      headerName: 'ORDER ID',
+      minWidth: 150,
+      flex: 1,
+      renderCell: (params) => (
+        <span>{`...${params.value.slice(-6)}`}</span>
+      ),
+    },
     {
       field: 'status',
-      headerName: 'Status',
-      minWidth: 130,
-      flex: 0.7,
-      cellClassName: (params) =>
-        params.row.status === 'Delivered' ? 'greenColor' : 'redColor',
-      headerClassName: 'custom-header',
+      headerName: 'STATUS',
+      minWidth: 150,
+      flex: 1,
+      renderCell: (params) => {
+        const status = params.row.status;
+        const statusTextColor = {
+          processing: 'text-yellow-600',
+          shipped: 'text-blue-600',
+          delivered: 'text-green-600',
+          cancelled: 'text-gray-600',
+          refunded: 'text-green-600',
+          'Processing refund': 'text-yellow-800',
+          refund_approved: 'text-green-800',
+          refund_rejected: 'text-red-600',
+        };
+        const textColor = statusTextColor[status] || 'text-gray-700';
+  
+        return (
+          <span className={`capitalize font-medium ${textColor}`}>
+            {status}
+          </span>
+        );
+      },
     },
-    { field: 'itemsQty', headerName: 'Items Qty', type: 'number', minWidth: 130, flex: 0.7 },
-    { field: 'total', headerName: 'Total', type: 'number', minWidth: 130, flex: 0.8 },
+    {
+      field: 'itemsQty',
+      headerName: 'ITEMS QTY',
+      minWidth: 150,
+      flex: 1,
+      renderCell: (params) => (
+        <span>{params.value}</span>
+      ),
+    },
+    {
+      field: 'total',
+      headerName: 'TOTAL',
+      minWidth: 150,
+      flex: 1,
+      renderCell: (params) => (
+        <span>${params.value}</span>
+      ),
+    },
     {
       field: 'actions',
-      headerName: '',
-      type: 'number',
+      headerName: 'ACTIONS',
+      minWidth: 200,
+      flex: 1,
       sortable: false,
       renderCell: (params) => (
-        <Link href={`/user/orders/track/${params.id}`}>
-          <Button>
-            <MdTrackChanges size={20} />
-          </Button>
-        </Link>
+        <div style={{ display: "flex", justifyContent: "flex-start", gap: "10px" }}>
+          <Tooltip title="Track Order">
+            <Link href={`/user/orders/track/${params.id}`} passHref>
+              <Button
+                variant="contained"
+                color="info"
+                size="small"
+                style={{
+                  padding: "6px 12px",
+                  minWidth: "auto",
+                  fontSize: "14px",
+                }}
+              >
+                <MdTrackChanges size={16} />
+              </Button>
+            </Link>
+          </Tooltip>
+        </div>
       ),
-      flex: 1,
-      minWidth: 150,
     },
   ];
-
   const rows = orders.map((order) => ({
     id: order._id,
-    itemsQty: order.cart.length,
-    total: `US$ ${order.totalPrice}`,
+    itemsQty: order.cart?.length,
+    total: `${order.totalPrice}$`,
     status: order.status,
   }));
 
   return (
-    <div className="pl-8 pt-1 flex">
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        pageSize={10}
-        disableSelectionOnClick
-        autoHeight
-      />
+    <div className="w-full bg-gray-100 p-4 md:p-8 rounded-md">
+           <div className="flex items-center mb-6">
+              <h1 className="text-2xl font-semibold">Track an Order </h1>
+           </div>
+      {/* Data Table */}
+      <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <ProductTable rows={rows} columns={columns} getRowId={(row) => row.id} />
+      </div>
     </div>
   );
 };

@@ -1,25 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Header from '@/components/layout/Header';
-import ProfileSideBar from '@/components/profile/ProfileSideBar';
 import OrderTracker from '@/components/user/OrderTracker';
-import styles from '@/styles/styles';
+import ProfileSideBar from '@/components/user/layout/ProfileSideBar';
+import withAdminAuth from '@/lib/withAdminAuth';
 
 const TrackOrder = () => {
-  const [active, setActive] = useState(3);
-
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <Header />
-      <div className={`${styles.section} flex bg-[#f5f5f5] py-10`}>
-        <div className='w-[50px] md:w-[335px]'>
-          <ProfileSideBar active={active} setActive={setActive} />
+      <div className="flex flex-1 overflow-hidden bg-gray-100">
+        <div className="w-[100px] 800px:w-[330px] bg-white  ">
+          <ProfileSideBar active={3} />
         </div>
-        <div className="w-full">
-          <OrderTracker active={active} />
+
+        <div className="flex-1 overflow-y-auto">
+        <OrderTracker />
         </div>
       </div>
     </div>
   );
 };
 
-export default TrackOrder;
+export default withAdminAuth(TrackOrder);

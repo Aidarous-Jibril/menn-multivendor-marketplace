@@ -5,7 +5,8 @@ const Vendor = require("../models/vendorModel");
 const createVendorToken = require("../utils/vendorToken");
 const cloudinary = require("../utils/cloudinary");
 const Product = require("../models/productModel");
-
+const Notification = require("../models/notificationModel");
+const VendorNotification = require("../models/vendorNotificationModel"); 
 
 
 // Register a new vendor with file upload
@@ -53,8 +54,14 @@ const registerVendor = asyncHandler(async (req, res) => {
     };
 
     const vendor = await Vendor.create(newVendor);
+
     // Generate JWT token
     const token = createVendorToken(res, vendor._id);
+    // ✅ Create a notification for admins when new user registers
+    await Notification.create({
+      type: "new_vendor",
+      message: `👤 New vendor registered: ${name}`,
+    });
 
     res.status(201).json({
       success: true,
@@ -246,6 +253,49 @@ const createOrUpdateBankInfo = asyncHandler(async (req, res) => {
   }
 });
 
+// Get all notifications for a vendor
+const getVendorNotifications = asyncHandler(async (req, res) => {
+  const vendorId = req.vendor?._id || req.query.vendorId;
+  if (!vendorId) {
+    return res.status(400).json({ message: "Vendor ID required" });
+  }
+
+  const notifications = await VendorNotification.find({ vendor: vendorId }).sort({ createdAt: -1 });
+  res.status(200).json({ notifications });
+});
+
+// Get unread count for vendor
+const getVendorNotificationCount = asyncHandler(async (req, res) => {
+  const vendorId = req.vendor?._id || req.query.vendorId;
+
+  if (!vendorId) {
+    return res.status(400).json({ message: "Vendor ID required" });
+  }
+
+  const count = await VendorNotification.countDocuments({ vendor: vendorId, isRead: false });
+  res.status(200).json({ count });
+});
+
+// Mark a vendor notification as read
+const markVendorNotificationAsRead = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  await VendorNotification.findByIdAndUpdate(id, { isRead: true });
+  res.status(200).json({ message: "Vendor notification marked as read" });
+});
+
+// Delete a vendor notification
+const deleteVendorNotification = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const deleted = await VendorNotification.findByIdAndDelete(id);
+  if (!deleted) {
+    return res.status(404).json({ message: "Notification not found" });
+  }
+
+  res.status(200).json({ message: "Notification deleted successfully" });
+});
+
 
 module.exports = {
   registerVendor,
@@ -256,5 +306,9 @@ module.exports = {
   updateVendorProfile,
   updateVendorAvatar,
   getVendorStatistics,
-  createOrUpdateBankInfo
+  createOrUpdateBankInfo,
+  getVendorNotifications,
+  getVendorNotificationCount,
+  markVendorNotificationAsRead,
+  deleteVendorNotification
 };

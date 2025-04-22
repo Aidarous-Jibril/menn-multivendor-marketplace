@@ -22,29 +22,28 @@ import { format } from "date-fns";
 
 // Local imports
 import Loader from "../vendor/layout/Loader";
-import {editVendor, deleteVendor, fetchAllVendors, blockVendor, unblockVendor, fetchVendorById, updateVendor} from "@/redux/slices/adminSlice";
+import {deleteVendor, fetchAllVendors, blockVendor, unblockVendor, fetchVendorById, updateVendor} from "@/redux/slices/adminSlice";
 import EditProductModal from "../common/ProductEditModal";
+import ProductTable from "../common/ProductTable";
+import SearchProducts from "../common/SearchProducts";
 
 const AllVendorsTable = () => {
   const dispatch = useDispatch();
 
-  const { isLoading, error, adminInfo, vendors } = useSelector(
-    (state) => state.admin
-  );
+  const { isLoading, error, adminInfo, vendors, singleVendor } = useSelector( (state) => state.admin);
   const [filteredVendors, setFilteredVendors] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [openViewModal, setOpenViewModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState(null);
   const [updatedVendor, setUpdatedVendor] = useState({ name: "", email: "", contactNumber: "" });
-const [selectedVendorId, setSelectedVendorId] = useState(null);
+  const [selectedVendorId, setSelectedVendorId] = useState(null);
 
   useEffect(() => {
-    if (adminInfo) {
-      dispatch(fetchAllVendors());
-    }
-  }, [dispatch, adminInfo]);
+      if (adminInfo) {
+        dispatch(fetchAllVendors());
+      }
+    }, [dispatch, adminInfo]);
 
   if (error) return <p className="text-red-500">{error}</p>;
 
@@ -73,9 +72,7 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
     setFilteredVendors(filtered);
   }, [searchQuery, vendors]);
 
-
   const handleVendorEdit = (vendor) => {
-    console.log("VENDOR:", vendor); //Logs the order including ID
     setSelectedVendorId(vendor.id);
     setUpdatedVendor({
       name: vendor.name,
@@ -87,24 +84,9 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
   
   const handleEditModalClose = () => {
     setOpenEditModal(false);
-    setSelectedVendor(null);
-  };
-
-  const handleEditSubmit = async () => {
-    const result = await dispatch(
-      editVendor({ id: selectedVendor.id, updatedVendor })
-    );
-
-    if (result.type === "admin/editVendor/fulfilled") {
-      toast.success(result.payload.message || "Vendor updated!");
-    } else {
-      toast.error("Vendor update failed.");
-    }
-    setOpenEditModal(false);
   };
 
   const handleDeleteConfirmation = (vendorId) => {
-    setSelectedVendor(vendorId);
     setOpenDeleteDialog(true);
   };
 
@@ -115,10 +97,6 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
     } else {
       toast.error("Failed to delete vendor.");
     }
-    setOpenDeleteDialog(false);
-  };
-
-  const handleCloseDeleteDialog = () => {
     setOpenDeleteDialog(false);
   };
 
@@ -143,22 +121,11 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
   };
 
   const handleViewVendor = async (vendorId) => {
-    try {
-      const result = await dispatch(fetchVendorById(vendorId));
-      if (result.type === "admin/fetchVendorById/fulfilled") {
-        setSelectedVendor(result.payload); // Set the vendor details here
-        setOpenViewModal(true); // Open the modal
-      } else {
-        toast.error("Failed to fetch vendor details.");
-      }
-    } catch (error) {
-      toast.error("Error fetching vendor details.");
-    }
+    const result = await dispatch(fetchVendorById(vendorId));
+    if (result.type === "admin/fetchVendorById/fulfilled") setOpenViewModal(true);
+    else toast.error("Failed to fetch vendor details.");
   };
-  const handleCloseViewModal = () => {
-    setOpenViewModal(false);
-  };
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUpdatedVendor((prevState) => ({
@@ -186,8 +153,8 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
       toast.error("An unexpected error occurred.");
     }
   };
-  
-   
+
+  //Table columns and row
   const columns = [
     {
       field: "id",
@@ -306,7 +273,6 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
       ),
     },
   ];
-
   const rows = filteredVendors.map((vendor) => ({
     id: vendor._id, 
     registrationDate: vendor.createdAt,
@@ -323,7 +289,7 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
       ) : (
         <div className="w-full p-4 md:p-8 rounded-md">
           <div className="flex items-center mb-6">
-            <i className="fas fa-store text-2xl text-orange-500 mr-2"></i>
+            {/* <i className="fas fa-store text-2xl text-orange-500 mr-2"></i> */}
             <h1 className="text-2xl font-semibold">Vendors List</h1>
             <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
               {vendors?.length || 0}
@@ -332,39 +298,12 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
 
           {/* Search Section */}
           <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search by Name or ID"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
+            <SearchProducts searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
           </div>
 
-          {/* Data Table Section */}
-          <div className="bg-white p-6 rounded-lg shadow mb-6">
-            <div style={{ height: "400px", width: "100%" }}>
-              <DataGrid
-                rows={rows}
-                columns={columns}
-                autoHeight
-                rowHeight={60}
-                disableSelectionOnClick
-                pageSizeOptions={[5, 10, 20]}
-                rowsPerPageOptions={[5, 10, 20]}
-                className="data-grid"
-                style={{ overflowX: "auto" }} // Enable horizontal scrolling if needed
-                sx={{
-                  "& .MuiDataGrid-columnHeaders": {
-                    backgroundColor: "#ADD8E6", // Light blue color
-                  },
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bold",
-                    fontSize: "1rem", // Optional: Adjust font size
-                  },
-                }}
-              />
-            </div>
+           {/* Data Table */}
+           <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <ProductTable rows={rows} columns={columns} />
           </div>
         </div>
       )}
@@ -372,32 +311,32 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
       {/* Vendor Details Modal */}
       <Dialog
         open={openViewModal}
-        onClose={handleCloseViewModal}
+        onClose={() =>  setOpenViewModal(false)}
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle style={{ fontWeight: "bold" }}>Vendor Details</DialogTitle>
+        <DialogTitle style={{ fontWeight: "bold" }}>{singleVendor?.name ? `Details for ${singleVendor.name}` : "Vendor Details"}</DialogTitle>
         <DialogContent>
-          {selectedVendor ? (
+          {singleVendor ? (
             <div>
               {/* Vendor Name and Information */}
               <Card style={{ marginBottom: "20px" }}>
                 <CardContent>
                   <Typography variant="h6">
-                    Vendor Name: {selectedVendor.name}
+                    Vendor Name: {singleVendor.name}
                   </Typography>
                   <Divider style={{ margin: "10px 0" }} />
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Email:</strong> {selectedVendor.email}
+                    <strong>Email:</strong> {singleVendor.email}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Phone:</strong> {selectedVendor.phoneNumber}
+                    <strong>Phone:</strong> {singleVendor.phoneNumber}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Address:</strong> {selectedVendor.address}
+                    <strong>Address:</strong> {singleVendor.address}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
-                    <strong>Zip Code:</strong> {selectedVendor.zipCode}
+                    <strong>Zip Code:</strong> {singleVendor.zipCode}
                   </Typography>
                 </CardContent>
               </Card>
@@ -408,7 +347,7 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
                   <Typography variant="h6">Vendor Avatar</Typography>
                   <Divider style={{ margin: "10px 0" }} />
                   <img
-                    src={selectedVendor.avatar?.url}
+                    src={singleVendor.avatar?.url}
                     alt="Vendor Avatar"
                     width="100"
                     height="100"
@@ -424,11 +363,11 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
                   <Divider style={{ margin: "10px 0" }} />
                   <Typography variant="body2">
                     <strong>Approved:</strong>{" "}
-                    {selectedVendor.isApproved ? "Yes" : "No"}
+                    {singleVendor.isApproved ? "Yes" : "No"}
                   </Typography>
                   <Typography variant="body2">
                     <strong>Blocked:</strong>{" "}
-                    {selectedVendor.isBlocked ? "Yes" : "No"}
+                    {singleVendor.isBlocked ? "Yes" : "No"}
                   </Typography>
                 </CardContent>
               </Card>
@@ -470,7 +409,7 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={openDeleteDialog}
-        onClose={handleCloseDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
@@ -479,7 +418,7 @@ const [selectedVendorId, setSelectedVendorId] = useState(null);
           <p>Are you sure you want to delete this vendor?</p>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="secondary">
+          <Button onClick={() => setOpenDeleteDialog(false)} color="secondary">
             Cancel
           </Button>
           <Button

@@ -2,14 +2,14 @@
 const mongoose = require("mongoose");
 const Vendor = require("../models/vendorModel");
 const Sale = require("../models/saleModel");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const expressAsyncHandler = require("express-async-handler");
 const cloudinary = require("../utils/cloudinary");
 const SubCategory = require("../models/subCategory");
 const SubSubCategory = require("../models/subSubCategory");
 const MainCategory = require("../models/mainCategory");
 
 // Create product
-const createSale = catchAsyncErrors(async (req, res, next) => {
+const createSale = expressAsyncHandler(async (req, res, next) => {
   console.log("BODY_DATA", req.body);
   console.log("Attributes Received:", req.body.attributes);
 
@@ -59,7 +59,7 @@ const createSale = catchAsyncErrors(async (req, res, next) => {
     // Upload images to cloudinary
     const images = await uploadImages(req.body.images);
     // Create product data
-    const SaleData = {
+    const saleData = {
       name: req.body.name,
       description: req.body.description,
       mainCategory: existingMainCategory.slug,
@@ -81,16 +81,12 @@ const createSale = catchAsyncErrors(async (req, res, next) => {
       images: images,
     };
 
-    // console.log("Sale_DATA", SaleData);
-
-    const Sale = await Sale.create(SaleData);
-
-    // console.log("PRODUCT_CREATED", Sale);
+    const sale = await Sale.create(saleData);
 
     res.status(201).json({
       success: true,
-      msg: "Sale created successfully",
-      Sale,
+      message: "Sale created successfully",
+      sale,
     });
   } catch (error) {
     console.error("ERROR_CREATING_Sale", error);
@@ -122,7 +118,7 @@ const uploadImages = async (images) => {
         url: result.secure_url,
       });
     } catch (uploadError) {
-      console.error("ERROR_UPLOADING_IMAGE", uploadError);
+      // console.error("ERROR_UPLOADING_IMAGE", uploadError);
       throw new Error("Error uploading image to Cloudinary.");
     }
   }
@@ -130,7 +126,7 @@ const uploadImages = async (images) => {
 };
 
 // Get all Sales
-const getAllSales = catchAsyncErrors(async (req, res) => {
+const getAllSales = expressAsyncHandler(async (req, res) => {
   try {
     const sales = await Sale.find().sort({ createdAt: -1 });
 
@@ -144,10 +140,9 @@ const getAllSales = catchAsyncErrors(async (req, res) => {
 });
 
 // Get all Sales of a store
-const getAllStoreSales = catchAsyncErrors(async (req, res) => {
+const getAllVendorSales = expressAsyncHandler(async (req, res) => {
   try {
     const sales = await Sale.find({ vendorId: req.params.id });
-    console.log(sales);
     res.status(201).json({
       success: true,
       sales,
@@ -155,11 +150,10 @@ const getAllStoreSales = catchAsyncErrors(async (req, res) => {
   } catch (error) {
     return res.status(400).json(error);
   }
-});
+}); 
 
 // Get a single Sale by ID
-const getSingleSale = catchAsyncErrors(async (req, res) => {
-  // console.log("Sale_ID:", req.params.id);
+const getSingleSale = expressAsyncHandler(async (req, res) => {
   try {
     const sale = await Sale.findById(req.params.id);
     if (!sale) {
@@ -175,12 +169,12 @@ const getSingleSale = catchAsyncErrors(async (req, res) => {
 });
 
 // Delete Sale of a store
-const deleteSale = catchAsyncErrors(async (req, res) => {
+const deleteSale = expressAsyncHandler(async (req, res) => {
   try {
-    const Sale = await Sale.findByIdAndDelete(req.params.id);
-    console.log("PRODUCT:", Sale);
+    const sale = await Sale.findByIdAndDelete(req.params.id);
+    // console.log("PRODUCT:", Sale);
 
-    if (!Sale) {
+    if (!sale) {
       return res.status(404).json({
         success: false,
         message: "Product not found",
@@ -196,10 +190,46 @@ const deleteSale = catchAsyncErrors(async (req, res) => {
   }
 });
 
+  // Update Sale
+  const updateSale = expressAsyncHandler(async (req, res) => {
+    console.log("ID", req.params.id)
+    const sale = await Sale.findById(req.params.id);
+    if (!sale) return res.status(404).json({ message: "Sale not found" });
+  
+    Object.assign(sale, req.body);
+    await sale.save();
+  
+    res.status(200).json({ message: "Sale updated successfully", sale });
+  });
+
+  // Get a single Sale for a Vendor
+const getSingleSaleByVendor = expressAsyncHandler(async (req, res) => {
+  try {
+    const sale = await Sale.findById(req.params.id);
+    if (!sale) {
+      return res.status(404).json({ message: "Sale not found" });
+    }
+
+    // Optional: Only allow vendor to view their own sale
+    if (sale.vendorId.toString() !== req.vendor._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to view this sale" });
+    }
+
+    res.status(200).json({
+      success: true,
+      sale,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: "Error fetching sale", error: error.message });
+  }
+});
+
 module.exports = {
   createSale,
-  getAllStoreSales,
+  getAllVendorSales,
   getAllSales,
   getSingleSale,
   deleteSale,
+  updateSale,
+  getSingleSaleByVendor
 };

@@ -3,7 +3,7 @@ import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import ProductCard from "@/components/product/ProductCard";
 
 
-const FlashSale = ({ sales }) => {
+const Sale = ({ sales }) => {
   const scrollRef = useRef(null);
 
   const scrollLeft = () => {
@@ -14,11 +14,13 @@ const FlashSale = ({ sales }) => {
     scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
   };
 
-  const currentDate = new Date();
-  const activeSales = sales?.filter(
-    (event) => new Date(event.endDate) > currentDate
-  );
-
+    // Destructure and Filter only those sales that have started AND not ended 
+    const now = new Date();
+    const activeSales = sales?.filter(({ saleStart, saleEnd }) =>
+      now >= new Date(saleStart) && now <= new Date(saleEnd)
+    );    
+  
+  console.log("activeSales", activeSales)
   return (
     <div className="container mx-auto px-2 md:px-4 py-2 relative max-w-[95%] lg:max-w-[90%]">
       <div className="flex flex-col lg990:flex-row justify-between items-start lg990:items-center mb-6">
@@ -101,7 +103,7 @@ const FlashSale = ({ sales }) => {
                 <ProductCard
                   product={sale}
                   isSale={true}
-                  saleEndDate={sale.endDate}
+                  saleEndDate={sale.saleEnd}
                 />
               </div>
             ))}
@@ -120,4 +122,4 @@ const FlashSale = ({ sales }) => {
   );
 };
 
-export default FlashSale;
+export default Sale;

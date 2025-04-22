@@ -6,24 +6,15 @@ import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 
 // Local imports (Redux slices and other components)
-import { createEvent } from "@/redux/slices/eventSlice";
+import { createSale } from "@/redux/slices/saleSlice";
 import { fetchCategories } from "@/redux/slices/categorySlice";
 import { fetchAllBrands } from "@/redux/slices/brandSlice";
-
 
 // Category-specific attributes
 const categoryAttributes = {
   clothing: ["size", "color", "material", "gender"],
   vehicles: ["model", "make", "year", "mileage", "fuelType"],
-  electronics: [
-    "model",
-    "warranty",
-    "condition",
-    "processor",
-    "memory",
-    "storage",
-    "display",
-  ],
+  electronics: [ "model", "warranty", "condition", "processor", "memory", "storage", "display" ],
   shoes: ["size", "color", "material", "gender"],
   property: ["propertyType", "location", "bedrooms", "bathrooms", "area"],
   content: ["author", "publisher", "genre", "format", "language"],
@@ -84,7 +75,6 @@ const CreateFlashSale = () => {
       const subCategoryObj = subcategories.find(
         (subcat) => subcat.slug === productData.subCategory
       );
-      console.log("subCategoryObj:", subCategoryObj); // Log here
       setSubSubcategories(subCategoryObj?.subsubcategories || []);
     } else {
       setSubSubcategories([]);
@@ -180,9 +170,9 @@ const CreateFlashSale = () => {
       newForm.append("images", url);
     });
     try {
-      const result = await dispatch(createEvent(newForm));
+      const result = await dispatch(createSale(newForm));
       console.log("Result of event creation:", result);
-      if (result.type === "events/createEvent/fulfilled") {
+      if (result.type === "sales/createSale/fulfilled") {
         toast.success("Sale created successfully!");
         router.push("/vendor/dashboard");
       } else {
@@ -196,7 +186,7 @@ const CreateFlashSale = () => {
   };
 
   return (
-    <div className="w-full bg-gray-100 p-4 rounded-md">
+    <div className="w-full p-4 md:p-8 min-h-screen">
       {/* Page Header */}
       <div className="w-full flex justify-between items-center mb-4">
         <h5 className="text-[24px] font-[500]">Create Sale Product</h5>

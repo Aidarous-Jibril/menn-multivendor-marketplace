@@ -1,8 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const User = require("../models/userModel");
 const createToken = require("../utils/createToken");
 const cloudinary = require("../utils/cloudinary");
 const validator = require("validator");
+const User = require("../models/userModel");
+const Notification = require("../models/notificationModel");
 
 const registerUser = asyncHandler(async (req, res) => {
   console.log(req.body)
@@ -41,14 +42,14 @@ const registerUser = asyncHandler(async (req, res) => {
 
     // Generate JWT token
     const token = createToken(res, user._id);
-
-    // Respond with success message and user data
-    res.status(201).json({
-      success: true,
-      user,
-      token,
-      message: "User registered successfully",
+    
+    // ✅ Create a notification for admins when new user registers
+    await Notification.create({
+      type: "new_user",
+      message: `👤 New user registered: ${name}`,
     });
+
+    res.status(201).json({ success: true, user, token, message: "User registered successfully" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error" });
@@ -114,6 +115,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 // Get user by user-id
 const getUser = asyncHandler(async (req, res) => {
   try {

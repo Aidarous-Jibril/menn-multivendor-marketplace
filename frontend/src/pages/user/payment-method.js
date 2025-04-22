@@ -1,25 +1,25 @@
+
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
-import ProfileSideBar from '@/components/profile/ProfileSideBar';
-import styles from '@/styles/styles';
 import PaymentMethod from '@/components/user/PaymentMethod';
+import ProfileSideBar from '@/components/user/layout/ProfileSideBar';
+import withUserAuth from '@/lib/withUserAuth';
 
 const PaymentMethodPage = () => {
-    const [active, setActive] = useState(8);
+  return (
+    <div className="flex flex-col h-screen">
+      <Header />
+      <div className="flex flex-1 overflow-hidden bg-gray-100">
+        <div className="w-[100px] 800px:w-[330px] bg-white  ">
+          <ProfileSideBar active={8} />
+        </div>
 
-    return (
-      <div>
-        <Header />
-        <div className={`${styles.section} flex bg-[#f5f5f5] py-10`}>
-          <div className='w-[50px] md:w-[335px]'>
-            <ProfileSideBar active={active} setActive={setActive} />
-          </div>
-          <div className="w-full">
-            <PaymentMethod active={active} />
-          </div>
+        <div className="flex-1 overflow-y-auto">
+        <PaymentMethod />
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
-export default PaymentMethodPage;
+export default withUserAuth(PaymentMethodPage);

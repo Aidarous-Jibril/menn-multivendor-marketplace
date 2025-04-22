@@ -206,12 +206,65 @@ export const updateVendorBankInfo = createAsyncThunk(
 );
 
 
+// Fetch notification count
+export const fetchVendorNotificationCount = createAsyncThunk(
+  "vendor/fetchVendorNotificationCount",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/vendors/notifications/count", { withCredentials: true });
+      return data.count;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch vendor notification count");
+    }
+  }
+);
+
+// Fetch all vendor notifications
+export const fetchVendorNotifications = createAsyncThunk(
+  "vendor/fetchVendorNotifications",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/vendors/notifications", { withCredentials: true });
+      console.log("DATA:", data)
+      return data.notifications;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to fetch vendor notifications");
+    }
+  }
+);
+
+// Mark vendor notification as read
+export const markVendorNotificationAsRead = createAsyncThunk(
+  "vendor/markVendorNotificationAsRead",
+  async (id, { rejectWithValue }) => {
+    try {
+      await axios.put(`/api/vendors/notifications/${id}/read`, {}, { withCredentials: true });
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to mark vendor notification as read");
+    }
+  }
+);
+// Delete vendor notification
+export const deleteVendorNotification = createAsyncThunk(
+  "vendor/deleteVendorNotification",
+  async (id, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/api/vendors/notifications/${id}`, { withCredentials: true });
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to delete vendor notification");
+    }
+  }
+);
 
 const initialState = {
   isLoading: false,
   vendorInfo: getVendorInfoFromLocalStorage(),
   error: null,
   vendorStatistics: {},
+  notificationCount: 0,
+  notifications: [],
   success: false,
 };
 
@@ -366,8 +419,25 @@ const vendorSlice = createSlice({
     .addCase(updateVendorBankInfo.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload;
-    });
-
+    })
+    .addCase(fetchVendorNotificationCount.fulfilled, (state, action) => {
+      state.notificationCount = action.payload;
+    })
+    .addCase(fetchVendorNotifications.fulfilled, (state, action) => {
+      state.notifications = action.payload;
+      state.notificationCount = action.payload.filter(n => !n.isRead).length;
+    })
+    .addCase(markVendorNotificationAsRead.fulfilled, (state, action) => {
+      const id = action.payload;
+      const idx = state.notifications.findIndex(n => n._id === id);
+      if (idx !== -1) state.notifications[idx].isRead = true;
+      state.notificationCount = state.notifications.filter(n => !n.isRead).length;
+    })    
+    .addCase(deleteVendorNotification.fulfilled, (state, action) => {
+      state.notifications = state.notifications.filter(n => n._id !== action.payload);
+      state.notificationCount = state.notifications.filter(n => !n.isRead).length;
+    })
+    
   },
 });
 

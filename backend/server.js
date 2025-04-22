@@ -105,6 +105,7 @@ const conversationRoutes = require("./routes/conversationRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const siteSettingRoutes = require("./routes/siteSettingRoutes");
 
 // Initialize database connection
 connectDB();
@@ -134,7 +135,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/categories', mainCategoryRoutes);
 app.use('/api/subcategories', subCategoryRoutes);
 app.use('/api/sub-subcategories', subSubCategoryRoutes);
-app.use('/api/sale', saleRoutes);
+app.use('/api/sales', saleRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/payment', stripePaymentRoutes);
@@ -142,6 +143,7 @@ app.use('/api/conversations', conversationRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use("/api/settings", siteSettingRoutes);
 
 // Start the server
 const PORT = process.env.PORT || 8000;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Header from '@/components/layout/Header';
-import ProfileSideBar from '@/components/profile/ProfileSideBar';
+import ProfileSideBar from '@/components/user/layout/ProfileSideBar';
 import styles from '@/styles/styles';
 import ChangePassword from '@/components/user/ChangePassword';
 

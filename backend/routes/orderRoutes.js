@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { getVendorOrders, getSingleOrder, updateOrderStatus, deleteOrder, createOrder, getUserOrders, refundOrder,} = require("../controllers/orderController");
+const { getVendorOrders, getSingleOrder, updateOrderStatus, deleteOrder, createOrder, getUserOrders, refundOrder, getVendorRefundedOrders,} = require("../controllers/orderController");
 const { isVendor, isAuthenticated } = require("../middleware/authMiddleware");
 
 router.post("/", createOrder);  
@@ -23,5 +23,6 @@ router.get("/user-orders/:userId", isAuthenticated, getUserOrders);
 // Requset Refund order
 router.put("/refund/:orderId", isAuthenticated, refundOrder);
 
+router.get("/vendor-refunds/:vendorId", isVendor, getVendorRefundedOrders);
 
 module.exports = router;

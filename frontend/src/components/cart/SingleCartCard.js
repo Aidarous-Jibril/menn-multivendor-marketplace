@@ -52,8 +52,8 @@ const decrement = () => {
         <Link href={`/vendor/dashboard/${data?.vendor?._id}`} className="flex items-center gap-2">
           {data?.vendor?.avatar?.url && (
             <Image
-              src={data.vendor.avatar.url}
-              alt={data.vendor.name}
+              src={data?.vendor.avatar.url}
+              alt={data?.vendor.name}
               width={30}
               height={30}
               className="rounded-full cursor-pointer"
@@ -61,7 +61,7 @@ const decrement = () => {
           )}
           <h3 className="text-gray-800 text-md font-semibold">
             <span className="hover:text-red-600 transition duration-300 cursor-pointer">
-              {data?.vendor.name}
+              {data?.vendor?.name}
             </span>
           </h3>
         </Link>

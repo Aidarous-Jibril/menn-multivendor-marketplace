@@ -100,7 +100,7 @@ const DashboardSideBar = ({ active }) => {
           </Link>
         </div>
         <div className="w-full flex items-center p-4">
-          <Link href="/vendor/flash-sales" className="w-full flex items-center">
+          <Link href="/vendor/sales" className="w-full flex items-center">
             <BsAlexa size={30} color={`${active === 5 ? "crimson" : "#555"}`} />
             <h5
               className={`pl-2 text-[18px] font-[400] ${

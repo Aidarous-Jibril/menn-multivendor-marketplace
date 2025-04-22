@@ -1,12 +1,17 @@
+// adminRoutes.js
 const express = require("express");
 const { isAdmin } = require("../middleware/authMiddleware"); 
+const path = require('path');
+const multer = require('multer');
 const {
      registerAdmin, 
     loginAdmin, 
     getAdminProfile,
+    updateAdminProfile,
+    logoutAdmin,
     getAllUsers, 
     getUserById,
-    editUser, 
+    updateUser, 
     deleteUser, 
     getAllVendors,
     getVendorById, 
@@ -15,8 +20,8 @@ const {
     blockVendor,
     unblockVendor,
     getAllProducts,
+    createProduct,
     getProductById,
-    approveProduct,
     editProduct,
     deleteProduct,
     getAllOrders,
@@ -51,19 +56,29 @@ const {
     getSaleById,
     updateSale,
     deleteSale,
+    adminRefundOrder,
+    updateAdminSecurity,
+    getAdminDashboardStats,
+    getWeeklyTrends,
+    getAdminNotificationCount,
+    getAdminNotifications,
+    markNotificationAsRead,
+    deleteAdminNotification,
  } = require("../controllers/adminController");
 
 const router = express.Router();
 
 // Admin
-router.post("/register", registerAdmin); 
+router.post('/register', registerAdmin);
 router.post("/login", loginAdmin);
 router.get("/profile", isAdmin, getAdminProfile); 
+router.put("/profile", isAdmin, updateAdminProfile);
+router.get("/logout", logoutAdmin);
 
 // User Management
 router.get("/users", isAdmin, getAllUsers);
 router.get("/users/:id", isAdmin, getUserById);
-router.put("/users/:id", isAdmin, editUser);
+router.put("/users/:id", isAdmin, updateUser);
 router.delete("/users/:id", isAdmin, deleteUser);
 
 // Vendor Management
@@ -83,10 +98,34 @@ router.put("/orders/:id", isAdmin, updateOrder);
 router.patch("/orders/:id/refund", isAdmin, refundOrder);
 router.delete("/orders/:id", isAdmin, deleteOrder);
 
+
+// Configure multer to use memory storage
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10 MB per file
+    fieldSize: 25 * 1024 * 1024, // 25 MB for text fields
+    files: 5, // Limit the number of files uploaded to 5
+  },
+  fileFilter: function (req, file, cb) {
+    const filetypes = /jpeg|jpg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only images are allowed (jpeg, jpg, png)'));
+    }
+  }
+});
+
+
 // Product Management
 router.get("/products", isAdmin, getAllProducts);
+router.post("/products", isAdmin, upload.array("images", 5), createProduct);
 router.get("/products/:id", isAdmin, getProductById);
-router.patch("/products/:id/approve", isAdmin, approveProduct);
+// router.patch("/products/:id/approve", isAdmin, approveProduct);
 router.put("/products/:id", isAdmin, editProduct);
 router.delete("/products/:id", isAdmin, deleteProduct);
 
@@ -119,11 +158,28 @@ router.put("/coupons/:id", isAdmin, updateCoupon);
 router.delete("/coupons/:id", isAdmin, deleteCoupon);
 
 // Sale Management
-router.post("/sales", isAdmin, createSale);
+router.post("/sales", isAdmin, upload.array("images", 5), createSale);
 router.get("/sales", isAdmin, getAllSales);
 router.get("/sales/:id", isAdmin, getSaleById);
 router.put("/sales/:id", isAdmin, updateSale);
 router.delete("/sales/:id", isAdmin, deleteSale);
+
+// Refund Management
+router.put("/orders/:id/refund", isAdmin, adminRefundOrder);
+router.put("/security", isAdmin, updateAdminSecurity);
+
+router.get("/dashboard", isAdmin, getAdminDashboardStats);
+
+router.get("/analytics/weekly-trends", getWeeklyTrends);
+
+// routes/adminRoutes.js
+router.get('/notifications/count', getAdminNotificationCount);
+
+//Notifications
+router.get("/notifications/count", getAdminNotificationCount);
+router.get("/notifications", getAdminNotifications);
+router.put("/notifications/:id/read", markNotificationAsRead);
+router.delete("/notifications/:id", isAdmin, deleteAdminNotification);
 
 module.exports = router;
 

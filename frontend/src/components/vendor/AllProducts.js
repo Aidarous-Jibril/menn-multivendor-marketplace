@@ -3,9 +3,9 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify"; 
 import { useDispatch, useSelector } from "react-redux"; 
 import { AiOutlineDelete, AiOutlineEye, AiOutlineEdit } from "react-icons/ai"; 
-import { Button, Tooltip } from "@mui/material"; 
+import { Button, Card, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, Typography } from "@mui/material"; 
 //Local Imports
-import { vendorDeleteProduct, vendorGetAllProducts, vendorUpdateProduct } from "../../redux/slices/productSlice"; 
+import { fetchVendorSingleProduct, vendorDeleteProduct, vendorGetAllProducts, vendorUpdateProduct } from "../../redux/slices/productSlice"; 
 import { fetchAllBrands } from "@/redux/slices/brandSlice"; 
 import { fetchCategories, fetchSubcategories, fetchSubSubcategories } from "@/redux/slices/categorySlice"; 
 import Loader from "./layout/Loader"; 
@@ -19,7 +19,7 @@ import ConfirmationModal from "../common/ConfirmationModal";
 const AllProducts = () => {
   const dispatch = useDispatch();
   const { vendorInfo } = useSelector((state) => state.vendors);
-  const { vendorProducts, isLoading } = useSelector((state) => state.products);
+  const { vendorProducts, product, isLoading } = useSelector((state) => state.products);
   const { brands } = useSelector((state) => state.brands);
   const { categories, subcategories, subSubcategories } = useSelector((state) => state.categories);
 
@@ -32,8 +32,9 @@ const AllProducts = () => {
   const [openEditModal, setOpenEditModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const [openDeleteModal, setOpenDeleteModal] = useState(false); // Modal state for delete
-  const [productToDelete, setProductToDelete] = useState(null); // Store product to delete
+  const [openDeleteModal, setOpenDeleteModal] = useState(false); 
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState(null); 
 
   const [updatedProduct, setUpdatedProduct] = useState({
     name: "",
@@ -151,14 +152,14 @@ const AllProducts = () => {
     setOpenDeleteModal(true);
   };
 
-    // Handle input changes
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setUpdatedProduct((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    };
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setUpdatedProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   useEffect(() => {
     if (vendorInfo?._id) {
@@ -209,6 +210,13 @@ const AllProducts = () => {
     }
   }, [mainCategory, subCategory, subSubCategory, selectedBrand, vendorProducts, searchQuery]);
 
+  /* ======= Handlers – Viewing Product Detailsn ======== */    
+  const handleViewProduct = async (productId) => {
+    console.log("ID", productId)
+      await dispatch(fetchVendorSingleProduct(productId));
+      setOpenViewModal(true);
+  };
+
   const columns = [
     { field: "id", headerName: "ID", minWidth: 150, flex: 1, renderCell: ({ row: { id } }) => `...${id.slice(-4)}` },
     { field: "name", headerName: "Name", minWidth: 180, flex: 1.4, renderCell: ({ row: { name } }) => `${name.slice(0, 8)}...` },
@@ -246,7 +254,6 @@ const AllProducts = () => {
         </div>
     ) },
   ];
-
   const rows = filteredProducts.map((item) => ({
     id: item._id,
     name: item.name,
@@ -265,9 +272,13 @@ const AllProducts = () => {
         <Loader />
       ) : (
         <div className="w-full p-4 md:p-8 rounded-md">
+          {/* Top */}
           <div className="flex items-center mb-6">
-            <h1 className="text-2xl font-semibold">Product List</h1>
-            <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">{vendorProducts?.length || 0}</span>
+            <i className="fas fa-percent text-2xl text-green-600 mr-2"></i>
+            <h1 className="text-2xl font-semibold">Products</h1>
+            <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
+              {vendorProducts?.length || 0}
+            </span>
           </div>
 
           {/* Filters */}
@@ -306,7 +317,7 @@ const AllProducts = () => {
           <EditProductModal
             open={openEditModal}
             onClose={closeEditModal}
-            product={updatedProduct}
+            data={updatedProduct}
             onInputChange={handleInputChange}
             onSave={handleUpdateProduct}
             selectedBrand={selectedBrand}
@@ -322,7 +333,119 @@ const AllProducts = () => {
             subcategories={subcategories}
             subSubcategories={subSubcategories}
           />
+        {/* View Product Modal */}
+          <Dialog
+            open={openViewModal}
+            onClose={()=>  setOpenViewModal(false)}
+            maxWidth="md"
+            fullWidth
+          >
+            <DialogTitle style={{ fontWeight: 'bold' }}>Product Details</DialogTitle>
+            <DialogContent>
+              {isLoading ? ( 
+                <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+                  <CircularProgress />
+                </div>
+              ) : product ? (
+                <div>
+                  {/* Product Information */}
+                  <Card style={{ marginBottom: "20px" }}>
+                    <CardContent>
+                      <Typography variant="h6">Product Name: {product.name}</Typography>
+                      <Divider style={{ margin: "10px 0" }} />
+                      <Typography variant="body2" color="textSecondary">
+                        <strong>Brand:</strong> {product.brand}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        <strong>Main Category:</strong> {product.mainCategory}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        <strong>Sub Category:</strong> {product.subCategory}
+                      </Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        <strong>Sub Sub Category:</strong> {product.subSubCategory}
+                      </Typography>
+                    </CardContent>
+                  </Card>
 
+                  {/* Vendor Information */}
+                  <Card style={{ marginBottom: "20px" }}>
+                    <CardContent>
+                      <Typography variant="h6">Vendor Information</Typography>
+                      <Divider style={{ margin: "10px 0" }} />
+                      <Typography variant="body2">
+                        <strong>Vendor Name:</strong> {product?.vendor?.name}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Vendor Address:</strong> {product?.vendor?.address}
+                      </Typography>
+                      <img src={product?.vendor?.avatar.url} alt="Vendor Avatar" width="50" height="50" style={{ borderRadius: "50%" }} />
+                    </CardContent>
+                  </Card>
+
+                  {/* Product Pricing and Stock */}
+                  <Card style={{ marginBottom: "20px" }}>
+                    <CardContent>
+                      <Typography variant="h6">Pricing & Stock</Typography>
+                      <Divider style={{ margin: "10px 0" }} />
+                      <Typography variant="body2">
+                        <strong>Original Price:</strong> ${product.originalPrice}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Discount Price:</strong> ${product.discountPrice}
+                      </Typography>
+                      <Typography variant="body2">
+                        <strong>Stock:</strong> {product.stock}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+
+                  {/* Product Images */}
+                  <Card style={{ marginBottom: "20px" }}>
+                    <CardContent>
+                      <Typography variant="h6">Product Images</Typography>
+                      <Divider style={{ margin: "10px 0" }} />
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        {product.images.map((img, index) => (
+                          <img key={index} src={img.url} alt={`Product Image ${index + 1}`} width="100" height="100" style={{ borderRadius: "5px" }} />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Product Reviews */}
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6">Product Reviews</Typography>
+                      <Divider style={{ margin: "10px 0" }} />
+                      {product.reviews.length > 0 ? (
+                        <ul>
+                          {product.reviews.map((review) => (
+                            <li key={review._id}>
+                              <Typography variant="body2">
+                                <strong>{review.user.name} ({review.rating} stars)</strong>
+                              </Typography>
+                              <Typography variant="body2">{review.comment}</Typography>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">No reviews yet.</Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              ) : (
+                <Typography variant="body2" color="textSecondary">Product details are not available.</Typography>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={()=>  setOpenViewModal(false)} color="secondary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+          
           {/* Confirmation Delete Modal */}
           <ConfirmationModal
             open={openDeleteModal}

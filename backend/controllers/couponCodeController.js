@@ -6,17 +6,6 @@ const createCouponCode = async (req, res) => {
   try {
     const { name, value, type, validityStart, validityEnd, status, selectedProducts, vendorId } = req.body;
 
-    console.log("Coupon Data:", {
-      name,
-      value,
-      type,
-      validityStart,
-      validityEnd,
-      status,
-      selectedProducts,
-      vendorId,
-    });
-
     // Validate fields
     if (!name || !value || !type || !validityStart || !validityEnd || !status || !selectedProducts || !vendorId) {
       return res.status(400).json({ message: "All fields are required" });
@@ -119,10 +108,8 @@ const updateCouponCode = async (req, res) => {
 
 // Get all coupon codes of a store
 const getAllCouponCodes = async (req, res) => {
-  // console.log("vendorId:",  req.params.vendorId)
   try {
     const coupons = await CouponCode.find({ vendorId: req.params.vendorId });
-    console.log("COUPONS:", coupons)
     if (!coupons.length) {
       return res.status(404).json({ success: false, message: "No coupons found for this vendor" });
     }

@@ -299,19 +299,12 @@ useEffect(() => {
 
           {/* Search Section */}
           <div className="mb-4">
-              <SearchProducts
-                searchQuery={searchQuery}
-                handleSearchChange={handleSearchChange}
-              />
-            </div>
+            <SearchProducts searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
+          </div>
             
           {/* Data Table */}
           <div className="bg-white p-6 rounded-lg shadow mb-6">
-            <ProductTable
-              rows={rows}
-              columns={columns}
-              getRowId={(row) => row.id}
-            />
+            <ProductTable rows={rows} columns={columns} getRowId={(row) => row.id} />
           </div>
         </div>
       )}

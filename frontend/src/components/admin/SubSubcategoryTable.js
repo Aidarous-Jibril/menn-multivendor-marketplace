@@ -23,6 +23,7 @@ import {
   updateSubSubcategory,
   deleteSubSubcategory,
 } from '@/redux/slices/adminSlice';
+import SearchProducts from '../common/SearchProducts';
 
 const SubSubCategoryTable = () => {
   const dispatch = useDispatch();
@@ -144,18 +145,19 @@ const SubSubCategoryTable = () => {
         return 'No SubCategory';
       },
     },
-    {
-      field: 'actions',
-      headerName: 'Actions',
+     {
+      field: "actions",
+      headerName: "ACTIONS",
+      minWidth: 200,
       flex: 1,
-      sortable: false,
       renderCell: (params) => (
-        <div className="flex gap-2">
+        <div style={{ paddingTop: "13px", display: "flex", justifyContent: "flex-start", gap: "10px", flexWrap: "wrap" }}
+        >
           <Tooltip title="Edit">
             <Button
-              size="small"
               variant="contained"
               color="primary"
+              size="small"
               onClick={() => handleOpenForm(params.row)}
             >
               <AiOutlineEdit size={16} />
@@ -163,9 +165,9 @@ const SubSubCategoryTable = () => {
           </Tooltip>
           <Tooltip title="Delete">
             <Button
-              size="small"
               variant="contained"
               color="error"
+              size="small"
               onClick={() => {
                 setSelectedId(params.row._id);
                 setDeleteDialogOpen(true);
@@ -194,13 +196,9 @@ const SubSubCategoryTable = () => {
         </Button>
       </div>
 
+      {/* Search */}
       <div className="mb-4">
-        <TextField
-          fullWidth
-          placeholder="Search by name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <SearchProducts searchQuery={searchQuery} handleSearchChange={(e) => setSearchQuery(e.target.value)}/>
       </div>
 
       <div className="bg-white p-4 rounded shadow">

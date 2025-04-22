@@ -78,7 +78,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
 
       res.status(201).json({
           success: true,
-          msg: "Product created successfully",
+          message: "Product created successfully",
           product,
       });
 
@@ -166,119 +166,11 @@ const uploadImages = async (images) => {
   return imagesLinks;
 };
 
-
-// const uploadImages = async (images) => {
-//   console.log("IMAGES:", images);
-
-//   if (!Array.isArray(images)) {
-//     throw new Error("Images should be an array of URLs, file paths, or Base64 strings.");
-//   }
-
-//   const imagesLinks = [];
-//   const allowedFormats = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.tiff'];
-
-//   for (let i = 0; i < images.length; i++) {
-//     let imagePath = images[i];
-
-//     // Check if the image is a Base64 string
-//     if (imagePath.startsWith("data:image")) {
-//       const base64Data = imagePath.split(",")[1]; // Extract the Base64 part
-//       const buffer = Buffer.from(base64Data, "base64"); // Decode Base64 to buffer
-
-//       try {
-//         // Resize the image using Sharp
-//         const resizedImagePath = `uploads/resized-${Date.now()}-${i}.jpeg`;
-//         await sharp(buffer)
-//           .resize(2600, 3400) 
-//           .jpeg({ quality: 90 }) 
-//           .toFile(resizedImagePath);
-
-//         // Upload the resized image to Cloudinary
-//         const result = await cloudinary.uploader.upload(resizedImagePath, {
-//           folder: "products",
-//         });
-
-//         imagesLinks.push({
-//           public_id: result.public_id,
-//           url: result.secure_url,
-//         });
-
-//         // Delete the local resized file
-//         fs.unlinkSync(resizedImagePath);
-//       } catch (error) {
-//         console.error("Error processing Base64 image", error);
-//         throw new Error("Error resizing or uploading Base64 image to Cloudinary.");
-//       }
-//     } else {
-//       // Handle regular URLs or file paths
-//       const fileExtension = path.extname(imagePath).toLowerCase();
-//       if (!allowedFormats.includes(fileExtension)) {
-//         throw new Error(`Unsupported file format: ${fileExtension}`);
-//       }
-
-//       try {
-//         const resizedImagePath = `uploads/resized-${Date.now()}-${i}.jpeg`;
-//         await sharp(imagePath)
-//           .resize(800, 800)
-//           .jpeg({ quality: 90 })
-//           .toFile(resizedImagePath);
-
-//         const result = await cloudinary.uploader.upload(resizedImagePath, {
-//           folder: "products",
-//         });
-
-//         imagesLinks.push({
-//           public_id: result.public_id,
-//           url: result.secure_url,
-//         });
-
-//         fs.unlinkSync(resizedImagePath);
-//       } catch (error) {
-//         console.error("Error processing image", error);
-//         throw new Error("Error resizing or uploading image to Cloudinary.");
-//       }
-//     }
-//   }
-
-//   return imagesLinks;
-// };
-
-
-// // Function to upload images to cloudinary
-// const uploadImages = async (images) => {
-//   console.log(" Upload Images function", images)
-//   if (!Array.isArray(images)) {
-//     throw new Error("Images should be an array of URLs or file paths.");
-//   }
-
-//   const imagesLinks = [];
-//   for (let i = 0; i < images.length; i++) {
-//     const imagePath = images[i]; // Expecting images[i] to be a string URL or file path
-//     if (typeof imagePath !== 'string') {
-//       throw new Error("Each image should be a URL or file path string.");
-//     }
-
-//     try {
-//       const result = await cloudinary.uploader.upload(imagePath, {
-//         folder: "products",
-//       });
-//       imagesLinks.push({
-//         public_id: result.public_id,
-//         url: result.secure_url,
-//       });
-//     } catch (uploadError) {
-//       console.error('ERROR_UPLOADING_IMAGE', uploadError);
-//       throw new Error('Error uploading image to Cloudinary.');
-//     }
-//   }
-//   return imagesLinks;
-// };
-
 // Get all products of a store
 const getVendorAllProducts = catchAsyncErrors(async (req, res) => {
+  const vendorId = req.params.vendorId;
+console.log("vendor ID", vendorId)
   try {
-    const vendorId = req.params.vendorId;
-
     if (!mongoose.Types.ObjectId.isValid(vendorId)) {
       return res.status(400).json({ message: "Invalid vendor ID" });
     }
@@ -348,7 +240,6 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
     if (!products) {
       return res.status(404).json({ message: "No products found" });
     }
-
     res.status(200).json({
       success: true,
       products,
@@ -360,7 +251,6 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
 
 // Get a single product by ID
 const getProductById = catchAsyncErrors(async (req, res) => {
-  console.log("ID:", req.params.id)
   try {
     const product = await Product.findById(req.params.id)
       .populate({
@@ -383,71 +273,39 @@ const getProductById = catchAsyncErrors(async (req, res) => {
 // Fetch products by subSubCategorySlug
 const getProductsBySubSubCategory = catchAsyncErrors(async (req, res) => {
   const { subSubCategory } = req.query;
+  console.log("subSubCategory is", subSubCategory)
+  // Use a regex for case-insensitive match and ignore hyphens/spaces if needed
+  const regex = new RegExp(subSubCategory.replace(/\s+/g, '[-\\s]?'), "i");
+  const products = await Product.find({ subSubCategory: regex });
+  
+  if (!products || products.length === 0) {
+    return res.status(200).json({ success: true, products: [] });
+  }
+  
+  res.status(200).json({ success: true, products });
+});
 
+// Get a single product for vendor dashboard
+const getVendorSingleProduct = catchAsyncErrors(async (req, res) => {
   try {
-    const products = await Product.find({ subSubCategory: new RegExp(`^${subSubCategory}$`, 'i') });
+    const product = await Product.findById(req.params.id);
 
-    if (!products || products.length === 0) {
-      return res.status(404).json({ message: "No products found in this sub-subcategory." });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    res.status(200).json({ success: true, products });
+    // Optional: Add check to ensure vendor is only accessing their own product
+    if (product.vendorId.toString() !== req.vendor.id.toString()) {
+      return res.status(403).json({ message: "Not authorized to access this product" });
+    }
+
+    res.status(200).json({ success: true, product });
   } catch (error) {
-    res.status(500).json({ message: "Server error fetching products." });
+    console.error("Error fetching vendor product:", error.message);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-// // Create product review
-// const createProductReview = catchAsyncErrors(async (req, res) => {
-//   console.log("req.body:", req.body);
-//   const { user, rating, comment, productId } = req.body;
-
-//   if (!rating) {
-//     return res.status(400).json({ message: "Rating is required" });
-//   }
-
-//   const product = await Product.findById(productId);
-//   if (!product) {
-//     product = await Sale.findById(productId); // Check in SaleProduct
-//   }
-// console.log("product:", product)
-//   if (product) {
-//     // Ensure reviews is initialized as an array if it's undefined
-//     if (!Array.isArray(product.reviews)) {
-//       product.reviews = [];
-//     }
-//     const alreadyReviewed = product.reviews.find(
-//       (r) => r.user._id.toString() === user._id
-//       // (r) => console.log("ReEVIEWS ID:", r.user._id)
-//     );
-
-//     if (alreadyReviewed) {
-//       return res.status(400).json({ message: "Product already reviewed" });
-//     }
-
-//     const review = {
-//       user,
-//       rating: Number(rating),
-//       comment,
-//       productId,
-//     };
-
-//     product.reviews.push(review);
-//     product.numReviews = product.reviews.length;
-
-//     // Calculate average rating
-//     product.rating =
-//       product.reviews.reduce((acc, item) => item.rating + acc, 0) /
-//       product.reviews.length;
-
-//     await product.save();
-//     return res
-//       .status(201)
-//       .json({ success: true, message: "Product reviewed successfully" });
-//   } else {
-//     return res.status(404).json({ message: "Product not found" });
-//   }
-// });
 
 const createProductReview = catchAsyncErrors(async (req, res) => {
   const { user, rating, comment, productId } = req.body;
@@ -506,6 +364,7 @@ module.exports = {
   getProductById,
   createProductReview,
   getProductsBySubSubCategory,
+  getVendorSingleProduct
 };
 
 

@@ -1,16 +1,82 @@
 const asyncHandler = require("express-async-handler");
 const Order = require("../models/orderModel");
+const Notification = require("../models/notificationModel");
+const VendorNotification = require("../models/vendorNotificationModel");
 
 // Create Order    
+// const createOrder = asyncHandler(async (req, res) => {
+//   console.log("Incoming Order Data:", req.body);  // Debugging line
+
+//   const { items, user, shippingAddress, totalPrice, status, paymentInfo } = req.body;
+
+//   try {
+//     const vendorOrdersMap = new Map();
+
+//     // Group order items by vendorId
+//     for (const item of items) {
+//       const vendorId = item.vendorId;
+//       if (!vendorOrdersMap.has(vendorId)) {
+//         vendorOrdersMap.set(vendorId, []);
+//       }
+//       vendorOrdersMap.get(vendorId).push(item);
+//     }
+
+//     const orders = [];
+//     // Create order for each vendor
+//     for (const [vendorId, vendorItems] of vendorOrdersMap) {
+//       const vendorTotalPrice = vendorItems.reduce(
+//         (acc, item) => acc + (item.price * item.quantity),
+//         0
+//       );
+
+//       const newOrder = new Order({
+//         items: vendorItems.map((item) => ({
+//           productId: item.productId,
+//           name: item.name,
+//           quantity: item.quantity,
+//           price: item.price,
+//         })),
+//         user,
+//         vendorId,
+//         shippingAddress,
+//         totalPrice: vendorTotalPrice,
+//         status,
+//         paymentInfo,
+//       });
+
+//       const savedOrder = await newOrder.save();
+//       orders.push(savedOrder);
+//     }
+//     // ✅ Create a notification for admins
+//     await Notification.create({
+//       type: "new_order",
+//       message: `📦 New order placed with ${items.length} item(s)!`,
+//     });
+//     await VendorNotification.create({
+//       vendor: vendorId,
+//       type: "new_order",
+//       message: `📦 You received a new order with ${itemCount} item(s)!`,
+//     });
+//     res.status(201).json({
+//       success: true,
+//       orders,
+//       message: "Orders created successfully",
+//     });
+//   } catch (error) {
+//     console.error("Order creation error:", error);
+//     res.status(500).json({ error: error.message });
+//   } 
+// });
+
 const createOrder = asyncHandler(async (req, res) => {
-  console.log("Incoming Order Data:", req.body);  // Debugging line
+  console.log("Incoming Order Data:", req.body);
 
   const { items, user, shippingAddress, totalPrice, status, paymentInfo } = req.body;
 
   try {
     const vendorOrdersMap = new Map();
 
-    // Group order items by vendorId
+    // Group items by vendorId
     for (const item of items) {
       const vendorId = item.vendorId;
       if (!vendorOrdersMap.has(vendorId)) {
@@ -20,10 +86,11 @@ const createOrder = asyncHandler(async (req, res) => {
     }
 
     const orders = [];
-    // Create order for each vendor
+
+    // Loop through each vendor and create separate orders + notifications
     for (const [vendorId, vendorItems] of vendorOrdersMap) {
       const vendorTotalPrice = vendorItems.reduce(
-        (acc, item) => acc + (item.price * item.quantity),
+        (acc, item) => acc + item.price * item.quantity,
         0
       );
 
@@ -44,7 +111,20 @@ const createOrder = asyncHandler(async (req, res) => {
 
       const savedOrder = await newOrder.save();
       orders.push(savedOrder);
+
+      // ✅ Create a notification for the vendor
+      await VendorNotification.create({
+        vendor: vendorId,
+        type: "new_order",
+        message: `📦 You received a new order with ${vendorItems.length} item(s)!`,
+      });
     }
+
+    // ✅ Create a single admin notification
+    await Notification.create({
+      type: "new_order",
+      message: `📦 New order placed with ${items.length} item(s)!`,
+    });
 
     res.status(201).json({
       success: true,
@@ -54,9 +134,8 @@ const createOrder = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Order creation error:", error);
     res.status(500).json({ error: error.message });
-  } 
+  }
 });
-
 
 // Get orders for a specific vendor
 const getVendorOrders = asyncHandler(async (req, res) => {
@@ -113,8 +192,15 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     order.status = status;
     await order.save();
 
-    res.status(200).json({ message: "Order status updated successfully", order });
-  } catch (error) {
+    const statusFormatted = status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+  
+    res.status(200).json({
+      message: `Order status updated to "${statusFormatted}"`,
+      order,
+    });
+    } catch (error) {
     console.error("Error occurred while updating order status:", error);
     res.status(500).json({ message: "Internal server error" });
   }
@@ -169,6 +255,12 @@ const refundOrder = asyncHandler(async (req, res) => {
     order.status = status;
     await order.save();
 
+    // ✅ Create a refund request notification for admin
+    await Notification.create({
+      type: "refund_request",
+      message: `💸 Refund requested for Order #${order._id}`,
+    });
+    
     res.status(200).json({
       success: true,
       message: "Order refund requested successfully",
@@ -180,6 +272,20 @@ const refundOrder = asyncHandler(async (req, res) => {
   }
 });
 
+// Get refunded orders for a specific vendor
+const getVendorRefundedOrders = asyncHandler(async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    const refundedOrders = await Order.find({
+      vendorId,
+      status: { $in: [ "refund_approved", "refund_rejected"] },
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, orders: refundedOrders });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch refunded orders", error: error.message });
+  }
+});
 
 
 module.exports = {
@@ -189,7 +295,8 @@ module.exports = {
   updateOrderStatus,
   deleteOrder,
   getUserOrders,
-  refundOrder
+  refundOrder,
+  getVendorRefundedOrders
 };
 
 

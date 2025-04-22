@@ -23,55 +23,56 @@ const SubCategoryPage = ({ categories, subSubcategories }) => {
           content={`Explore products in the ${subCategory ? subCategory.replace(/-/g, " ") : "Unknown Category"} category`}
         />
       </Head>
+      <div className="min-h-screen flex flex-col">
+        <Header categories={categories} />;
+        <div className="flex-grow py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
+          {/* Back to Subcategories Link */}
+          <Link href={`/category/${mainCategory}`} passHref legacyBehavior>
+            <a className="text-blue-600 hover:underline mb-4 inline-block">
+              &larr; Back to {currentSubCategory?.name || "previous category"}
+            </a>
+          </Link>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            {subCategory ? subCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
+          </h2>
 
-      <Header categories={categories} />;
-      <div className="py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
-        {/* Back to Subcategories Link */}
-        <Link href={`/category/${mainCategory}`} passHref legacyBehavior>
-          <a className="text-blue-600 hover:underline mb-4 inline-block">
-            &larr; Back to {currentSubCategory?.name || "previous category"}
-          </a>
-        </Link>
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          {subCategory ? subCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
-        </h2>
-
-        {subSubcategories?.length > 0 ? (
-          <div className="relative overflow-x-auto">
-            <div className="flex flex-nowrap gap-6 items-center justify-center md:justify-start">
-              {subSubcategories.map((subSubCat) => (
-                <div
-                  key={subSubCat._id}
-                  className="flex flex-col items-center text-center flex-shrink-0"
-                >
-                  <Link
-                    href={`/category/${mainCategory}/${subCategory}/${subSubCat.slug}`}
-                    passHref
-                    legacyBehavior
+          {subSubcategories?.length > 0 ? (
+            <div className="relative overflow-x-auto">
+              <div className="flex flex-nowrap gap-6 items-center justify-center md:justify-start">
+                {subSubcategories.map((subSubCat) => (
+                  <div
+                    key={subSubCat._id}
+                    className="flex flex-col items-center text-center flex-shrink-0"
                   >
-                    <a className="cursor-pointer">
-                      <div className="w-20 md:w-24 lg:w-32 h-20 md:h-24 lg:h-32 rounded-full bg-gray-100 overflow-hidden">
-                        <img
-                          src={
-                            subSubCat.imageUrl ||
-                            "https://via.placeholder.com/100"
-                          }
-                          alt={subSubCat.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <p className="text-sm my-4 truncate">{subSubCat.name}</p>
-                    </a>
-                  </Link>
-                </div>
-              ))}
+                    <Link
+                      href={`/category/${mainCategory}/${subCategory}/${subSubCat.slug}`}
+                      passHref
+                      legacyBehavior
+                    >
+                      <a className="cursor-pointer">
+                        <div className="w-20 md:w-24 lg:w-32 h-20 md:h-24 lg:h-32 rounded-full bg-gray-100 overflow-hidden">
+                          <img
+                            src={
+                              subSubCat.imageUrl ||
+                              "https://via.placeholder.com/100"
+                            }
+                            alt={subSubCat.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <p className="text-sm my-4 truncate">{subSubCat.name}</p>
+                      </a>
+                    </Link>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ) : (
-          <p className="text-center mt-4">No sub-subcategories available.</p>
-        )}
+          ) : (
+            <p className="text-center mt-4">No sub-subcategories available.</p>
+          )}
+        </div>
+        <Footer />
       </div>
-      <Footer />
     </>
   );
 };

@@ -1,24 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Tooltip,
-  CircularProgress,
-} from '@mui/material';
+import { Button,Dialog,DialogActions,DialogContent,DialogTitle,Tooltip,CircularProgress } from '@mui/material';
 import { createMainCategory, fetchCategories, updateMainCategory, deleteMainCategory } from '@/redux/slices/adminSlice';
 import { toast } from 'react-toastify';
 import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import EditProductModal from '../common/ProductEditModal';
 import ProductTable from '../common/ProductTable';
+import SearchProducts from '../common/SearchProducts';
 
 const CategoryTable = () => {
   const dispatch = useDispatch();
-  const { categories, loading, error } = useSelector((state) => state.admin); // Correct state path
+  const { categories, loading, } = useSelector((state) => state.admin);
 
   const [openFormModal, setOpenFormModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -27,11 +19,7 @@ const CategoryTable = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCategories, setFilteredCategories] = useState([]);
 
-  const [categoryData, setCategoryData] = useState({
-    name: '',
-    slug: '',
-    imageUrl: '',
-  });
+  const [categoryData, setCategoryData] = useState({ name: '', slug: '', imageUrl: '' });
 
   // Fetch categories when component mounts
   useEffect(() => {
@@ -107,24 +95,25 @@ const CategoryTable = () => {
       flex: 1,
       renderCell: (params) => (
         params.value ? (
-          <img src={params.value} alt="category" width="40" height="40" />
+          <img src={params.value} alt="category" width="50" height="50" />
         ) : (
           'No Image'
         )
       ),
     },
     {
-      field: 'actions',
-      headerName: 'Actions',
+      field: "actions",
+      headerName: "ACTIONS",
+      minWidth: 200,
       flex: 1,
-      sortable: false,
       renderCell: (params) => (
-        <div className="flex gap-2">
+        <div style={{ paddingTop: "13px", display: "flex", justifyContent: "flex-start", gap: "10px", flexWrap: "wrap" }}
+        >
           <Tooltip title="Edit">
             <Button
-              size="small"
               variant="contained"
               color="primary"
+              size="small"
               onClick={() => handleOpenForm(params.row)}
             >
               <AiOutlineEdit size={16} />
@@ -132,9 +121,9 @@ const CategoryTable = () => {
           </Tooltip>
           <Tooltip title="Delete">
             <Button
-              size="small"
               variant="contained"
               color="error"
+              size="small"
               onClick={() => {
                 setSelectedCategoryId(params.row._id);
                 setDeleteDialogOpen(true);
@@ -165,20 +154,13 @@ const CategoryTable = () => {
 
       {/* Search */}
       <div className="mb-4">
-        <TextField
-          fullWidth
-          placeholder="Search by name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <SearchProducts searchQuery={searchQuery} handleSearchChange={(e) => setSearchQuery(e.target.value)}/>
       </div>
 
       {/* Table */}
       <div className="bg-white p-4 rounded shadow">
         {loading ? (
-          <div className="flex justify-center items-center p-8">
-            <CircularProgress />
-          </div>
+          <div className="flex justify-center items-center p-8"> <CircularProgress /></div>
         ) : (
           <ProductTable rows={rows} columns={columns} />
         )}

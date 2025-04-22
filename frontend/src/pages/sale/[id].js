@@ -1,4 +1,4 @@
-// pages/flash-sale/[id].js
+// pages/sale/[id].js
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,7 +19,6 @@ const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
   const router = useRouter();
   const { id } = router.query;
   const dispatch = useDispatch();
-
   const { error } = useSelector((state) => state.products);
   const { cartItems } = useSelector((state) => state.cart);
   const { wishListItems } = useSelector((state) => state.wishList);
@@ -494,22 +493,62 @@ const ProductAttributes = ({ attributes }) => {
   );
 };
 
+// export async function getServerSideProps({ params }) {
+//   const { id } = params;
+//   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"; 
+
+//   try {
+//     const saleRes = await axios.get(`${baseURL}/api/sales/${id}`);
+//     const sale = saleRes?.data.sale;
+//     console.log("SALE logged in getServerSideProps:", sale)
+//     // Fetch similar products and vendor products in parallel
+//     const [similarProductsRes, vendorProductsRes] = await Promise.all([
+//       axios.get(`${baseURL}/api/products?subSubCategory=${sale.subSubCategory}`),
+//       axios.get(`${baseURL}/api/products/${sale.vendorId}/products`)
+//     ]);
+
+//     const similarProducts = similarProductsRes.data.products;
+//     const vendorProducts = vendorProductsRes.data.products;
+
+//     return {
+//       props: {
+//         sale,
+//         similarProducts,
+//         vendorProducts,
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Failed to fetch data:", error.message);
+//     return {
+//       notFound: true,
+//     };
+//   }
+// }
 export async function getServerSideProps({ params }) {
   const { id } = params;
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"; 
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   try {
-    const saleRes = await axios.get(`${baseURL}/api/events/${id}`);
+    // First, fetch the sale data
+    const saleRes = await axios.get(`${baseURL}/api/sales/${id}`);
     const sale = saleRes.data.sale;
-    // Fetch similar products and vendor products in parallel
-    const [similarProductsRes, vendorProductsRes] = await Promise.all([
+
+    if (!sale) {
+      return { notFound: true };
+    }
+
+    // Now fetch the other data using Promise.allSettled
+    const results = await Promise.allSettled([
       axios.get(`${baseURL}/api/products?subSubCategory=${sale.subSubCategory}`),
-      axios.get(`${baseURL}/api/products/${sale.vendorId}/products`)
+      axios.get(`${baseURL}/api/products?vendorId=${sale.vendorId}`)
     ]);
 
-    const similarProducts = similarProductsRes.data.products;
-    const vendorProducts = vendorProductsRes.data.products;
-
+    // Destructure the results; if a promise was rejected, fallback to an empty array
+    const similarProducts =
+      results[0].status === "fulfilled" ? results[0].value.data.products : [];
+    const vendorProducts =
+      results[1].status === "fulfilled" ? results[1].value.data.products : [];
+console.log("similarProducts:", similarProducts)
     return {
       props: {
         sale,
@@ -518,13 +557,11 @@ export async function getServerSideProps({ params }) {
       },
     };
   } catch (error) {
-    console.error("Failed to fetch data:", error.message);
+    console.error("Failed to fetch sale:", error.message);
     return {
       notFound: true,
     };
   }
 }
-
 export default FlashProductDetails;
-
 

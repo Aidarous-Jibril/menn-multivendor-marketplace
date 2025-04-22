@@ -8,7 +8,7 @@ import { Button, Card, CardContent, CircularProgress, Dialog, DialogActions, Dia
 import { toast } from "react-toastify";
 
 // Redux state slices (Local imports)
-import { fetchAllProducts, updateProduct, deleteProduct, fetchSingleProduct } from "@/redux/slices/adminSlice";
+import { fetchAllProducts, updateProduct, deleteProduct, fetchSingleProduct, fetchAllVendors, createProduct } from "@/redux/slices/adminSlice";
 import { fetchAllBrands } from "@/redux/slices/brandSlice";
 import { fetchCategories, fetchSubcategories, fetchSubSubcategories } from "@/redux/slices/categorySlice";
 
@@ -19,15 +19,16 @@ import FilterProducts from "../common/FilterProducts";
 import SearchProducts from "../common/SearchProducts";
 import Loader from "../vendor/layout/Loader";
 import ConfirmationModal from "../common/ConfirmationModal";
+import CreateItemModal from "../common/CreateItemModal";
 
 
 const AllProductsTable = () => {
   const dispatch = useDispatch();
 
   /* ============ Redux State Selectors ============ */
-  const { singleProduct, products, isLoading } = useSelector( (state) => state.admin);
+  const { singleProduct, vendors, products, isLoading } = useSelector( (state) => state.admin);
   const { brands } = useSelector((state) => state.brands);
-  const { categories, subcategories, subSubcategories } = useSelector( (state) => state.categories );
+  const { categories, subcategories, subSubcategories, } = useSelector( (state) => state.categories );
 
   /* ============ Local State ============ */
   // Filtering & Search
@@ -59,12 +60,33 @@ const AllProductsTable = () => {
     subSubCategory: "",
   });
 
+
+  // Local State for Creating a New Product
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: "",
+    description: "",
+    mainCategory: "",
+    subCategory: "",
+    subSubCategory: "",
+    brand: "",
+    originalPrice: 0,
+    discountPrice: 0,
+    stock: 0,
+    vendorId: "", // Admin selects vendor from a dropdown (or default value)
+    isFeatured: false,
+    images: [],
+    attributes: {}
+  });
+
+
     /* ============ Effects: Fetching Data =========== */    
   // On mount, fetch products, categories, and brands
   useEffect(() => {
     dispatch(fetchAllProducts());
     dispatch(fetchCategories());
     dispatch(fetchAllBrands());
+    dispatch(fetchAllVendors());
   }, [dispatch]);
 
   // When mainCategory changes, fetch subcategories
@@ -177,6 +199,19 @@ const AllProductsTable = () => {
     }));
   };
 
+  // for attributes
+  const handleNewProductAttributeChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct((prev) => ({
+      ...prev,
+      attributes: {
+        ...prev.attributes,
+        [name]: value,
+      },
+    }));
+  };
+  
+  // Update Product
   const handleUpdateProduct = async () => {
     if (!subCategory || !subSubCategory) {
       return toast.error(`Please select ${!subCategory ? "Sub-Category" : "Sub-Sub Category"} before updating.`);
@@ -210,6 +245,54 @@ const AllProductsTable = () => {
     }
   };
 
+/* ============ Handlers – Creating New Product =========== */
+  const handleNewProductInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // For image input
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setNewProduct((prev) => ({ ...prev, images: files }));
+  };
+  
+const handleCreateProduct = async () => {
+  const formData = new FormData();
+
+  // For everything except images
+  Object.keys(newProduct).forEach((key) => {
+    if (key !== "images") {
+      if (key === "attributes") {
+        formData.append(key, JSON.stringify(newProduct[key])); 
+      } else {
+        formData.append(key, newProduct[key]);
+      }
+    }
+  });
+
+  // For images
+  newProduct.images.forEach((file) => {
+    formData.append("images", file);
+  });
+
+  try {
+    const result = await dispatch(createProduct(formData));
+    if (result.type === "admin/createProduct/fulfilled") {
+      toast.success("Product created successfully!");
+      setOpenCreateModal(false);
+      dispatch(fetchAllProducts());
+    } else {
+      toast.error("Failed to create product.");
+    }
+  } catch (error) {
+    console.error("Error creating product:", error);
+    toast.error("An unexpected error occurred.");
+  }
+};
 
   /* ============  Handlers – Deletion =========== */    
   const handleDelete = async () => {
@@ -236,28 +319,22 @@ const AllProductsTable = () => {
 
   /* ============  Handlers – Viewing Product Detailsn =========== */    
   const handleViewProduct = async (productId) => {
-    try {
       await dispatch(fetchSingleProduct(productId));
       setOpenViewModal(true);
-    } catch (error) {
-      toast.error("Failed to fetch product details.");
-    }
-  };
-
-  const handleCloseViewModal = () => {
-    setOpenViewModal(false);
   };
 
   /* ============ Table Configuration =========== */    
+  // Helper function to capitalize first letter
+  const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const columns = [
     { field: "id", headerName: "ID", minWidth: 150, flex: 1, renderCell: ({ row: { id } }) => `...${id.slice(-4)}` },
     { field: "name", headerName: "Name", minWidth: 180, flex: 1.4, renderCell: ({ row: { name } }) => `${name.slice(0, 8)}...` },
     { field: "brand", headerName: "Brand", minWidth: 130, flex: 0.6 },
     { field: "price", headerName: "U-Price", minWidth: 100, flex: 0.6, renderCell: ({ row: { originalPrice, discountPrice } }) => discountPrice ? `US$ ${discountPrice}` : `US$ ${originalPrice}` },
     { field: "stock", headerName: "Stock", type: "number", minWidth: 80, flex: 0.5 },
-    { field: "category", headerName: "Category", minWidth: 180, flex: 1.4, renderCell: ({ row: { mainCategory } }) => `${mainCategory.slice(0, 8)}...` },
-    { field: "subcat", headerName: "Subcat", minWidth: 180, flex: 1.4, renderCell: ({ row: { subCategory } }) => `${subCategory.slice(0, 8)}...` },
-    { field: "subSubcat", headerName: "SubSubcat", minWidth: 180, flex: 1.4, renderCell: ({ row: { subSubCategory } }) => `${subSubCategory.slice(0, 8)}...` },
+    { field: "category", headerName: "Category", minWidth: 180, flex: 1.4, renderCell: ({ row: { mainCategory } }) => `${capitalize(mainCategory)}` },
+    { field: "subcat", headerName: "Subcat", minWidth: 180, flex: 1.4, renderCell: ({ row: { subCategory } }) => `${capitalize(subCategory)}` },
+    { field: "subSubcat", headerName: "SubSubcat", minWidth: 180, flex: 1.4, renderCell: ({ row: { subSubCategory } }) => `${capitalize(subSubCategory)}` },
     {
       field: "actions",
       headerName: "Actions",
@@ -303,9 +380,16 @@ const AllProductsTable = () => {
         <Loader />
       ) : (
         <div className="w-full p-4 md:p-8 rounded-md">
-          <div className="flex items-center mb-6">
-            <h1 className="text-2xl font-semibold">Product List</h1>
-            <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">{products?.length || 0}</span>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-semibold">Product List</h1>
+              <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                {products?.length || 0}
+              </span>
+            </div>
+            <Button variant="contained" color="primary" onClick={() => setOpenCreateModal(true)}>
+              Create Product
+            </Button>
           </div>
 
           {/* Filters */}
@@ -360,10 +444,33 @@ const AllProductsTable = () => {
             subcategories={subcategories}
             subSubcategories={subSubcategories}
           />
+
+            {/* Create Product Modal */}
+            <CreateItemModal
+              open={openCreateModal}
+              onClose={() => setOpenCreateModal(false)}
+              newItem={newProduct}
+              onInputChange={handleNewProductInputChange}
+              onAttributeChange={handleNewProductAttributeChange}
+              onSave={handleCreateProduct}
+              selectedBrand={selectedBrand}
+              categories={categories}
+              subcategories={subcategories}
+              subSubcategories={subSubcategories}
+              brands={brands}
+              vendors={vendors}  // Vendors array passed here
+              handleCategoryChange={handleCategoryChange}
+              handleSubCategoryChange={handleSubCategoryChange}
+              handleSubSubCategoryChange={handleSubSubCategoryChange}
+              handleBrandChange={handleBrandChange}
+              handleFileChange={handleFileChange}
+              isSale={false}  // Normal product creation
+            />
+
         {/* View Product Modal */}
           <Dialog
             open={openViewModal}
-            onClose={handleCloseViewModal}
+            onClose={()=>  setOpenViewModal(false)}
             maxWidth="md"
             fullWidth
           >
@@ -401,12 +508,12 @@ const AllProductsTable = () => {
                       <Typography variant="h6">Vendor Information</Typography>
                       <Divider style={{ margin: "10px 0" }} />
                       <Typography variant="body2">
-                        <strong>Vendor Name:</strong> {singleProduct.vendor.name}
+                        <strong>Vendor Name:</strong> {singleProduct?.vendor?.name}
                       </Typography>
                       <Typography variant="body2">
-                        <strong>Vendor Address:</strong> {singleProduct.vendor.address}
+                        <strong>Vendor Address:</strong> {singleProduct?.vendor?.address}
                       </Typography>
-                      <img src={singleProduct.vendor.avatar.url} alt="Vendor Avatar" width="50" height="50" style={{ borderRadius: "50%" }} />
+                      <img src={singleProduct?.vendor?.avatar.url} alt="Vendor Avatar" width="50" height="50" style={{ borderRadius: "50%" }} />
                     </CardContent>
                   </Card>
 
@@ -467,7 +574,7 @@ const AllProductsTable = () => {
               )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseViewModal} color="secondary">
+              <Button onClick={()=>  setOpenViewModal(false)} color="secondary">
                 Close
               </Button>
             </DialogActions>

@@ -10,6 +10,8 @@ import { toast } from "react-toastify";
 // Local imports
 import { updateOrderStatus, fetchVendorOrders, fetchSingleOrder, deleteOrder } from "../../redux/slices/orderSlice";
 import Loader from "./layout/Loader";
+import SearchProducts from "../common/SearchProducts";
+import ProductTable from "../common/ProductTable";
 
 //for order details modal
 const style = {
@@ -74,15 +76,12 @@ const AllOrdersTable = () => {
       } else {
         toast.error("Failed to delete order.");
       }
-      setOpenDeleteDialog(false); // Close the dialog after the delete operation
+      setOpenDeleteDialog(false); 
     } catch (error) {
       toast.error("An error occurred while deleting the order.");
     }
   };
 
-  const handleCloseDeleteDialog = () => {
-    setOpenDeleteDialog(false);
-  };
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -207,7 +206,7 @@ const AllOrdersTable = () => {
       {isLoading ? (
         <Loader />
       ) : (
-        <div className="w-full bg-white p-4 rounded-md">
+        <div className="w-full bg-gray-100 p-4 md:p-8 rounded-md">
           <div className="flex items-center mb-6">
             <i className="fas fa-box-open text-2xl text-orange-500 mr-2"></i>
             <h1 className="text-2xl font-semibold">Orders List</h1>
@@ -216,41 +215,14 @@ const AllOrdersTable = () => {
             </span>
           </div>
 
-          {/* Search Section */}
-          <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search by Customer Name or Order ID"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
+          {/* Search */}
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <SearchProducts searchQuery={searchQuery} handleSearchChange={handleSearchChange} />
           </div>
 
-          {/* Data Table Section */}
+          {/* Table */}
           <div className="bg-white p-6 rounded-lg shadow mb-6">
-            <div style={{ height: "400px", width: "100%" }}>
-              <DataGrid
-                rows={rows}
-                columns={columns}
-                autoHeight
-                rowHeight={60}
-                disableSelectionOnClick
-                pageSizeOptions={[5, 10, 20]}
-                rowsPerPageOptions={[5, 10, 20]}
-                className="data-grid"
-                style={{ overflowX: "auto" }} // Enable horizontal scrolling if needed
-                sx={{
-                  "& .MuiDataGrid-columnHeaders": {
-                    backgroundColor: "#ADD8E6", // Light blue color
-                  },
-                  "& .MuiDataGrid-columnHeaderTitle": {
-                    fontWeight: "bold",
-                    fontSize: "1rem",
-                  },
-                }}
-              />
-            </div>
+            <ProductTable rows={rows} columns={columns} />
           </div>
         </div>
       )}
@@ -424,7 +396,7 @@ const AllOrdersTable = () => {
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={openDeleteDialog}
-        onClose={handleCloseDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
@@ -433,7 +405,7 @@ const AllOrdersTable = () => {
           <p>Are you sure you want to delete this order?</p>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="secondary">
+          <Button onClick={() => setOpenDeleteDialog(false)} color="secondary">
             Cancel
           </Button>
           <Button onClick={handleDeleteUser} color="error" variant="contained">

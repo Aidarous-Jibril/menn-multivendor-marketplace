@@ -14,7 +14,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     if (adminInfo) {
-      router.push("/admin"); 
+      router.push("/admin/dashboard"); 
     }
   }, [adminInfo, router]);
 

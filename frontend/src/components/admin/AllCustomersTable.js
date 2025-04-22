@@ -3,26 +3,27 @@ import React, { useEffect, useState } from "react";
 // Third-party library imports
 import { AiOutlineDelete, AiOutlineEye, AiOutlineEdit } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Tooltip } from "@mui/material";
+import { Button, Card, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, Typography } from "@mui/material";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 
 // Local imports
 import Loader from "../vendor/layout/Loader";
-import { fetchAllUsers, editUser, deleteUser, fetchUserOrders } from "@/redux/slices/adminSlice";
+import { fetchAllUsers, updateUser, deleteUser, fetchUserOrders,} from "@/redux/slices/adminSlice";
 import ProductTable from "../common/ProductTable";
 import EditProductModal from "../common/ProductEditModal";
+import SearchProducts from "../common/SearchProducts";
 
 const AllCustomersTable = () => {
   const dispatch = useDispatch();
-  const { isLoading, error, adminInfo, users } = useSelector((state) => state.admin);
+  const { isLoading, error, adminInfo, users, userOrders } = useSelector((state) => state.admin);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false); 
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [updatedUser, setUpdatedUser] = useState({ name: "", email: "", phoneNumber: "", addresses: [] });
+  const [openOrdersModal, setOpenOrdersModal] = useState(false);
 
   useEffect(() => {
     if (adminInfo) {
@@ -36,7 +37,6 @@ const AllCustomersTable = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Filter by user name, id and email
   useEffect(() => {
     const lowerCaseQuery = searchQuery.toLowerCase();
     const filtered = users.filter((user) => 
@@ -61,7 +61,6 @@ const AllCustomersTable = () => {
 
   const handleEditModalClose = () => {
     setOpenEditModal(false);
-    setSelectedUser(null);
   };
 
   const handleInputChange = (e) => {
@@ -83,9 +82,9 @@ const AllCustomersTable = () => {
   };
 
   const handleEditSubmit = async () => {
-    const result = await dispatch(editUser({ id: selectedUser.id, updatedUser }));
+    const result = await dispatch(updateUser({ id: selectedUser.id, updatedUser }));
 
-    if (result.type === "admin/editUser/fulfilled") {
+    if (result.type === "admin/updateUser/fulfilled") {
       toast.success(result.payload.message || "User updated!");
     } else {
       toast.error("User update failed.");
@@ -109,10 +108,9 @@ const AllCustomersTable = () => {
     setOpenDeleteDialog(false);
   };
 
-  const handleCloseDeleteDialog = () => setOpenDeleteDialog(false);
   const handleViewUserOrders = (userId) => {
     dispatch(fetchUserOrders(userId));
-    setOpenModal(true);
+    setOpenOrdersModal(true);
   };
 
   const columns = [
@@ -205,13 +203,7 @@ const AllCustomersTable = () => {
 
           {/* Search Section */}
           <div className="mb-4">
-            <input
-              type="text"
-              placeholder="Search by Name or ID"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="w-full p-2 border border-gray-300 rounded"
-            />
+            <SearchProducts searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
           </div>
 
           {/* Data Table */}
@@ -221,6 +213,76 @@ const AllCustomersTable = () => {
         </div>
       )}
       
+      {/* User's orders Modal */}
+      <Dialog open={openOrdersModal} onClose={() => setOpenOrdersModal(false)} maxWidth="lg" fullWidth>
+      <DialogTitle style={{ fontWeight: "bold" }}>Orders by {userOrders?.[0]?.user?.name || ""}</DialogTitle>
+        <DialogContent>
+          {isLoading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
+              <CircularProgress />
+            </div>
+          ) : userOrders?.length > 0 ? (
+            userOrders.map((order) => (
+              <Card key={order._id} style={{ marginBottom: "20px" }}>
+                <CardContent>
+                  {/* Order Header */}
+                  <Typography variant="h6">Order #{order._id}</Typography>
+                  <Divider style={{ margin: "10px 0" }} />
+
+                  {/* Shipping Address */}
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Shipping Address
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Name:</strong> {order.shippingAddress.fullName}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Address:</strong> {order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.postalCode}, {order.shippingAddress.country}
+                  </Typography>
+                  <Divider style={{ margin: "15px 0" }} />
+
+                  {/* Order Info */}
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Order Summary
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Status:</strong> {order.status}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Total Price:</strong> ${order.totalPrice}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Created At:</strong> {format(new Date(order.createdAt), "PPP p")}
+                  </Typography>
+                  <Divider style={{ margin: "15px 0" }} />
+
+                  {/* Payment Info */}
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+                    Payment Information
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Method:</strong> {order.paymentInfo?.method || "N/A"}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Status:</strong> {order.paymentInfo?.status || "N/A"}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Typography>No orders found for this user.</Typography>
+          )}
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setOpenOrdersModal(false)} color="primary" variant="contained">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+
+
       {/* Edit User Modal */}
       <EditProductModal
         open={openEditModal}
@@ -232,11 +294,11 @@ const AllCustomersTable = () => {
       />
       
       {/* Delete Confirmation Dialog */}
-      <Dialog open={openDeleteDialog} onClose={handleCloseDeleteDialog}>
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
         <DialogTitle>Confirm Deletion</DialogTitle>
         <DialogContent>Are you sure you want to delete this user?</DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="secondary">Cancel</Button>
+          <Button onClick={() => setOpenDeleteDialog(false)} color="secondary">Cancel</Button>
           <Button onClick={handleDeleteUser} color="error" variant="contained">Delete</Button>
         </DialogActions>
       </Dialog>

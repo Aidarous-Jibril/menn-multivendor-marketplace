@@ -62,7 +62,6 @@ export const vendorDeleteProduct = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     try {
       const { data } = await axios.delete(`/api/products/${id}`, { withCredentials: true });
-      // return data.message;
       return id;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -73,7 +72,6 @@ export const vendorDeleteProduct = createAsyncThunk(
 export const vendorUpdateProduct = createAsyncThunk(
   'products/vendorUpdateProduct',
   async (payload, { rejectWithValue }) => {
-    console.log("PAYLOAD", payload)
     try {
       const { data } = await axios.put(
         `/api/products/update-product/${payload.id}`,
@@ -83,6 +81,19 @@ export const vendorUpdateProduct = createAsyncThunk(
       return data;  
     } catch (error) {
       return rejectWithValue(error.response.data.message);
+    }
+  }
+);
+export const fetchVendorSingleProduct = createAsyncThunk(
+  "products/fetchVendorSingleProduct",
+  async (productId, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`/api/products/vendor/product/${productId}`, {
+        withCredentials: true,
+      });
+      return data.product;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch product");
     }
   }
 );
@@ -230,7 +241,19 @@ const productSlice = createSlice({
       .addCase(createProductReview.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload || "An error occurred while submitting the review.";
-      });
+      })
+      .addCase(fetchVendorSingleProduct.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchVendorSingleProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.product = action.payload;
+      })
+      .addCase(fetchVendorSingleProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      
 
   },
 });

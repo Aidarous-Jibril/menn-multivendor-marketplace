@@ -1,7 +1,9 @@
+//saleRoutes.js
 const express = require('express');
 const router = express.Router();
-const { createSale, getAllStoreSales, deleteSale, getAllSales, getSingleSale } = require('../controllers/SaleController');
 const multer = require('multer');
+const { createSale, getAllVendorSales, getAllSales, getSingleSale, deleteSale, updateSale, getSingleSaleByVendor } = require('../controllers/saleController');
+const { isVendor } = require('../middleware/authMiddleware');
 
 // Multer configuration
 const storage = multer.diskStorage({
@@ -12,19 +14,14 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage, limits: { fieldSize: 25 * 1024 * 1024 } });
 
-// Route for creating an Sale
-router.post('/create-Sale', upload.array("images"), createSale);
 
-// Route for fetching all Sales of a store
-router.get('/vendor/:id', getAllStoreSales); // Fetch all Sales by store ID
-
-// Route for fetching all Sales
+router.post('/create-sale', isVendor, upload.array("images"), createSale);
+router.get('/vendor/:id', isVendor, getAllVendorSales); 
 router.get('/', getAllSales);
+router.get('/:id', getSingleSale); // Fetch single Sale by ID for user
+router.delete('/sale/:id', isVendor, deleteSale); 
+router.put('/sale/:id', isVendor, updateSale);
+router.get('/vendor-sale/:id', isVendor, getSingleSaleByVendor); 
 
-// Route for fetching a single Sale
-router.get('/:id', getSingleSale); // Fetch single Sale by ID
-
-// Route for deleting an Sale
-router.delete('/Sale/:id', deleteSale); // Delete Sale by ID
 
 module.exports = router;

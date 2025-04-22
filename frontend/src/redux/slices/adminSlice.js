@@ -1,4 +1,3 @@
-// src/redux/slices/adminSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -14,6 +13,25 @@ const getAdminInfoFromStorage = () => {
   return null;
 };
 
+// Thunk for admin registration
+export const registerAdmin = createAsyncThunk(
+  'admin/registerAdmin',
+  async (adminData, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: { 'Content-Type': 'application/json' },
+        withCredentials: true,
+      };
+      const { data } = await axios.post('/api/admin/register', adminData, config);
+      if (isBrowser()) {
+        localStorage.setItem("adminInfo", JSON.stringify(data.admin));
+      }
+      return data.admin;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
 // Admin Login
 export const loginAdmin = createAsyncThunk(
   "admin/loginAdmin",
@@ -49,7 +67,7 @@ export const logoutAdmin = createAsyncThunk(
   }
 );
 
-// -------------- USER ACTIONS --------------
+// ---------- USER ACTIONS ----------
 // Fetch All Users
 export const fetchAllUsers = createAsyncThunk(
   "admin/fetchAllUsers",
@@ -66,11 +84,10 @@ export const fetchAllUsers = createAsyncThunk(
     }
   }
 );
-// Edit User
-export const editUser = createAsyncThunk(
-  "admin/editUser",
+// Update User
+export const updateUser = createAsyncThunk(
+  "admin/updateUser",
   async ({ id, updatedUser }, { rejectWithValue }) => {
-    console.log("updatedUser", updatedUser);
     try {
       const { data } = await axios.put(`/api/admin/users/${id}`, updatedUser, {
         withCredentials: true,
@@ -103,10 +120,12 @@ export const deleteUser = createAsyncThunk(
 export const fetchUserOrders = createAsyncThunk(
   "admin/fetchUserOrders",
   async (userId, { rejectWithValue }) => {
+    console.log("userId:", userId)
     try {
       const { data } = await axios.get(`/api/admin/orders/user/${userId}`, {
         withCredentials: true,
       });
+      console.log("DATA:", data)
       return data; // Return the orders data
     } catch (error) {
       return rejectWithValue(
@@ -116,7 +135,7 @@ export const fetchUserOrders = createAsyncThunk(
   }
 );
 
-// -------------- VENDOR ACTIONS --------------
+// ---------- VENDOR ACTIONS ----------
 // Fetch all vendors
 export const fetchAllVendors = createAsyncThunk(
   "admin/fetchAllVendors",
@@ -125,8 +144,7 @@ export const fetchAllVendors = createAsyncThunk(
       const { data } = await axios.get("/api/admin/vendors", {
         withCredentials: true,
       });
-      console.log("vendors:", data);
-      return data;
+      return data.vendors;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch vendors"
@@ -139,11 +157,10 @@ export const fetchVendorById = createAsyncThunk(
   "admin/fetchVendorById",
   async (vendorId, { rejectWithValue }) => {
     try {
-      console.log("VENDOR ID:", vendorId);
       const { data } = await axios.get(`/api/admin/vendors/${vendorId}`, {
         withCredentials: true,
       });
-      return data; // Return vendor data
+      return data.vendor; // Return vendor data
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch vendor"
@@ -167,7 +184,6 @@ export const updateVendor = createAsyncThunk(
     }
   }
 );
-
 // Block Vendor
 export const blockVendor = createAsyncThunk(
   "admin/blockVendor",
@@ -209,14 +225,15 @@ export const unblockVendor = createAsyncThunk(
   }
 );
 
-// -------------- ORDER ACTIONS --------------
+// ---------- ORDER ACTIONS ----------
 // Fetch all orders
 export const fetchOrders = createAsyncThunk(
   "admin/fetchOrders",
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await axios.get("/api/admin/orders");
-      return data;
+      console.log("ORDERS:", data)
+      return data.orders;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
     }
@@ -288,7 +305,25 @@ export const refundOrder = createAsyncThunk(
     }
   }
 );
-// -------------- PRODUCTS ACTIONS --------------
+
+// ---------- PRODUCTS ACTIONS ----------
+// Create product
+export const createProduct = createAsyncThunk(
+  "admin/createProduct",
+  async (productData, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("/api/admin/products", productData, {
+        withCredentials: true,
+      });
+      return data.product; // Return the created product
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create product"
+      );
+    }
+  }
+);
+
 // Fetch all products
 export const fetchAllProducts = createAsyncThunk(
   "admin/fetchAllProducts",
@@ -351,8 +386,8 @@ export const deleteProduct = createAsyncThunk(
     }
   }
 );
-// -------------- CATEGORY ACTIONS --------------
 
+// ---------- CATEGORY ACTIONS ----------
 // Fetch main categories
 export const fetchCategories = createAsyncThunk(
   'admin/fetchCategories',
@@ -366,7 +401,6 @@ export const fetchCategories = createAsyncThunk(
     }
   }
 );
-
 // Create Main Category
 export const createMainCategory = createAsyncThunk(
   'admin/createMainCategory',
@@ -381,7 +415,6 @@ export const createMainCategory = createAsyncThunk(
     }
   }
 );
-
 // Update Main Category
 export const updateMainCategory = createAsyncThunk(
   'admin/updateMainCategory',
@@ -396,7 +429,6 @@ export const updateMainCategory = createAsyncThunk(
     }
   }
 );
-
 // Delete Main Category
 export const deleteMainCategory = createAsyncThunk(
   'admin/deleteMainCategory',
@@ -410,7 +442,7 @@ export const deleteMainCategory = createAsyncThunk(
   }
 );
 
-// -------------- SUB-CATEGORY ACTIONS --------------
+// ---------- SUB-CATEGORY ACTIONS ----------
 // Fetch subcategories by category slug or fetch all subcategories
 export const fetchSubcategories = createAsyncThunk(
   'admin/fetchSubcategories',
@@ -485,7 +517,7 @@ export const deleteSubcategory = createAsyncThunk(
   }
 );
 
-// -------------- SUB-SUBCATEGORY ACTIONS --------------
+// ---------- SUB-SUBCATEGORY ACTIONS ----------
 // Fetch sub-subcategories by subcategory slug
 export const fetchSubSubcategories = createAsyncThunk(
   'admin/fetchSubSubcategories',
@@ -505,7 +537,6 @@ export const fetchSubSubcategories = createAsyncThunk(
     }
   }
 );
-
 // Create Sub-Subcategory
 export const createSubSubcategory = createAsyncThunk(
   'admin/createSubSubcategory',
@@ -521,7 +552,6 @@ export const createSubSubcategory = createAsyncThunk(
     }
   }
 );
-
 // Update Sub-Subcategory
 export const updateSubSubcategory = createAsyncThunk(
   'admin/updateSubSubcategory',
@@ -549,35 +579,32 @@ export const deleteSubSubcategory = createAsyncThunk(
   }
 );
 
-// -------------- COUPONS ACTIONS --------------
+// ---------- COUPONS ACTIONS ----------
 // Fetch all coupons for the admin
 export const fetchAllCoupons = createAsyncThunk(
   'admin/fetchAllCoupons',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/admin/coupons');
-      console.log("response:",response)
-      return response.data;  
+      const { data } = await axios.get("/api/admin/coupons", { withCredentials: true });
+      return data.coupons; 
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch coupons");
     }
   }
 );
-
 // Thunk to create a new coupon
 export const createCoupon = createAsyncThunk(
   'admin/createCoupon',
   async (couponData, { rejectWithValue }) => {
     console.log("couponData:", couponData)
     try {
-      const response = await axios.post(`/api/admin/coupons`, couponData); 
-      return response.data;
+      const { data } = await axios.post("/api/admin/coupons", couponData, { withCredentials: true });
+      return data.coupon;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data?.message || "Failed to create coupon");
     }
   }
 );
-
 // Thunk to delete a coupon
 export const deleteCoupon = createAsyncThunk(
   'admin/deleteCoupon',
@@ -590,7 +617,6 @@ export const deleteCoupon = createAsyncThunk(
     }
   }
 );
-
 // Update an existing coupon
 export const adminUpdateCoupon = createAsyncThunk(
   "admin/adminUpdateCoupon",
@@ -604,6 +630,216 @@ export const adminUpdateCoupon = createAsyncThunk(
   }
 );
 
+// ---------- SALE PRODUCTS ACTIONS ----------
+// Fetch All Sales
+export const fetchAllSales = createAsyncThunk(
+  "sales/fetchAllSales",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/admin/sales");
+      console.log("SALES:", data)
+      return data.sales; 
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Fetch Single Sale
+export const fetchSingleSale = createAsyncThunk(
+  "sales/fetchSingleSale",
+  async (saleId, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get(`/api/admin/sales/${saleId}`);
+      return data; // single sale object
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Create Sale
+export const createSale = createAsyncThunk(
+  "sales/createSale",
+  async (saleData, { rejectWithValue }) => {
+    console.log("SALE DATA:", saleData)
+    try {
+      const { data } = await axios.post("/api/admin/sales", saleData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return data.sale;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Update Sale
+export const updateSale = createAsyncThunk(
+  "sales/updateSale",
+  async ({ saleId, saleData }, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.put(`/api/admin/sales/${saleId}`, saleData, {
+        headers: { "Content-Type": "application/json" },
+      });
+      return data.sale;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Delete Sale
+export const deleteSale = createAsyncThunk(
+  "sales/deleteSale",
+  async (saleId, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/api/admin/sales/${saleId}`);
+      return saleId; // Return the deleted ID
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Admin refund order
+export const adminRefundOrder = createAsyncThunk(
+  "admin/adminRefundOrder",
+  async ({ orderId, status }, { rejectWithValue }) => {
+    try {
+      // Example: your backend route might be PUT /api/admin/orders/:id/refund
+      const { data } = await axios.put(
+        `/api/admin/orders/${orderId}/refund`,
+        { status },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      return data.order; // The updated order
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Thunk to fetch admin profile
+export const fetchAdminProfile = createAsyncThunk(
+  "admin/fetchAdminProfile",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/admin/profile", { withCredentials: true });
+      return data.admin; // returns the admin profile
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// Thunk to update admin profile
+export const updateAdminProfile = createAsyncThunk(
+  "admin/updateAdminProfile",
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.put("/api/admin/profile", profileData, { withCredentials: true });
+      return data.admin;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+// ---------- ADMIN PWD UPDATE ----------
+// Thunk for updating admin security (password update)
+export const updateAdminSecurity = createAsyncThunk(
+  "admin/updateAdminSecurity",
+  async (securityData, { rejectWithValue }) => {
+    try {
+      const config = {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      };
+      const { data } = await axios.put("/api/admin/security", securityData, config);
+      return data; // Return updated admin data
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || error.message);
+    }
+  }
+);
+
+export const fetchAdminDashboardStats = createAsyncThunk(
+  "admin/fetchAdminDashboardStats",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/admin/dashboard");
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response.data.message);
+    }
+  }
+);
+
+// Fetch weekly trends
+export const fetchWeeklyTrends = createAsyncThunk(
+  "admin/fetchWeeklyTrends",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/admin/analytics/weekly-trends");
+      return data.trends;
+    } catch (error) {
+      return rejectWithValue(error.response.data.message);
+    }
+  }
+);
+
+// Thunk to fetch notification count
+export const fetchAdminNotificationCount = createAsyncThunk(
+  "admin/fetchAdminNotificationCount",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/admin/notifications/count");
+      return data.count;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch count");
+    }
+  }
+);
+
+// Thunk to fetch all notifications
+export const fetchAdminNotifications = createAsyncThunk(
+  "admin/fetchAdminNotifications",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.get("/api/admin/notifications");
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch notifications");
+    }
+  }
+);
+
+// Thunk to mark a notification as read
+export const markNotificationAsRead = createAsyncThunk(
+  "admin/markNotificationAsRead",
+  async (notificationId, { rejectWithValue }) => {
+    try {
+      await axios.put(`/api/admin/notifications/${notificationId}/read`);
+      return notificationId;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to mark as read");
+    }
+  }
+);
+
+// Delete admin notification
+export const deleteAdminNotification = createAsyncThunk(
+  "admin/deleteAdminNotification",
+  async (id, { rejectWithValue }) => {
+    try {
+      await axios.delete(`/api/admin/notifications/${id}`, { withCredentials: true });
+      return id;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to delete admin notification");
+    }
+  }
+);
 
 const initialState = {
   adminInfo: getAdminInfoFromStorage(),
@@ -612,15 +848,24 @@ const initialState = {
   userOrders: [],
   orders: [],
   singleOrder: null,
+  singleVendor: null,
   products: [],
   singleProduct: null,
   categories: [],
   subcategories: [],
   subSubcategories: [],
   coupons: [],
+  sales: [],
+  singleSale: null,
+  dashboardStats: null,
+  bestSellers: [],
+  recentOrders: [],
+  weeklyTrends: [],
+  notificationCount: 0,
+  notifications: [],
   isLoading: false,
   error: null,
-  successMessage: null,
+  message: null,
 };
 
 const adminSlice = createSlice({
@@ -628,6 +873,19 @@ const adminSlice = createSlice({
   initialState,
   extraReducers: (builder) => {
     builder
+      // Register Admin 
+      .addCase(registerAdmin.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(registerAdmin.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.adminInfo = action.payload;
+        state.message = "Admin registered successfully";
+      })
+      .addCase(registerAdmin.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       // Admin Login
       .addCase(loginAdmin.pending, (state) => {
         state.isLoading = true;
@@ -635,7 +893,7 @@ const adminSlice = createSlice({
       .addCase(loginAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
         state.adminInfo = action.payload.admin;
-        state.successMessage = action.payload.msg;
+        state.message = action.payload.msg;
       })
       .addCase(loginAdmin.rejected, (state, action) => {
         state.isLoading = false;
@@ -648,7 +906,7 @@ const adminSlice = createSlice({
       .addCase(logoutAdmin.fulfilled, (state, action) => {
         state.isLoading = false;
         state.adminInfo = null;
-        state.successMessage = action.payload;
+        state.message = action.payload;
       })
       .addCase(logoutAdmin.rejected, (state, action) => {
         state.isLoading = false;
@@ -660,26 +918,26 @@ const adminSlice = createSlice({
       })
       .addCase(fetchAllUsers.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.users = action.payload;
+        state.users = action.payload.users;
+        state.message = action.payload.message;
       })
       .addCase(fetchAllUsers.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
       // Edit User
-      .addCase(editUser.pending, (state) => {
+      .addCase(updateUser.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(editUser.fulfilled, (state, action) => {
+      .addCase(updateUser.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.successMessage =
-          action.payload.message || "User updated successfully";
+        state.message = action.payload.message || "User updated successfully";
         const updatedUser = action.payload.user;
         state.users = state.users.map((user) =>
           user._id === updatedUser._id ? updatedUser : user
         );
       })
-      .addCase(editUser.rejected, (state, action) => {
+      .addCase(updateUser.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
@@ -692,7 +950,7 @@ const adminSlice = createSlice({
         state.users = state.users.filter(
           (user) => user._id !== action.payload.userId
         );
-        state.successMessage = action.payload.message;
+        state.message = action.payload.message;
       })
       .addCase(deleteUser.rejected, (state, action) => {
         state.isLoading = false;
@@ -704,7 +962,8 @@ const adminSlice = createSlice({
       })
       .addCase(fetchUserOrders.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.userOrders = action.payload || []; 
+        state.userOrders = action.payload.orders || []; 
+        state.message = action.payload.message 
       })
       .addCase(fetchUserOrders.rejected, (state, action) => {
         state.isLoading = false;
@@ -722,6 +981,18 @@ const adminSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      // fetch single vendor
+      .addCase(fetchVendorById.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchVendorById.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.singleVendor = action.payload; 
+      })
+      .addCase(fetchVendorById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       // Updating the full order
       .addCase(updateVendor.pending, (state) => {
         state.isLoading = true;
@@ -730,7 +1001,7 @@ const adminSlice = createSlice({
         state.vendors = state.vendors.map((vendor) =>
           vendor._id === action.payload.vendor._id ? action.payload.vendor : vendor
         );
-        state.successMessage = "Vendor updated successfully!";
+        state.message = "Vendor updated successfully!";
       })
       .addCase(updateVendor.rejected, (state, action) => {
         state.isLoading = false;
@@ -743,7 +1014,7 @@ const adminSlice = createSlice({
         state.vendors = state.vendors.map((vendor) =>
           vendor._id === updatedVendor._id ? updatedVendor : vendor
         );
-        state.successMessage =
+        state.message =
           action.payload.message || "Vendor blocked successfully";
       })
       .addCase(blockVendor.rejected, (state, action) => {
@@ -757,7 +1028,7 @@ const adminSlice = createSlice({
         state.vendors = state.vendors.map((vendor) =>
           vendor._id === updatedVendor._id ? updatedVendor : vendor
         );
-        state.successMessage =
+        state.message =
           action.payload.message || "Vendor unblocked successfully";
       })
       .addCase(unblockVendor.rejected, (state, action) => {
@@ -781,7 +1052,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchSingleOrder.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.singleOrder = action.payload; 
+        state.singleOrder = action.payload.order; 
       })
       .addCase(fetchSingleOrder.rejected, (state, action) => {
         state.isLoading = false;
@@ -799,7 +1070,7 @@ const adminSlice = createSlice({
         state.orders = state.orders.map((order) =>
           order._id === action.payload.order._id ? action.payload.order : order
         );
-        state.successMessage = "Order updated successfully!";
+        state.message = action.payload?.message;
       })
       .addCase(updateOrder.rejected, (state, action) => {
         state.isLoading = false;
@@ -816,6 +1087,19 @@ const adminSlice = createSlice({
         );
       })
       // Products
+      .addCase(createProduct.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.isLoading = false;
+        // Optionally push the new product into state.products
+        state.products.push(action.payload);
+      })
+      .addCase(createProduct.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchAllProducts.pending, (state) => {
         state.isLoading = true;
       })
@@ -832,7 +1116,7 @@ const adminSlice = createSlice({
       })
       .addCase(fetchSingleProduct.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.singleProduct = action.payload; 
+        state.singleProduct = action.payload.product; 
       })
       .addCase(fetchSingleProduct.rejected, (state, action) => {
         state.isLoading = false;
@@ -853,7 +1137,7 @@ const adminSlice = createSlice({
       .addCase(deleteProduct.rejected, (state, action) => {
         state.error = action.payload;
       })
-      // -------------- CATEGORIES  --------------
+      // ---------- CATEGORIES  ----------
       // Handle fetching categories
       .addCase(fetchCategories.pending, (state) => {
         state.isLoading = true;
@@ -881,7 +1165,7 @@ const adminSlice = createSlice({
       .addCase(deleteMainCategory.fulfilled, (state, action) => {
         state.categories = state.categories.filter(category => category._id !== action.payload);
       })
-      // -------------- SUB-CATEGORIES  --------------
+      // ---------- SUB-CATEGORIES  ----------
       // Fetch Subcategories
       .addCase(fetchSubcategories.pending, (state) => {
         state.isLoading = true;
@@ -935,7 +1219,7 @@ const adminSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
-      // -------------- SUB-SUBCATEGORIES  --------------
+      // ---------- SUB-SUBCATEGORIES  ----------
       .addCase(fetchSubSubcategories.pending, (state) => {
         state.isLoading = true;  
       })
@@ -992,7 +1276,7 @@ const adminSlice = createSlice({
         state.error = action.payload;
       })
 
-      // -------------- COUPONS  --------------
+      // ---------- COUPONS  ----------
       // Handle fetchAllCoupons
       .addCase(fetchAllCoupons.pending, (state) => {
         state.isLoading = true;
@@ -1034,24 +1318,188 @@ const adminSlice = createSlice({
       .addCase(deleteCoupon.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
-      })
-// Handle updateCoupon
-.addCase(adminUpdateCoupon.pending, (state) => {
-  state.isLoading = true;
-  state.error = null;
-})
-.addCase(adminUpdateCoupon.fulfilled, (state, action) => {
-  state.isLoading = false;
-  state.coupons = state.coupons.map((coupon) =>
-    coupon._id === action.payload.coupon._id ? action.payload.coupon : coupon
-  );
-  state.successMessage = action.payload.message; // Store the success message if you need it later
-})
-.addCase(adminUpdateCoupon.rejected, (state, action) => {
-  state.isLoading = false;
-  state.error = action.payload;
-});
- 
+      })  
+    // Handle updateCoupon
+    .addCase(adminUpdateCoupon.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase(adminUpdateCoupon.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.coupons = state.coupons.map((coupon) =>
+        coupon._id === action.payload.coupon._id ? action.payload.coupon : coupon
+      );
+      state.message = action.payload.message; // Store the success message if you need it later
+    })
+    .addCase(adminUpdateCoupon.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // ---------- SALES  ----------
+    // Fetch all sales
+    .addCase(fetchAllSales.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase(fetchAllSales.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.sales = action.payload; 
+    })
+    .addCase(fetchAllSales.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // Fetch single sale
+    .addCase(fetchSingleSale.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    })
+    .addCase(fetchSingleSale.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.singleSale = action.payload;
+    })
+    .addCase(fetchSingleSale.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // Create sale
+    .addCase(createSale.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(createSale.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.sales.push(action.payload);
+    })
+    .addCase(createSale.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // Update sale
+    .addCase(updateSale.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(updateSale.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const updated = action.payload; 
+      const idx = state.sales.findIndex((s) => s._id === updated._id);
+      if (idx !== -1) {
+        state.sales[idx] = updated;
+      }
+    })
+    .addCase(updateSale.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // Delete sale
+    .addCase(deleteSale.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(deleteSale.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const deletedId = action.payload;
+      state.sales = state.sales.filter((s) => s._id !== deletedId);
+    })
+    .addCase(deleteSale.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // ---------- REFUND ORDER  ----------
+    .addCase(adminRefundOrder.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(adminRefundOrder.fulfilled, (state, action) => {
+      state.isLoading = false;
+      const updatedOrder = action.payload;
+      // Replace the old order in state.orders with the updated one
+      state.orders = state.orders.map((o) =>
+        o._id === updatedOrder._id ? updatedOrder : o
+      );
+    })
+    .addCase(adminRefundOrder.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // ---------- ADMIN  PROFILE  ----------
+    .addCase(fetchAdminProfile.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(fetchAdminProfile.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.adminInfo = action.payload;
+    })
+    .addCase(fetchAdminProfile.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    .addCase(updateAdminProfile.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(updateAdminProfile.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.adminInfo = action.payload;
+      state.message = "Profile updated successfully!";
+    })
+    .addCase(updateAdminProfile.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+     // updateAdminSecurity
+     .addCase(updateAdminSecurity.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+      state.message = null;
+    })
+    .addCase(updateAdminSecurity.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.adminInfo = action.payload.admin; 
+      state.message = action.payload.message;
+    })
+    .addCase(updateAdminSecurity.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    .addCase(fetchAdminDashboardStats.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(fetchAdminDashboardStats.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.dashboardStats = action.payload;
+    })
+    .addCase(fetchAdminDashboardStats.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })    
+    // Reducers
+    .addCase(fetchWeeklyTrends.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(fetchWeeklyTrends.fulfilled, (state, action) => {
+      state.isLoading = false;
+      state.weeklyTrends = action.payload;
+    })
+    .addCase(fetchWeeklyTrends.rejected, (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    })
+    // Notifications logic
+    .addCase(fetchAdminNotifications.fulfilled, (state, action) => {
+      state.notifications = action.payload;
+      state.notificationCount = action.payload.filter(n => !n.isRead).length;
+    })
+    .addCase(markNotificationAsRead.fulfilled, (state, action) => {
+      const id = action.payload;
+      const notification = state.notifications.find(n => n._id === id);
+      if (notification) notification.isRead = true;
+      state.notificationCount = state.notifications.filter(n => !n.isRead).length;
+    })
+    .addCase(fetchAdminNotificationCount.fulfilled, (state, action) => {
+      state.notificationCount = action.payload;
+    })
+    .addCase(deleteAdminNotification.fulfilled, (state, action) => {
+      state.notifications = state.notifications.filter(n => n._id !== action.payload);
+      state.notificationCount = state.notifications.filter(n => !n.isRead).length;
+    })
+    
   },
 });
 

@@ -21,34 +21,35 @@ const SubSubCategoryPage = ({ categories, subSubcategories, products, mainCatego
           content={`Explore products in the ${subSubCategory ? subSubCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"} under ${subCategory ? subCategory.replace(/-/g, " ") : "Unknown Subcategory"} category`}
         />
       </Head>
+      <div className="min-h-screen flex flex-col">
+        <Header categories={categories} />
+        <div className="flex-grow py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
+          {mainCategory && subCategory && (
+            <Link href={`/category/${mainCategory}/${subCategory}`} passHref legacyBehavior>
+              <a className="text-blue-600 hover:underline mb-4 inline-block">
+                &larr; Back to {currentSubCategory?.name || "previous category"}
+              </a>
+            </Link>
+          )}
 
-      <Header categories={categories} />
-      <div className="py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
-        {mainCategory && subCategory && (
-          <Link href={`/category/${mainCategory}/${subCategory}`} passHref legacyBehavior>
-            <a className="text-blue-600 hover:underline mb-4 inline-block">
-              &larr; Back to {currentSubCategory?.name || "previous category"}
-            </a>
-          </Link>
-        )}
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            {subSubCategory ? subSubCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
+          </h2>
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-          {subSubCategory ? subSubCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
-        </h2>
-
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-gray-500">
-            No products available in this category.
-          </p>
-        )}
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">
+              No products available in this category.
+            </p>
+          )}
+        </div>
+        <Footer />
       </div>
-      <Footer />
     </>
   );
 };

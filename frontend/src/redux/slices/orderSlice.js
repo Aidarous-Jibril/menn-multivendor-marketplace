@@ -85,16 +85,15 @@ export const getUserAllOrders = createAsyncThunk(
   "orders/getUserAllOrders",
   async (userId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/orders/user-orders/${userId}`, {
+      const { data } = await axios.get(`/api/orders/user-orders/${userId}`, {
         withCredentials: true,
       });
-      return response.data.orders;
+      return data.orders;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Error fetching user orders.");
     }
   }
 );
-
 
 // Refund Order Request
 export const refundOrderRequest = createAsyncThunk(
@@ -108,9 +107,19 @@ export const refundOrderRequest = createAsyncThunk(
     }
   }
 );
+// Fetch refunded orders
+export const fetchVendorRefundedOrders = createAsyncThunk(
+  "orders/fetchVendorRefundedOrders",
+  async (vendorId, { rejectWithValue }) => {
+    try {
+      const { data }= await axios.get(`/api/orders/vendor-refunds/${vendorId}`);
+      return data.orders;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch refunded orders");
+    }
+  }
+);
 
-
-// Slice
 const orderSlice = createSlice({
   name: "orders",
   initialState,
@@ -197,6 +206,18 @@ const orderSlice = createSlice({
         );
       })
       .addCase(refundOrderRequest.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Fetch refunded orders
+      .addCase(fetchVendorRefundedOrders.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchVendorRefundedOrders.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.orders = action.payload;
+      })
+      .addCase(fetchVendorRefundedOrders.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

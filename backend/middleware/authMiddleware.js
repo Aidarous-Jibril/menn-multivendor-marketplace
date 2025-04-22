@@ -29,17 +29,25 @@ const isAuthenticated = asyncHandler(async (req, res, next) => {
 
 // Vendor Authentication
 const isVendor = asyncHandler(async(req, res, next) => {
-  const {vendor_token } = req.cookies;
-  if(!vendor_token){
-    return next(new ErrorHandler("Not authorized, no Vendor token", 401));
+  const token = req.cookies.vendor_token;
+  if (!token) {
+    return res.status(401).json({ error: "Vendor not authenticated. Please log in." });
   }
 
-  const decoded = jwt.verify(vendor_token, process.env.JWT_SECRET)
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const vendor = await Vendor.findById(decoded.id).select("-password");
 
-  // Get vendor/seller from the vendor_token
-  req.store = await Vendor.findById(decoded.id);
+    if (!vendor) {
+      return res.status(401).json({ error: "Vendor not found or session expired." });
+    }
 
-  next();
+    req.vendor = vendor;
+    next();
+  } catch (error) {
+    console.error("Token error:", error.message);
+    return res.status(401).json({ error: "Invalid or expired token. Please log in again." });
+  }
 });
 
 

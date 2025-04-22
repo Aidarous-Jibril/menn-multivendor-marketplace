@@ -61,11 +61,13 @@ import adminReducer from "./slices/adminSlice";
 import cartReducer from './slices/cartSlice';
 import wishListReducer from './slices/wishListSlice';
 import orderReducer from './slices/orderSlice';
-import eventReducer from './slices/eventSlice';
+import saleReducer from './slices/saleSlice';
 import categoryReducer from './slices/categorySlice';
 import brandReducer from './slices/brandSlice';
 import couponReducer from './slices/couponSlice';
 import checkoutReducer from './slices/checkoutSlice';
+import siteSettingsReducer from './slices/siteSettingsSlice';
+
 import { createWrapper } from 'next-redux-wrapper';
 
 export function makeStore(preloadedState) {
@@ -78,11 +80,12 @@ export function makeStore(preloadedState) {
       cart: cartReducer,
       wishList: wishListReducer,
       orders: orderReducer,
-      events: eventReducer,
+      sales: saleReducer,
       categories: categoryReducer,
       brands: brandReducer, 
       coupons: couponReducer, 
       checkout: checkoutReducer,
+      settings: siteSettingsReducer
     },
     preloadedState, // For server-side rendering
   });

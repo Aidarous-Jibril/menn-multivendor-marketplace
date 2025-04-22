@@ -3,28 +3,28 @@ import 'tailwindcss/tailwind.css';
 import React from 'react';
 import 'tailwindcss/tailwind.css';
 
-import Header from '../components/layout/Header';
-import HeroPage from '../components/routes/HeroPage';
-import Categories from '../components/routes/Categories';
-import FeaturedProducts from '../components/routes/FeaturedProducts';
-import Sponsored from '../components/routes/Sponsored';
-import Footer from '../components/layout/Footer';
+import Header from '@/components/layout/Header';
+import HeroPage from '@/components/routes/HeroPage';
+import Categories from '@/components/routes/Categories';
+import FeaturedProducts from '@/components/routes/FeaturedProducts';
+import Sponsored from '@/components/routes/Sponsored';
+import Footer from '@/components/layout/Footer';
 import LatestProducts from '@/components/routes/LatestProducts';
 import Brands from '@/components/routes/Brands';
-import FlashSales from '@/components/routes/sales/FlashSales';
+import Sales from '@/components/routes/sales/Sales';
 import HeaderPromo from '@/components/layout/HeaderPromo';
 import TopSellers from '@/components/routes/Sellers';
 import axios from 'axios';
 
 const HomePage = ({ products, categories, vendors, sales }) => {
-
+console.log("SALES:",sales)
   return (
     <div className="overflow-x-hidden">
       <HeaderPromo />
        <Header activeHeading={1} products={products} categories={categories} />
        {/* <HeroPage />  */}
       <Categories categories={categories} />
-      <FlashSales sales={sales} />
+      <Sales sales={sales} />
       <LatestProducts products={products} />
       {/* <FeaturedProducts products={products} isLoading={isLoading} error={error} /> */}
       <TopSellers vendors={vendors} />
@@ -44,7 +44,7 @@ export async function getServerSideProps() {
       axios.get(`${baseURL}/api/products`).catch(err => { console.error("Products Error:", err); return null; }),
       axios.get(`${baseURL}/api/categories`).catch(err => { console.error("Categories Error:", err); return null; }),
       axios.get(`${baseURL}/api/vendors`).catch(err => { console.error("Vendors Error:", err); return null; }),
-      axios.get(`${baseURL}/api/events`).catch(err => { console.error("Sales Error:", err); return null; }),
+      axios.get(`${baseURL}/api/sales`).catch(err => { console.error("Sales Error:", err); return null; }),
     ]);
 
     return {
@@ -73,3 +73,4 @@ export async function getServerSideProps() {
 
 
 export default HomePage;
+

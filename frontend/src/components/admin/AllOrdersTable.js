@@ -273,69 +273,70 @@ const AllOrdersTable = () => {
         </FormControl>
       ),
     },
-    {
-      field: "actions",
-      headerName: "Actions",
-      minWidth: 200,
-      flex: 1,
-      renderCell: (params) => (
-        <div
+{
+  field: "actions",
+  headerName: "Actions",
+  minWidth: 200,
+  flex: 1,
+  renderCell: (params) => (
+    <div
+      style={{
+        paddingTop: "13px",
+        display: "flex",
+        justifyContent: "flex-start",
+        gap: "10px",
+        flexWrap: "wrap",
+      }}
+    >
+      <Tooltip title="Edit">
+        <Button
+          variant="contained"
+          color="primary"
+          size="small"
+          onClick={() => handleOrderEdit(params.row)}
           style={{
-            paddingTop: "13px",
-            display: "flex",
-            justifyContent: "flex-start",
-            gap: "10px",
-            flexWrap: "wrap",
+            padding: "6px 12px",
+            minWidth: "auto",
+            fontSize: "14px",
           }}
         >
-          <Tooltip title="Edit">
-            <Button
-              variant="contained"
-              color="primary"
-              size="small"
-              onClick={() => handleOrderEdit(params.row)} 
-              style={{
-                padding: "6px 12px",
-                minWidth: "auto",
-                fontSize: "14px",
-              }}
-            >
-              <AiOutlineEdit size={16} />
-            </Button>
-          </Tooltip>
-          <Tooltip title="Delete">
-            <Button
-              variant="contained"
-              color="error"
-              size="small"
-              onClick={() => handleDeleteConfirmation(params.row.id)}
-              style={{
-                padding: "6px 12px",
-                minWidth: "auto",
-                fontSize: "14px",
-              }}
-            >
-              <AiOutlineDelete size={16} />
-            </Button>
-          </Tooltip>
-          <Tooltip title="View">
-            <Button
-              variant="contained"
-              color="info"
-              size="small"
-              onClick={() => handleViewOrder(params.row.id)} 
-              style={{
-                padding: "6px 12px",
-                minWidth: "auto",
-                fontSize: "14px",
-              }}
-            >
-              <AiOutlineEye size={16} />
-            </Button>
-          </Tooltip>
-        </div>
-      ),
-    },
+          <AiOutlineEdit size={16} />
+        </Button>
+      </Tooltip>
+      <Tooltip title="Delete">
+        <Button
+          variant="contained"
+          color="error"
+          size="small"
+          onClick={() => handleDeleteConfirmation(params.row.id)}
+          style={{
+            padding: "6px 12px",
+            minWidth: "auto",
+            fontSize: "14px",
+          }}
+        >
+          <AiOutlineDelete size={16} />
+        </Button>
+      </Tooltip>
+      <Tooltip title="View">
+        <Button
+          variant="contained"
+          color="info"
+          size="small"
+          onClick={() => handleViewOrder(params.row.id)}
+          style={{
+            padding: "6px 12px",
+            minWidth: "auto",
+            fontSize: "14px",
+          }}
+        >
+          <AiOutlineEye size={16} />
+        </Button>
+      </Tooltip>
+    </div>
+  ),
+}
+
   ];
 
   const rows = filteredOrders.map((order) => ({
@@ -362,15 +363,12 @@ const AllOrdersTable = () => {
 
           {/* Search Section */}
           <div className="mb-4">
-            <SearchProducts
-              searchQuery={searchQuery}
-              handleSearchChange={handleSearchChange}
-            />
+            <SearchProducts searchQuery={searchQuery} handleSearchChange={handleSearchChange}/>
           </div>
 
           {/* Data Table Section */}
-          <div className="bg-white p-6 rounded-lg shadow mb-6">
-            <ProductTable rows={rows} columns={columns} />
+          <div className="bg-white p-6 rounded-lg shadow mb-6"> 
+            <ProductTable rows={rows} columns={columns} /> 
           </div>
         </div>
       )}
@@ -381,9 +379,6 @@ const AllOrdersTable = () => {
         onClose={handleCloseEditModal}
         data={updatedOrder}
         onInputChange={handleInputChange}
-        // onInputChange={(e) =>
-        //   setUpdatedOrder({ ...updatedOrder, [e.target.name]: e.target.value })
-        // }
         onSave={handleUpdateOrder}
         isOrderEdit={true}
       />
@@ -424,6 +419,9 @@ const AllOrdersTable = () => {
                       )}
                     </div>
                   </Typography>
+                  <Typography variant="body2" color="textSecondary" style={{ marginTop: "10px" }}>
+                    <strong>Created At:</strong> {new Date(singleOrder.createdAt).toLocaleString()}
+                  </Typography>
                 </CardContent>
               </Card>
 
@@ -454,12 +452,6 @@ const AllOrdersTable = () => {
                   </Typography>
                   <Typography variant="body2">
                     <strong>Status:</strong> {singleOrder.paymentInfo.status}
-                  </Typography>
-                  <Typography variant="body2">
-                    <strong>Created At:</strong>{" "}
-                    {new Date(
-                      singleOrder.paymentInfo.createdAt
-                    ).toLocaleString()}
                   </Typography>
                 </CardContent>
               </Card>

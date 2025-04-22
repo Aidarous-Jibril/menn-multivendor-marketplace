@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import ProductTable from '../common/ProductTable';
 import EditSubcategoryModal from '../common/EditSubcategoryModal';
+import SearchProducts from '../common/SearchProducts';
 
 const SubcategoryTable = () => {
   const dispatch = useDispatch();
@@ -138,17 +139,18 @@ const SubcategoryTable = () => {
         params.value ? params.value.name : 'No Category',
     },
     {
-      field: 'actions',
-      headerName: 'Actions',
+      field: "actions",
+      headerName: "ACTIONS",
+      minWidth: 200,
       flex: 1,
-      sortable: false,
       renderCell: (params) => (
-        <div className="flex gap-2">
+        <div style={{ paddingTop: "13px", display: "flex", justifyContent: "flex-start", gap: "10px", flexWrap: "wrap" }}
+        >
           <Tooltip title="Edit">
             <Button
-              size="small"
               variant="contained"
               color="primary"
+              size="small"
               onClick={() => handleOpenForm(params.row)}
             >
               <AiOutlineEdit size={16} />
@@ -156,9 +158,9 @@ const SubcategoryTable = () => {
           </Tooltip>
           <Tooltip title="Delete">
             <Button
-              size="small"
               variant="contained"
               color="error"
+              size="small"
               onClick={() => {
                 setSelectedSubcategoryId(params.row._id);
                 setDeleteDialogOpen(true);
@@ -186,13 +188,9 @@ const SubcategoryTable = () => {
         </Button>
       </div>
 
+      {/* Search */}
       <div className="mb-4">
-        <TextField
-          fullWidth
-          placeholder="Search by name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+        <SearchProducts searchQuery={searchQuery} handleSearchChange={(e) => setSearchQuery(e.target.value)}/>
       </div>
 
       <div className="bg-white p-4 rounded shadow">

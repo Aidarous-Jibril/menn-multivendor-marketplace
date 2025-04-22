@@ -3,13 +3,13 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import CircularProgress from "@mui/material/CircularProgress";
 import { AiOutlineDelete } from "react-icons/ai";
-import { RxCross1 } from "react-icons/rx";
+import { RxCrosshair1 } from "react-icons/rx";
 import { Country, State, City } from "country-state-city";
 import { toast } from "react-toastify";
 
 // Local imports (Redux slices and styles)
 import { addUserAddress, deleteUserAddress } from "@/redux/slices/userSlice";
-import styles from "@/styles/styles";
+import { Table, Box, TableContainer, TableHead, TableBody, TableRow, TableCell, Paper, Typography, Button, Dialog, DialogTitle, DialogContent, TextField, MenuItem, IconButton, DialogActions } from "@mui/material";
 
 
 const Address = () => {
@@ -77,162 +77,151 @@ const Address = () => {
   }
 
   return (
-    <div className="w-full px-5">
-      {open && (
-        <div className="fixed w-full h-screen bg-[#0000004b] top-6 left-0 flex items-center justify-center">
-          <div className="w-[35%] h-[80vh] bg-white rounded shadow relative overflow-y-scroll">
-            <div className="w-full flex justify-end p-3">
-              <RxCross1
-                size={30}
-                className="cursor-pointer"
-                onClick={() => setOpen(false)}
-              />
-            </div>
-            <h1 className="text-center text-[25px] font-Poppins">
-              Add New Address
-            </h1>
-            <div className="w-full">
-              <form aria-required onSubmit={handleSubmit} className="w-full">
-                <div className="w-full block p-4">
-                  <div className="w-full pb-2 mb-4">
-                    <label className="block pb-1">Country</label>
-                    <select
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="">Choose your country</option>
-                      {Country.getAllCountries().map((item) => (
-                        <option key={item.isoCode} value={item.isoCode}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="w-full pb-2 mb-4">
-                    <label className="block pb-1">State/Region</label>
-                    <select
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="">Choose your state</option>
-                      {State.getStatesOfCountry(country).map((item) => (
-                        <option key={item.isoCode} value={item.isoCode}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="w-full pb-2 mb-4">
-                    <label className="block pb-1">City</label>
-                    <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="">Choose your city</option>
-                      {City.getCitiesOfState(country, state).map((item) => (
-                        <option key={item.isoCode} value={item.isoCode}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="w-full pb-2">
-                    <label className="block pb-2">Street</label>
-                    <input
-                      type="text"
-                      className={`${styles.input}`}
-                      required
-                      value={street}
-                      onChange={(e) => setStreet(e.target.value)}
-                    />
-                  </div>
-                  <div className="w-full pb-2 mb-4">
-                    <label className="block pb-1">Zip Code</label>
-                    <input
-                      type="number"
-                      className={`${styles.input}`}
-                      required
-                      value={zipCode}
-                      onChange={(e) => setZipCode(e.target.value)}
-                    />
-                  </div>
-                  <div className="w-full pb-2 mb-4">
-                    <label className="block pb-1">Address Type</label>
-                    <select
-                      value={addressType}
-                      onChange={(e) => setAddressType(e.target.value)}
-                      className="w-[95%] border h-[40px] rounded-[5px]"
-                    >
-                      <option value="">Choose your Address Type</option>
-                      {addressTypeData.map((item) => (
-                        <option key={item.name} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="w-full pb-2">
-                  <button
-                    type="submit"
-                    className="mt-5 w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded cursor-pointer"
-                  >
-                    Add Address
-                  </button>
-                </div>
+    <Box className="w-full bg-gray-100 p-4 md:p-8 rounded-md">
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h5" fontWeight="bold">My Addresses</Typography>
+        <Button variant="contained" onClick={() => setOpen(true)}>Add New</Button>
+      </Box>
 
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
+      {/* Modal for Adding Address */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Add New Address
+          <IconButton onClick={() => setOpen(false)} sx={{ float: "right" }}>
+            <RxCrosshair1 />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              select
+              label="Country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              fullWidth
+              margin="normal"
+            >
+              {Country.getAllCountries().map((item) => (
+                <MenuItem key={item.isoCode} value={item.isoCode}>
+                  {item.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="State/Region"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              fullWidth
+              margin="normal"
+              disabled={!country}
+            >
+              {State.getStatesOfCountry(country).map((item) => (
+                <MenuItem key={item.isoCode} value={item.isoCode}>
+                  {item.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="City"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              fullWidth
+              margin="normal"
+              disabled={!state}
+            >
+              {City.getCitiesOfState(country, state).map((item) => (
+                <MenuItem key={item.name} value={item.name}>
+                  {item.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              label="Street"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              fullWidth
+              margin="normal"
+              required
+            />
+
+            <TextField
+              label="Zip Code"
+              type="number"
+              value={zipCode}
+              onChange={(e) => setZipCode(e.target.value)}
+              fullWidth
+              margin="normal"
+              required
+            />
+
+            <TextField
+              select
+              label="Address Type"
+              value={addressType}
+              onChange={(e) => setAddressType(e.target.value)}
+              fullWidth
+              margin="normal"
+            >
+              {addressTypeData.map((item) => (
+                <MenuItem key={item.name} value={item.name}>
+                  {item.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <DialogActions sx={{ mt: 2 }}>
+              <Button onClick={() => setOpen(false)} color="secondary">Cancel</Button>
+              <Button type="submit" variant="contained">Add Address</Button>
+            </DialogActions>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Address Table */}
+      {userInfo?.addresses?.length > 0 ? (
+        <Box mt={4}>
+<TableContainer component={Paper}>
+  <Table>
+    <TableHead>
+    <TableRow>
+      <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+      <TableCell sx={{ fontWeight: 'bold' }}>Zip Code</TableCell>
+      <TableCell sx={{ fontWeight: 'bold' }}>Action</TableCell>
+    </TableRow>
+  </TableHead>
+
+    <TableBody>
+      {userInfo.addresses.map((item) => (
+        <TableRow key={item._id}>
+          <TableCell>
+            <Typography fontWeight="bold">{item.addressType}</Typography>
+            <Typography variant="body2">{item.street}</Typography>
+            <Typography variant="body2">{item.city}, {item.country}</Typography>
+          </TableCell>
+          <TableCell>{item.zipCode}</TableCell>
+          <TableCell>
+            <IconButton onClick={() => handleDelete(item._id)}>
+              <AiOutlineDelete color="red" />
+            </IconButton>
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+</TableContainer>
+
+        </Box>
+      ) : (
+        <Typography textAlign="center" mt={4}>
+          You do not have any saved address!
+        </Typography>
       )}
-      <div className="flex w-full items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800 px-4">My Addresses</h1>
-        <div className={`${styles.button} !rounded-md px-2`}>
-          <span className="text-white" onClick={() => setOpen(true)}>
-            Add New
-          </span>
-        </div>
-      </div>
-      <br />
-
-
-      {userInfo && userInfo.addresses.length > 0 ? (
-  <div className="mt-4">
-    <table className="w-full min-w-full bg-white rounded-md overflow-hidden shadow">
-      <thead className="bg-gray-100">
-        <tr>
-          <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Type</th>
-          <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">ZipCode</th>
-          <th className="px-4 py-2 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Action</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-200">
-        {userInfo.addresses.map((item) => (
-          <tr key={item._id}>
-            <td className="px-4 py-2 whitespace-nowrap">
-              <div className="text-sm font-medium text-gray-900">{item.addressType}</div>
-              <div className="text-sm text-gray-500">{item.street}</div>
-              <div className="text-sm text-gray-500">{item.city} {" "} {item.country}</div>
-            </td>
-            <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.zipCode}</td>
-            <td className="px-4 py-2 whitespace-nowrap">
-              <AiOutlineDelete size={20} className="cursor-pointer text-[red]" onClick={() => handleDelete(item._id)} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-) : (
-  <h5 className="text-center mt-4 text-[18px]">You do not have any saved address!</h5>
-)}
-
-
-    </div>
+    </Box>
   );
 };
 

@@ -15,15 +15,7 @@ import { fetchAllBrands } from "@/redux/slices/brandSlice";
 const categoryAttributes = {
   clothing: ["size", "color", "material", "gender"],
   vehicles: ["model", "make", "year", "mileage", "fuelType"],
-  electronics: [
-    "model",
-    "warranty",
-    "condition",
-    "processor",
-    "memory",
-    "storage",
-    "display",
-  ],
+  electronics: [ "model", "warranty", "condition", "processor", "memory", "storage", "display"],
   shoes: ["size", "color", "material", "gender"],
   property: ["propertyType", "location", "bedrooms", "bathrooms", "area"],
   content: ["author", "publisher", "genre", "format", "language"],
@@ -83,7 +75,7 @@ const CreateProduct = () => {
       const subCategoryObj = subcategories.find(
         (subcat) => subcat.slug === productData.subCategory
       );
-      console.log("subCategoryObj:", subCategoryObj); // Log here
+      console.log("subCategoryObj:", subCategoryObj); 
       setSubSubcategories(subCategoryObj?.subsubcategories || []);
     } else {
       setSubSubcategories([]);
@@ -198,7 +190,7 @@ const CreateProduct = () => {
   };
 
   return (
-    <div className="w-full bg-gray-100 p-4 rounded-md">
+    <div className="w-full p-4 md:p-8 min-h-screen">
       {/* Page Header */}
       <div className="w-full flex justify-between items-center mb-4">
         <h5 className="text-[24px] font-[500]">Create Product</h5>

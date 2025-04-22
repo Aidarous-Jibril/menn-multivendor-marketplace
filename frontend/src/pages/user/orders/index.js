@@ -1,28 +1,24 @@
-// pages/user/orders/index.js
 import React, { useState } from 'react';
-import AllOrders from '@/components/user/AllOrders';
 import Header from '@/components/layout/Header';
-import ProfileSideBar from '@/components/profile/ProfileSideBar';
-import styles from '@/styles/styles';
-import Footer from '@/components/layout/Footer';
+import AllOrders from '@/components/user/AllOrders';
+import ProfileSideBar from '@/components/user/layout/ProfileSideBar';
+import withUserAuth from '@/lib/withUserAuth';
 
-const OrdersPage = () => {
-  const [active, setActive] = useState(2);
-
+const Coupons = () => {
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <Header />
-      <div className={`${styles.section} flex bg-[#f5f5f5] py-10`}>
-        <div className='w-[50px] md:w-[335px]'>
-          <ProfileSideBar active={active} setActive={setActive} />
+      <div className="flex flex-1 overflow-hidden bg-gray-100">
+        <div className="w-[100px] 800px:w-[330px] bg-white  ">
+          <ProfileSideBar active={2} />
         </div>
-        <div className="w-full">
-          <AllOrders active={active} />
+
+        <div className="flex-1 overflow-y-auto">
+        <AllOrders active={2} />
         </div>
       </div>
-      <Footer />
     </div>
   );
 };
 
-export default OrdersPage;
+export default withUserAuth(Coupons);

@@ -1,27 +1,25 @@
-import DashboardHeader from '@/components/vendor/layout/DashboardHeader';
-import DashboardSideBar from '@/components/vendor/layout/DashboardSideBar';
-import CreateFlashSale from '@/components/vendor/CreateFlashSale';
-
-
-
+import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
+import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
+import CreateFlashSale from "@/components/vendor/CreateFlashSale";
+import withAdminAuth from "@/lib/withAdminAuth";
 
 const VendorCreateFlashSale = () => {
   return (
-    <>
-       <DashboardHeader />
-      <div className="flex w-full min-h-screen bg-gray-100">
-        {/* Sidebar */}
-        <div className="w-[100px] 800px:w-[330px]">
+    <div className="flex flex-col h-screen">
+      <DashboardHeader />
+
+      <div className="flex flex-1 overflow-hidden bg-gray-100">
+        <div className="w-[100px] 800px:w-[330px] bg-white  ">
           <DashboardSideBar active={6} />
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 overflow-y-auto">
           <CreateFlashSale />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-export default VendorCreateFlashSale;
+export default withAdminAuth(VendorCreateFlashSale);
+

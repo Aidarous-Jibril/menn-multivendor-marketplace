@@ -1,21 +1,19 @@
-import DashboardHeader from '@/components/vendor/layout/DashboardHeader';
-import DashboardSideBar from '@/components/vendor/layout/DashboardSideBar';
+import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
+import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
 import VendorInboxMessages from '@/components/vendor/VendorInboxMessages';
+import withAdminAuth from "@/lib/withAdminAuth";
 
-
-
-
-const VendorInbox= () => {
+const VendorInbox = () => {
   return (
-    <div>
+    <div className="flex flex-col h-screen">
       <DashboardHeader />
 
-      <div className="w-full flex justify-between items-center">
-        <div className="w-[100px] 800px:w-[330px]">
+      <div className="flex flex-1 overflow-hidden bg-gray-100">
+        <div className="w-[100px] 800px:w-[330px] bg-white  ">
           <DashboardSideBar active={9} />
         </div>
 
-        <div className="w-full flex justify-center items-center">
+        <div className="flex-1 overflow-y-auto">
           <VendorInboxMessages />
         </div>
       </div>
@@ -23,4 +21,4 @@ const VendorInbox= () => {
   );
 };
 
-export default VendorInbox
+export default withAdminAuth(VendorInbox);

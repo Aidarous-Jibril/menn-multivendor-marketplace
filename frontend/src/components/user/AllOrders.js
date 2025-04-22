@@ -1,7 +1,6 @@
 // Third-party library imports
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { DataGrid } from '@mui/x-data-grid';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -12,6 +11,7 @@ import Link from 'next/link';
 // Local imports (Redux slices)
 import { getUserAllOrders } from '@/redux/slices/orderSlice';
 import { setOrderItems } from '@/redux/slices/checkoutSlice';
+import ProductTable from '../common/ProductTable';
 
 
 const AllOrders = () => {
@@ -131,33 +131,20 @@ const AllOrders = () => {
   }));
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">My Orders</h2>
-      {/* Data Table Section */}
+    <div className="w-full bg-gray-100 p-4 md:p-8 rounded-md">
+     <div className="flex items-center mb-6">
+      <i className="fas fa-tags text-2xl text-orange-500 mr-2"></i>
+      <h1 className="text-2xl font-semibold">Order List</h1>
+      <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
+        {orders?.length || 0}
+      </span>
+    </div>
+
+      {/* Data Table */}
       <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <div style={{ height: "400px", width: "100%" }}>
-          <DataGrid
-            rows={rows}
-            columns={columns}
-            autoHeight
-            rowHeight={60}
-            disableSelectionOnClick
-            pageSizeOptions={[5, 10, 20]}
-            rowsPerPageOptions={[5, 10, 20]}
-            className="data-grid"
-            style={{ overflowX: "auto" }} // Enable horizontal scrolling if needed
-            sx={{
-              "& .MuiDataGrid-columnHeaders": {
-                backgroundColor: "#ADD8E6", // Light blue color
-              },
-              "& .MuiDataGrid-columnHeaderTitle": {
-                fontWeight: "bold",
-                fontSize: "1rem", // Optional: Adjust font size
-              },
-            }}
-          />
-        </div>
+          <ProductTable rows={rows} columns={columns} getRowId={(row) => row.id} />
       </div>
+      
       {/* Snackbar for error */}
       <Snackbar
         open={openSnackbar}

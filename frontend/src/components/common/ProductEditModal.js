@@ -35,7 +35,7 @@ const EditProductModal = ({
   isCouponEdit,
 }) => {
 
-  console.log("subSubcategories:", subSubcategories)
+  // console.log("data:", data)
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ fontSize: "1.5rem", fontWeight: "600" }}>

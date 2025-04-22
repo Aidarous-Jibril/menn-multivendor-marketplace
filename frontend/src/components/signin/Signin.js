@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { loginUser } from '@/redux/slices/userSlice';
 import { toast } from 'react-toastify';
-import Router from 'next/router'; 
+import Router, { useRouter } from 'next/router'; 
 
 import { signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
@@ -14,6 +14,8 @@ const SignIn = () => {
   const [visible, setVisible] = useState(false);
 
   const dispatch = useDispatch();
+  const router = useRouter();
+  const { error } = router.query;
 
 
   const handleSubmit = async (e) => {
@@ -42,6 +44,12 @@ const SignIn = () => {
           Login to your account
         </h2>
       </div>
+      {/* // later in JSX: */}
+  {error && (
+    <p className="text-red-500 text-sm text-center mb-2">
+      Google sign-in failed. Please try again.
+    </p>
+  )}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -125,12 +133,13 @@ const SignIn = () => {
             </div>
           </form>
           <button
-  onClick={() => signIn("google")}
+  onClick={() => signIn("google", { callbackUrl: "/user/profile" })}
   className="flex items-center justify-center px-6 py-3 mt-4 text-gray-600 border rounded-lg hover:bg-gray-50"
 >
   <FcGoogle className="w-6 h-6 mr-2" />
   Sign in with Google
 </button>
+
           <p className="mt-12 text-s font-light text-center">
             {" "}
             Don't have an account?{" "}

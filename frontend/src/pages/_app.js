@@ -35,6 +35,8 @@
 // }
 
 // export default wrapper.withRedux(MyApp);
+
+
 import React from 'react';
 import { Provider } from 'react-redux';
 import { wrapper } from '../redux/store';
@@ -58,3 +60,4 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp;
+

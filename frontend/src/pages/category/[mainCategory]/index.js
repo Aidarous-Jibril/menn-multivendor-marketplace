@@ -12,25 +12,29 @@ const CategoryPage = ({ categories, subcategories }) => {
 
   return (
     <>
-      {/* Meta Description Tag for SEO */}
-      <Head>
-        <meta
-          name="description"
-          content={`Explore products in the ${
-            mainCategory ? mainCategory.replace(/-/g, " ") : "Unknown Category" } category`} />
-      </Head>
+    <Head>
+      <meta
+        name="description"
+        content={`Explore products in the ${
+          mainCategory ? mainCategory.replace(/-/g, " ") : "Unknown Category"
+        } category`}
+      />
+    </Head>
 
+    <div className="min-h-screen flex flex-col">
       <Header categories={categories} />
-      <div className="py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
-        {/* Back to Home Link */}
+
+      <main className="flex-grow py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
         <Link href="/" passHref legacyBehavior>
           <a className="text-blue-600 hover:underline mb-4 inline-block">
             &larr; Back to Home
           </a>
         </Link>
+
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
           {mainCategory ? mainCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
         </h2>
+
         {subcategories?.length > 0 ? (
           <div className="relative overflow-x-auto">
             <div className="flex flex-nowrap gap-6 items-center justify-center md:justify-start">
@@ -62,9 +66,11 @@ const CategoryPage = ({ categories, subcategories }) => {
         ) : (
           <p className="text-center mt-4">No subcategories available.</p>
         )}
-      </div>
+      </main>
+
       <Footer />
-    </>
+    </div>
+  </>
   );
 };
 
