@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
-import { MdArrowDropDown } from 'react-icons/md'; // Importing the dropdown icon
+import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { MdArrowDropDown } from "react-icons/md";
+import { useDispatch, useSelector } from "react-redux";
+import { getExchangeRates, setCurrency, } from "../../redux/slices/currencySlice";
 
 const HeaderPromo = () => {
-  const [currency, setCurrency] = useState('USD $');
-  const [language, setLanguage] = useState('English');
+  const dispatch = useDispatch();
+  const { label } = useSelector((state) => state.currency);
+
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [language, setLanguage] = useState({ label: "English", code: "us" });
 
-  const handleCurrencyChange = (newCurrency) => {
-    setCurrency(newCurrency);
-    setShowCurrencyDropdown(false); // Close dropdown after selection
+  const currencyMap = useMemo(() => ({
+    USD: { symbol: "$", label: "USD $", flag: "/flags/us.svg" },
+    ETB: { symbol: "Br", label: "ETB Br", flag: "/flags/et.svg" },
+    EUR: { symbol: "€", label: "EUR €", flag: "/flags/eu.svg" },
+  }), []);
+  
+  const handleCurrencyChange = (code) => {
+    const currencyData = currencyMap[code];
+
+    if (!currencyData) return;
+
+    const { symbol, label } = currencyData;
+    dispatch(setCurrency({ code, symbol, label }));
+    setShowCurrencyDropdown(false);
   };
 
-  const handleLanguageChange = (newLanguage) => {
-    setLanguage(newLanguage);
-    setShowLanguageDropdown(false); // Close dropdown after selection
+  useEffect(() => {
+    dispatch(getExchangeRates());
+  }, []);
+  
+
+  const handleLanguageChange = (label, code) => {
+    setLanguage({ label, code });
+    setShowLanguageDropdown(false);
   };
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center p-2 border-b border-gray-200 px-16"> 
+    <div className="flex flex-wrap justify-between items-center px-4 sm:px-16 py-2 border-b border-gray-200 bg-white">
       <div className="flex items-center mb-2 sm:mb-0">
         <i className="fas fa-phone-alt"></i>
-        <span className="ml-2">+00xxxxxxxxxxxx</span>
+        <span className="ml-2">+1 555-123-4567</span>
       </div>
+
       <div className="flex items-center space-x-4">
         {/* Currency Dropdown */}
         <div className="relative inline-block text-left">
@@ -30,103 +52,73 @@ const HeaderPromo = () => {
             className="flex items-center cursor-pointer"
             onClick={() => {
               setShowCurrencyDropdown(!showCurrencyDropdown);
-              setShowLanguageDropdown(false); // Close language dropdown when currency dropdown is opened
+              setShowLanguageDropdown(false);
             }}
           >
-            <span>{currency}</span>
+            <span>{label}</span>
             <MdArrowDropDown className="ml-1" />
           </div>
           {showCurrencyDropdown && (
-            <div className="absolute right-0 mt-2 w-28 bg-white shadow-lg rounded-md py-1 z-10">
-              <button
-                onClick={() => handleCurrencyChange('USD $')}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                <img
-                  src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/us.svg"
-                  alt="USD"
-                  className="w-5 h-5 mr-2"
-                />
-                USD $
-              </button>
-              <button
-                onClick={() => handleCurrencyChange('EUR €')}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                <img
-                  src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/eu.svg"
-                  alt="EUR"
-                  className="w-5 h-5 mr-2"
-                />
-                EUR €
-              </button>
-              <button
-                onClick={() => handleCurrencyChange('GBP £')}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                <img
-                  src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/gb.svg"
-                  alt="GBP"
-                  className="w-5 h-5 mr-2"
-                />
-                GBP £
-              </button>
+            <div className="absolute top-full mt-2 right-0 w-44 bg-white shadow-lg rounded-md py-2 z-[9999] border border-gray-200">
+              {Object.keys(currencyMap).map((code) => (
+                <button
+                  key={code}
+                  onClick={() => handleCurrencyChange(code)}
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left text-sm"
+                >
+                  <Image
+                    src={currencyMap[code].flag}
+                    alt={code}
+                    width={20}
+                    height={20}
+                    className="mr-2"
+                  />
+                  {currencyMap[code].label}
+                </button>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Language Dropdown */}
+        {/* Language Dropdown (Display Only) */}
         <div className="relative inline-block text-left">
           <div
             className="flex items-center cursor-pointer"
             onClick={() => {
               setShowLanguageDropdown(!showLanguageDropdown);
-              setShowCurrencyDropdown(false); // Close currency dropdown when language dropdown is opened
+              setShowCurrencyDropdown(false);
             }}
           >
-            <img
-              src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/us.svg"
-              alt="US Flag"
-              className="w-5 h-5"
+            <Image
+              src={`/flags/${language.code}.svg`}
+              alt={language.label}
+              width={20}
+              height={20}
             />
-            <span className="ml-1">{language}</span>
             <MdArrowDropDown className="ml-1" />
           </div>
           {showLanguageDropdown && (
-            <div className="absolute right-0 mt-2 w-28 bg-white shadow-lg rounded-md py-1 z-10">
-              <button
-                onClick={() => handleLanguageChange('English')}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                <img
-                  src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/us.svg"
-                  alt="English"
-                  className="w-5 h-5 mr-2"
-                />
-                English
-              </button>
-              <button
-                onClick={() => handleLanguageChange('French')}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                <img
-                  src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/fr.svg"
-                  alt="French"
-                  className="w-5 h-5 mr-2"
-                />
-                French
-              </button>
-              <button
-                onClick={() => handleLanguageChange('Spanish')}
-                className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
-              >
-                <img
-                  src="https://cdn.jsdelivr.net/gh/hjnilsson/country-flags/svg/es.svg"
-                  alt="Spanish"
-                  className="w-5 h-5 mr-2"
-                />
-                Spanish
-              </button>
+            <div className="absolute top-full mt-2 right-0 w-28 bg-white shadow-lg rounded-md py-1 z-[9999] border border-gray-200">
+              {[
+                { label: "English", code: "us" },
+                { label: "Français", code: "fr" },
+                { label: "Svenska", code: "se" },
+              ].map(({ label, code }) => (
+                <button
+                  key={code}
+                  onClick={() => handleLanguageChange(label, code)}
+                  className="flex items-center px-4 py-2 hover:bg-gray-100 w-full text-left"
+                >
+                  <Image
+                    src={`/flags/${code}.svg`}
+                    alt={label}
+                    width={20}
+                    height={20}
+                    className="mr-2"
+                  />
+                  {label}
+                </button>
+              ))}
             </div>
           )}
         </div>

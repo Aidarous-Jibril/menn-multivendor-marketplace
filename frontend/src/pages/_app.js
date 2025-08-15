@@ -41,16 +41,16 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { wrapper } from '../redux/store';
 import { ToastContainer } from 'react-toastify';
-import { SessionProvider } from 'next-auth/react'; // Add NextAuth session provider
+import { SessionProvider } from 'next-auth/react'; 
 import 'react-toastify/dist/ReactToastify.css';
 import '../styles/globals.css'; // Tailwind CSS
 
 
 function MyApp({ Component, pageProps }) {
-  const { store } = wrapper.useWrappedStore(pageProps); // Correct Redux wrapper
+  const { store } = wrapper.useWrappedStore(pageProps); 
 
   return (
-    <SessionProvider session={pageProps.session}> {/* Wrap with SessionProvider */}
+    <SessionProvider session={pageProps.session}> 
       <Provider store={store}>
         <Component {...pageProps} />
         <ToastContainer />

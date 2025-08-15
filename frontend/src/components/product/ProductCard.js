@@ -6,23 +6,30 @@ import CountdownTimer from "../routes/sales/CountdownTimer";
 import AspectRatio from "@mui/joy/AspectRatio";
 import Card from "@mui/joy/Card";
 import CardContent from "@mui/joy/CardContent";
-import Typography from "@mui/joy/Typography";
+import Typography from "@mui/joy/Typography"; 
 import { Box } from "@mui/material";
+import { useSelector } from "react-redux";
 
-const priceFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
 
 const ProductCard = ({ product, isSale = false, saleEndDate, isMoreFromSeller = false, }) => {
   const [sampleRating, setSampleRating] = useState(0);
+  const { symbol, code, rates } = useSelector((state) => state.currency);
+console.log("PRODUCT", product)
+  const originalPrice = parseFloat(product?.originalPrice) || 0;
+  const discountedPrice = parseFloat(product?.discountPrice) || 0;
+
+  const convertedOriginal = code === "USD"
+    ? originalPrice
+    : originalPrice * (rates[code] || 1);
+  
+  const convertedDiscount = code === "USD"
+    ? discountedPrice
+    : discountedPrice * (rates[code] || 1);
+  
 
   useEffect(() => {
     setSampleRating(Math.random() * (5 - 3) + 3);
   }, []);
-
-  const originalPrice = parseFloat(product?.originalPrice) || 0;
-  const discountedPrice = parseFloat(product?.discountPrice) || 0;
 
   const calculateDiscountPercentage = (original, discounted) => {
     if (original > 0) {
@@ -90,7 +97,7 @@ const ProductCard = ({ product, isSale = false, saleEndDate, isMoreFromSeller = 
                 </Typography>
 
                 <Typography variant="body1" sx={{ fontWeight: "bold", color: "#333", mb: 0.5 }}>
-                  {priceFormatter.format(discountedPrice)}
+                  {symbol}{convertedDiscount.toFixed(2)}
                 </Typography>
               </Box>
 
@@ -153,7 +160,7 @@ const ProductCard = ({ product, isSale = false, saleEndDate, isMoreFromSeller = 
                   : "UNKNOWN"}
               </Typography>
               <Typography sx={{ fontSize: "md", fontWeight: "bold", color: "red", ml: 1 }}>
-                {priceFormatter.format(discountedPrice)}
+                {symbol}{convertedDiscount.toFixed(2)}
               </Typography>
             </Box>
 
@@ -233,12 +240,12 @@ const ProductCard = ({ product, isSale = false, saleEndDate, isMoreFromSeller = 
               <Box sx={{ display: "flex", justifyContent: "space-between", pl: 1, pr: 1 }}>
                 {/* Original Price */}
                 <Typography variant="body2" sx={{ textDecoration: "line-through", color: "gray", fontSize: "14px", mb: 0.5 }}>
-                  {priceFormatter.format(originalPrice)}
+                  {symbol}{convertedOriginal.toFixed(2)}
                 </Typography>
 
                 {/* Discounted Price */}
                 <Typography sx={{ fontSize: "lg", fontWeight: "lg", color: "green" }}>
-                  {priceFormatter.format(discountedPrice)}
+                  {symbol}{convertedDiscount.toFixed(2)}
                 </Typography>
               </Box>
             </CardContent>

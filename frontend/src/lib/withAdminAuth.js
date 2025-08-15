@@ -1,4 +1,4 @@
-// import { useRouter } from "next/router";
+// lib/withAdminAuth.js
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -6,26 +6,22 @@ import { useSelector } from "react-redux";
 const withAdminAuth = (WrappedComponent) => {
   return (props) => {
     const router = useRouter();
-    const { adminInfo } = useSelector((state) => state.admin); // Access admin state
-
+    const { adminInfo } = useSelector((state) => state.admin);
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
-      // Set the state to true once the component has mounted on the client
       setIsClient(true);
     }, []);
 
     useEffect(() => {
-      if (adminInfo && adminInfo.role !== "admin") {
-        router.push("/"); // Redirect non-admins to homepage
+      if (!adminInfo || !adminInfo.email) {
+        router.push("/admin/login");
       }
     }, [adminInfo, router]);
 
-    if (!isClient) return null; 
+    if (!isClient) return null;
 
-    return adminInfo && adminInfo.role === "admin" ? (
-      <WrappedComponent {...props} />
-    ) : null;
+    return adminInfo && adminInfo.email ? <WrappedComponent {...props} /> : null;
   };
 };
 

@@ -11,15 +11,17 @@ import { useRouter } from 'next/router';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '@/redux/slices/userSlice';
 
+
 const ProfileSideBar = ({ active }) => {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  const logoutHandler = () => {
-    dispatch(logoutUser());
-    toast.success('User logged out');
-    router.push('/');
+  const logoutHandler = async () => {
+    await dispatch(logoutUser()); 
+    toast.success("User logged out");
+    router.push("/user/login");
   };
+  
 
   const linkStyle = (index) =>
     `flex items-center cursor-pointer w-full mb-8 ${

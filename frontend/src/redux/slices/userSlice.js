@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { signOut } from "next-auth/react";
 
 // Helper function to check if we are in the browser environment
 const isBrowser = () => typeof window !== "undefined";
@@ -13,26 +14,36 @@ const getStoreInfoFromStorage = () => {
   return null;
 };
 
-
-
 // Login User
 export const loginUser = createAsyncThunk(
   "user/loginUser",
   async (userData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(
-        "http://localhost:8000/api/users/login",
-        userData,
-        {
-          withCredentials: true, // Ensure cookies are sent and received
-        }
-      );
+      const { data } = await axios.post("http://localhost:8000/api/users/login", userData, { withCredentials: true, });
       if (isBrowser()) {
         localStorage.setItem("userInfo", JSON.stringify(data.user));
       }
       return data;
     } catch (error) {
-      return rejectWithValue(error.response.data.error);
+      return rejectWithValue(error.response?.data?.error || "Login failed");
+    }
+  }
+);
+
+// Reset User Password (via token)
+export const resetUserPassword = createAsyncThunk(
+  "user/resetUserPassword",
+  async ({ token, password }, { rejectWithValue }) => {
+    console.log("token", token)
+    console.log("password", password)
+    try {
+      const { data } = await axios.post(
+        `http://localhost:8000/api/users/reset-password/${token}`,
+        { password }
+      );
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Password reset failed");
     }
   }
 );
@@ -49,6 +60,7 @@ export const logoutUser = createAsyncThunk(
         localStorage.removeItem("userInfo");
         localStorage.removeItem("cartItems");
         localStorage.removeItem("wishListItems");
+        await signOut({ redirect: false });
       }
       return data.msg;
     } catch (error) {
@@ -79,14 +91,14 @@ export const updateUserInformation = createAsyncThunk(
   async ({ name, email, phoneNumber, password, id }, { rejectWithValue }) => {
     try {
       const { data } = await axios.put(
-        "/api/users/update-user-info", // Ensure this matches the route in your backend
+        "/api/users/update-user-info", 
         { name, email, phoneNumber, password, id },
-        { withCredentials: true } // This ensures credentials are included for authentication
+        { withCredentials: true } 
       );
-      localStorage.setItem("userInfo", JSON.stringify(data.user)); // Ensure localStorage is updated with the new user info
-      return data; // Return the updated user data
+      localStorage.setItem("userInfo", JSON.stringify(data.user)); 
+      return data; 
     } catch (error) {
-      return rejectWithValue(error.response.data.error); // Handle errors properly
+      return rejectWithValue(error.response.data.error); 
     }
   }
 );
@@ -130,7 +142,7 @@ export const updateUserAvatar = createAsyncThunk(
           withCredentials: true,
         }
       );
-      return response.data.user; // Updated user information
+      return response.data.user; 
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -251,6 +263,17 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload;
       })
+      .addCase(resetUserPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(resetUserPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.successMessage = action.payload.message;
+      })
+      .addCase(resetUserPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })      
       .addCase(logoutUser.pending, (state) => {
         state.isLoading = true;
       })

@@ -1,7 +1,7 @@
 import AllOrdersTable from "@/components/vendor/AllOrdersTable";
 import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
 import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
-import withAdminAuth from "@/lib/withAdminAuth";
+import withVendorAuth from "@/lib/withVendorAuth";
 
 const VendorAllOrders = () => {
   return (
@@ -21,4 +21,4 @@ const VendorAllOrders = () => {
   );
 };
 
-export default withAdminAuth(VendorAllOrders);
+export default withVendorAuth(VendorAllOrders);

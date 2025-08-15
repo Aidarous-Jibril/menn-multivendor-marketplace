@@ -57,7 +57,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import productReducer from './slices/productSlice';
 import userReducer from './slices/userSlice';
 import vendorReducer from './slices/vendorSlice';
-import adminReducer from "./slices/adminSlice";
 import cartReducer from './slices/cartSlice';
 import wishListReducer from './slices/wishListSlice';
 import orderReducer from './slices/orderSlice';
@@ -66,7 +65,7 @@ import categoryReducer from './slices/categorySlice';
 import brandReducer from './slices/brandSlice';
 import couponReducer from './slices/couponSlice';
 import checkoutReducer from './slices/checkoutSlice';
-import siteSettingsReducer from './slices/siteSettingsSlice';
+import currencyReducer from './slices/currencySlice';
 
 import { createWrapper } from 'next-redux-wrapper';
 
@@ -76,7 +75,6 @@ export function makeStore(preloadedState) {
       products: productReducer,
       user: userReducer,
       vendors: vendorReducer,
-      admin: adminReducer,
       cart: cartReducer,
       wishList: wishListReducer,
       orders: orderReducer,
@@ -85,7 +83,7 @@ export function makeStore(preloadedState) {
       brands: brandReducer, 
       coupons: couponReducer, 
       checkout: checkoutReducer,
-      settings: siteSettingsReducer
+      currency: currencyReducer,
     },
     preloadedState, // For server-side rendering
   });

@@ -42,13 +42,45 @@ export const loginVendor = createAsyncThunk(
       const config = {
         headers: {
           "Content-Type": "application/json",
+          withCredentials: true,
         },
       };
       const { data } = await axios.post("/api/vendors/login", vendorData, config);
+      console.log("DATA:",)
       localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
       return data
     } catch (error) {
       return rejectWithValue(error.response.data.error);
+    }
+  }
+);
+
+// Forgot Vendor Password
+export const forgotVendorPassword = createAsyncThunk(
+  "vendor/forgotVendorPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("/api/vendors/forgot-password", { email });
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to send reset email");
+    }
+  }
+);
+
+// Reset Vendor Password
+export const resetVendorPassword = createAsyncThunk(
+  "vendor/resetVendorPassword",
+  async ({ token, newPassword, confirmPassword }, { rejectWithValue }) => {
+    try {
+      const { data } = await axios.post("/api/vendors/reset-password", {
+        token,
+        newPassword,
+        confirmPassword,
+      });
+      return data.message;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Failed to reset password");
     }
   }
 );
@@ -225,7 +257,6 @@ export const fetchVendorNotifications = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await axios.get("/api/vendors/notifications", { withCredentials: true });
-      console.log("DATA:", data)
       return data.notifications;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || "Failed to fetch vendor notifications");
@@ -245,6 +276,7 @@ export const markVendorNotificationAsRead = createAsyncThunk(
     }
   }
 );
+
 // Delete vendor notification
 export const deleteVendorNotification = createAsyncThunk(
   "vendor/deleteVendorNotification",
@@ -302,6 +334,30 @@ const vendorSlice = createSlice({
         state.error = action.payload;
         state.success = false;
       })
+      // Vendor forgot Password
+      .addCase(forgotVendorPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(forgotVendorPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.success = true;
+      })
+      .addCase(forgotVendorPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+        // Vendor reset Password
+      .addCase(resetVendorPassword.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(resetVendorPassword.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.success = true;
+      })
+      .addCase(resetVendorPassword.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })      
       // Vendor logout
       .addCase(logoutVendor.pending, (state) => {
         state.isLoading = true;

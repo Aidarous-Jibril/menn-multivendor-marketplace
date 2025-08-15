@@ -49,19 +49,13 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
     let filtered = [...vendorProducts]; // Copy the array.
 
     if (mainCategory) {
-      filtered = filtered.filter(
-        (product) => product.mainCategory === mainCategory
-      );
+      filtered = filtered.filter( (product) => product.mainCategory === mainCategory );
     }
     if (subCategory) {
-      filtered = filtered.filter(
-        (product) => product.subCategory === subCategory
-      );
+      filtered = filtered.filter( (product) => product.subCategory === subCategory );
     }
     if (subSubCategory) {
-      filtered = filtered.filter(
-        (product) => product.subSubCategory === subSubCategory
-      );
+      filtered = filtered.filter( (product) => product.subSubCategory === subSubCategory);
     }
     if (selectedBrand) {
       console.log("Selected Brand:", selectedBrand);
@@ -69,20 +63,9 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
     }
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
-      filtered = filtered.filter((sale) =>
-        sale.name.toLowerCase().includes(lowerCaseQuery)
-      );
+      filtered = filtered.filter((sale) => sale.name.toLowerCase().includes(lowerCaseQuery) );
     }
     setFilteredProducts(filtered);
-//     let filtered = vendorProducts
-//   .filter((product) => !mainCategory || product.mainCategory === mainCategory)
-//   .filter((product) => !subCategory || product.subCategory === subCategory)
-//   .filter((product) => !subSubCategory || product.subSubCategory === subSubCategory)
-//   .filter((product) => !selectedBrand || product.brand === selectedBrand)
-//   .filter((product) =>
-//     !searchQuery || product.name.toLowerCase().includes(searchQuery.toLowerCase())
-//   );
-// setFilteredProducts(filtered);
 
   }, [
     mainCategory,
@@ -98,12 +81,13 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
     setSearchQuery(e.target.value);
   };
 
+  // Reset all fields
   const handleResetFilters = () => {
-    setMainCategory(""); // Reset main category
-    setSubCategory(""); // Reset subcategory
-    setSubSubCategory(""); // Reset sub-subcategory
-    setSelectedBrand(""); // Reset selected brand
-    setFilteredProducts(vendorProducts); // Reset the filtered products
+    setMainCategory(""); 
+    setSubCategory(""); 
+    setSubSubCategory(""); 
+    setSelectedBrand(""); 
+    setFilteredProducts(vendorProducts); 
     setSearchQuery("");
   };
   return (
@@ -236,8 +220,8 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
 
 export const getServerSideProps = async (context) => {
   const { id: vendorId } = context.query;
-  const baseURL = process.env.API_URL || "http://localhost:8000"; //process.env.API_URL is undefined, check it
-console.log("process.env.API_URL:", process.env.API_URL)
+  const baseURL = process.env.API_URL || "http://localhost:8000"; 
+
   const fetchData = async (url) => {
     try {
       const response = await axios.get(url);
@@ -247,7 +231,6 @@ console.log("process.env.API_URL:", process.env.API_URL)
       return null;
     }
   };
-
 
   const [vendorRes, vendorProductsRes, brandsRes, categoriesRes] =
     await Promise.all([

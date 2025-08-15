@@ -4,6 +4,8 @@ const cloudinary = require("../utils/cloudinary");
 const validator = require("validator");
 const User = require("../models/userModel");
 const Notification = require("../models/notificationModel");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendMail"); 
 
 const registerUser = asyncHandler(async (req, res) => {
   console.log(req.body)
@@ -37,13 +39,11 @@ const registerUser = asyncHandler(async (req, res) => {
       },
     };
 
-    // Create user in database
     const user = await User.create(newUser);
 
-    // Generate JWT token
     const token = createToken(res, user._id);
     
-    // ✅ Create a notification for admins when new user registers
+    // Create a notification for admins when new user registers
     await Notification.create({
       type: "new_user",
       message: `👤 New user registered: ${name}`,
@@ -77,6 +77,60 @@ const loginUser = asyncHandler(async (req, res) => {
     res.status(400).json({ error: "Invalid email or password" });
   }
 });
+
+// Forgot PWD
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+
+  // Generate reset token
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  console.log("resetToken:", resetToken)
+
+  user.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+  await user.save();
+
+  const resetUrl = `http://localhost:3000/user/reset-password/${resetToken}`;
+  const message = `You requested a password reset. Click to reset: ${resetUrl}`;
+
+  await sendEmail({
+    to: user.email,
+    subject: "Password Reset",
+    text: message,
+  });
+
+  res.status(200).json({ message: "Password reset email sent" });
+});
+
+// Reset Password 
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return res.status(400).json({ error: "Token is invalid or has expired" });
+  }
+
+  user.password = password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+
+  res.status(200).json({ message: "Password reset successful!" });
+});
+
 
 // Log out user
 const logoutUser = (req, res) => {
@@ -274,7 +328,6 @@ const addPaymentMethod = asyncHandler(async (req, res) => {
   }
 });
 
-
 // Delete payment method
 const deletePaymentMethod = asyncHandler(async (req, res) => {
   const { id } = req.user; 
@@ -299,11 +352,49 @@ const deletePaymentMethod = asyncHandler(async (req, res) => {
   }
 });
 
+const googleLogin = asyncHandler(async (req, res) => {
+  const { name, email, image } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  let user = await User.findOne({ email });
+
+  if (!user) {
+    // Create user if not exists
+    user = await User.create({
+      name,
+      email,
+      avatar: {
+        public_id: "google_avatar",
+        url: image,
+      },
+      password: "", // No password for Google users
+    });
+
+    await Notification.create({
+      type: "new_user",
+      message: `👤 New Google user registered: ${name}`,
+    });
+  }
+
+  // Issue cookie
+  createToken(res, user._id);
+
+  res.status(200).json({
+    success: true,
+    user,
+    message: "Google login successful",
+  });
+});
 
 
 module.exports = {
   registerUser,
   loginUser,
+  forgotPassword,
+  resetPassword,
   logoutUser,
   updateUserProfile,
   updateUserAvatar,
@@ -312,5 +403,6 @@ module.exports = {
   getUser,
   updateUserPassword,
   addPaymentMethod,
-  deletePaymentMethod
+  deletePaymentMethod,
+  googleLogin
 };

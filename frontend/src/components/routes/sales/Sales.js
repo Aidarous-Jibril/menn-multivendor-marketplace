@@ -14,13 +14,12 @@ const Sale = ({ sales }) => {
     scrollRef.current.scrollBy({ left: 300, behavior: "smooth" });
   };
 
-    // Destructure and Filter only those sales that have started AND not ended 
-    const now = new Date();
-    const activeSales = sales?.filter(({ saleStart, saleEnd }) =>
-      now >= new Date(saleStart) && now <= new Date(saleEnd)
-    );    
+  // Destructure and Filter only those sales that have started AND not ended 
+  const now = new Date();
+  const activeSales = sales?.filter(({ saleStart, saleEnd }) =>
+    now >= new Date(saleStart) && now <= new Date(saleEnd)
+  );    
   
-  console.log("activeSales", activeSales)
   return (
     <div className="container mx-auto px-2 md:px-4 py-2 relative max-w-[95%] lg:max-w-[90%]">
       <div className="flex flex-col lg990:flex-row justify-between items-start lg990:items-center mb-6">

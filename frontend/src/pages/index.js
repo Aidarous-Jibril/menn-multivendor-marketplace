@@ -1,50 +1,45 @@
 // pages/index.js
 import 'tailwindcss/tailwind.css';
 import React from 'react';
-import 'tailwindcss/tailwind.css';
-
-import Header from '@/components/layout/Header';
-import HeroPage from '@/components/routes/HeroPage';
-import Categories from '@/components/routes/Categories';
-import FeaturedProducts from '@/components/routes/FeaturedProducts';
-import Sponsored from '@/components/routes/Sponsored';
-import Footer from '@/components/layout/Footer';
-import LatestProducts from '@/components/routes/LatestProducts';
-import Brands from '@/components/routes/Brands';
-import Sales from '@/components/routes/sales/Sales';
-import HeaderPromo from '@/components/layout/HeaderPromo';
-import TopSellers from '@/components/routes/Sellers';
 import axios from 'axios';
 
-const HomePage = ({ products, categories, vendors, sales }) => {
-console.log("SALES:",sales)
+import dynamic from "next/dynamic";
+
+const HeaderPromo = dynamic(() => import('@/components/layout/HeaderPromo'));
+const Header = dynamic(() => import('@/components/layout/Header'));
+const HeroPage = dynamic(() => import('@/components/routes/HeroPage'), { ssr: false });
+const Categories = dynamic(() => import('@/components/routes/Categories'));
+const TopSellers = dynamic(() => import('@/components/routes/Sellers'), { ssr: false });
+const Sponsored = dynamic(() => import('@/components/routes/Sponsored'));
+const Brands = dynamic(() => import('@/components/routes/Brands'), { ssr: false });
+const Footer = dynamic(() => import('@/components/layout/Footer'));
+
+
+const HomePage = ({ products, categories, vendors, sales, brands }) => {
   return (
     <div className="overflow-x-hidden">
       <HeaderPromo />
-       <Header activeHeading={1} products={products} categories={categories} />
-       {/* <HeroPage />  */}
+      <Header activeHeading={1} products={products} categories={categories} />
+      <HeroPage /> 
       <Categories categories={categories} />
-      <Sales sales={sales} />
-      <LatestProducts products={products} />
-      {/* <FeaturedProducts products={products} isLoading={isLoading} error={error} /> */}
       <TopSellers vendors={vendors} />
-      <Brands />
+      <Brands brands={brands} />
       <Sponsored />
-      <Footer />
+      <Footer />  
     </div>
   );
 };
-
 
 export async function getServerSideProps() {
   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   try {
-    const [productsRes, categoriesRes, vendorsRes, salesRes] = await Promise.all([
+    const [productsRes, categoriesRes, vendorsRes, salesRes, brandsRes] = await Promise.all([
       axios.get(`${baseURL}/api/products`).catch(err => { console.error("Products Error:", err); return null; }),
       axios.get(`${baseURL}/api/categories`).catch(err => { console.error("Categories Error:", err); return null; }),
       axios.get(`${baseURL}/api/vendors`).catch(err => { console.error("Vendors Error:", err); return null; }),
       axios.get(`${baseURL}/api/sales`).catch(err => { console.error("Sales Error:", err); return null; }),
+      axios.get(`${baseURL}/api/brands`).catch(err => { console.error("Brands Error:", err); return null; }),
     ]);
 
     return {
@@ -53,19 +48,18 @@ export async function getServerSideProps() {
         categories: categoriesRes?.data?.categories || [],
         vendors: vendorsRes?.data?.vendors || [],
         sales: salesRes?.data?.sales || [],
+        brands: brandsRes?.data?.brands || [],
       },
     };
   } catch (error) {
-    // Log the error for debugging
-    console.error("Error fetching data:", error.message);
-
-    // Provide fallback props in case of failure
+    
     return {
       props: {
         products: [],
         categories: [],
         vendors: [],
         sales: [],
+        brands: [],
       },
     };
   }

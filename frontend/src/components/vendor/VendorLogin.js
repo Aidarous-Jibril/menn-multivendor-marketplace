@@ -14,6 +14,8 @@ const VendorLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
   const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
@@ -22,17 +24,22 @@ const VendorLogin = () => {
       const userData = { email, password };
       const result = await dispatch(loginVendor(userData));
       if (result.type === 'vendor/loginVendor/fulfilled') {
-        toast.success(result.payload.msg); 
-        Router.push('/vendor/dashboard'); 
+        toast.success(result.payload.message || "Login successful");
+      
+        if (rememberMe) {
+          localStorage.setItem("vendorInfo", JSON.stringify(result.payload.vendor));
+        } else {
+          sessionStorage.setItem("vendorInfo", JSON.stringify(result.payload.vendor));
+        }
+      
+        Router.push('/vendor/dashboard');
       } else {
-        toast.error(result.payload); 
-      }
+        toast.error(result.payload || "Login failed");
+      }  
     } catch (error) {
       console.error('Login error:', error);
     }
   };
-
-
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -101,6 +108,8 @@ const VendorLogin = () => {
                 type="checkbox"
                 name="remember-me"
                 id="remember-me"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="relative float-left -ml-[1.5rem] mr-[6px] mt-[0.15rem] h-[1.125rem] w-[1.125rem]"
               />
               <label
@@ -111,7 +120,7 @@ const VendorLogin = () => {
               </label>
             </div>
             <a
-              href="#!"
+              href="/vendor/forgot-password"
               className="text-blue-700 transition duration-150 ease-in-out hover:text-primary-600 focus:text-primary-600 active:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500 dark:focus:text-primary-500 dark:active:text-primary-600"
             >
               Forgot password?

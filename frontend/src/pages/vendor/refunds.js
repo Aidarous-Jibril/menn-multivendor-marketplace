@@ -1,7 +1,7 @@
 import AllRefundsPage from "@/components/vendor/AllRefundsPage";
 import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
 import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
-import withAdminAuth from "@/lib/withAdminAuth";
+import withVendorAuth from "@/lib/withVendorAuth";
 
 const VendorAllRefundsPage = () => {
   return (
@@ -21,5 +21,5 @@ const VendorAllRefundsPage = () => {
   );
 };
 
-export default withAdminAuth(VendorAllRefundsPage);
+export default withVendorAuth(VendorAllRefundsPage);
 

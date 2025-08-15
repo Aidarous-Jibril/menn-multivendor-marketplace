@@ -192,7 +192,6 @@ console.log("vendor ID", vendorId)
 const deleteProduct = catchAsyncErrors(async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
-    console.log("PRODUCT:", product);
     
     if (!product) {
       return res.status(404).json({

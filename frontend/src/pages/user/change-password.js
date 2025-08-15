@@ -8,14 +8,17 @@ const ChangePasswordPage = () => {
   const [active, setActive] = useState(6);
 
   return (
-    <div>
+    <div className="flex flex-col min-h-screen">
       <Header />
-      <div className={`${styles.section} flex bg-[#f5f5f5] py-10`}>
-        <div className='w-[50px] md:w-[335px]'>
-          <ProfileSideBar active={active} setActive={setActive} />
+      <div className="flex flex-1 bg-gray-100">
+        {/* Sidebar */}
+        <div className="w-[100px] 800px:w-[330px] bg-white">
+          <ProfileSideBar active={6}  />
         </div>
-        <div className="w-full">
-          <ChangePassword />
+
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <ChangePassword  />
         </div>
       </div>
     </div>

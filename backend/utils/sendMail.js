@@ -1,33 +1,29 @@
+// utils/sendMail.js
 const nodemailer = require("nodemailer");
 
-const sendEmail = async (user, activationUrl) => {
+const sendEmail = async ({ to, subject, text }) => {
   try {
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        port:465,
-        secure: true, // true for 465, false for other ports
-        logger: true,
-        debug: true,
-        secureConnection: false,
-        auth: {
-            user: process.env.SMPT_MAIL, // generated ethereal user
-            pass: process.env.SMPT_PASSWORD, // generated ethereal password
-        },
-        tls:{
-            rejectUnAuthorized:true
-        }
+      service: 'gmail',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.SMTP_EMAIL,
+        pass: process.env.SMTP_PASSWORD,
+      },
     });
 
     await transporter.sendMail({
-      from: process.env.SMPT_MAIL,
-      to: user.email,
-      subject: "Activate your account",
-      text: `Hello ${user.name}, please click on the link to activate your account: ${activationUrl}`,
+      from: process.env.SMTP_EMAIL,
+      to,
+      subject,
+      text,
     });
-    console.log("email sent sucessfully");
+
+    console.log("✅ Email sent successfully");
   } catch (error) {
-    console.log("email not sent");
-    console.log(error);
+    console.log("❌ Email not sent");
+    console.error(error);
   }
 };
 

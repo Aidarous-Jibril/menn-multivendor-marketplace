@@ -4,10 +4,11 @@ const asyncHandler = require("express-async-handler");
 const Vendor = require("../models/vendorModel");
 const createVendorToken = require("../utils/vendorToken");
 const cloudinary = require("../utils/cloudinary");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendMail");
 const Product = require("../models/productModel");
 const Notification = require("../models/notificationModel");
 const VendorNotification = require("../models/vendorNotificationModel"); 
-
 
 // Register a new vendor with file upload
 const registerVendor = asyncHandler(async (req, res) => {
@@ -66,7 +67,7 @@ const registerVendor = asyncHandler(async (req, res) => {
     res.status(201).json({
       success: true,
       token,
-      msg: "Vendor registered successfully",
+      message: "Vendor registered successfully",
       vendor,
     });
   } catch (error) {
@@ -77,22 +78,72 @@ const registerVendor = asyncHandler(async (req, res) => {
 // Log in a vendor
 const loginVendor = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "All fields must be filled" });
+  }
   try {
     const vendor = await Vendor.login(email, password);
+
     if (!vendor) {
-      throw new Error("Invalid vendor credentials");
+      return res.status(400).json({ error: "Invalid email or password" });
     }
-
+    if (vendor.isBlocked) {
+      return res.status(403).json({ error: "Your account has been deactivated. Please contact support." });
+    }
+  
     createVendorToken(res, vendor._id);
-
-    res.status(200).json({
-      success: true,
-      vendor,
-      msg: "vendor logged in successfully",
-    });
+    res.status(200).json({ success: true, vendor, message: "Vendor logged in successfully!" });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: error.message || "Login failed" });
   }
+});
+
+// Forgot Vendor Password
+const forgotVendorPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const vendor = await Vendor.findOne({ email });
+  if (!vendor) {
+    return res.status(404).json({ error: "Vendor not found" });
+  }
+
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  vendor.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  vendor.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 mins
+  await vendor.save();
+
+  const resetUrl = `http://localhost:3000/vendor/reset-password/${resetToken}`;
+  const message = `You requested a password reset. Click to reset: ${resetUrl}`;
+
+  await sendEmail({
+    to: vendor.email,
+    subject: "Vendor Password Reset",
+    text: message,
+  });
+
+  res.status(200).json({ message: "Vendor password reset email sent" });
+});
+
+// Reset Vendor Password
+const resetVendorPassword = asyncHandler(async (req, res) => {
+  const hashedToken = crypto.createHash("sha256").update(req.body.token).digest("hex");
+
+  const vendor = await Vendor.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!vendor) {
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+
+  vendor.password = req.body.newPassword;
+  vendor.resetPasswordToken = undefined;
+  vendor.resetPasswordExpire = undefined;
+
+  await vendor.save();
+
+  res.status(200).json({ message: "Password reset successfully" });
 });
 
 // Log out a vendor
@@ -300,6 +351,8 @@ const deleteVendorNotification = asyncHandler(async (req, res) => {
 module.exports = {
   registerVendor,
   loginVendor,
+  forgotVendorPassword,
+  resetVendorPassword,
   logoutVendor,
   getAllVendors,
   getVendorInfo,

@@ -5,26 +5,26 @@ import ProductCard from "@/components/product/ProductCard";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Loader from "@/components/vendor/layout/Loader";
-import { getAllEvents } from "@/redux/slices/eventSlice";
+import { getAllSales } from "@/redux/slices/saleSlice";
 
-const FlashSalePage = () => {
+const SaleProductsPage = () => {
   const dispatch = useDispatch();
-  const { sales, isLoading, error } = useSelector((state) => state.events);
+  const { sales, isLoading, error } = useSelector((state) => state.sales);
 
   useEffect(() => {
-    dispatch(getAllEvents());
+    dispatch(getAllSales());
   }, [dispatch]);
 
   const filterValidSales = (sales) => {
     const currentDate = new Date();
     return sales?.filter((product) => {
-      const saleEndDate = new Date(product.endDate);
-      return saleEndDate >= currentDate; // Only keep products whose end date is in the future or today
+      const saleEndDate = new Date(product.saleEnd);
+      return saleEndDate >= currentDate;
     });
-  };
+  };  
 
   const validSales = filterValidSales(sales);
-
+  
   return (
     <>
       <Head>
@@ -50,7 +50,7 @@ const FlashSalePage = () => {
                   key={product._id}
                   product={product}
                   isSale={true}
-                  saleEndDate={product.endDate}
+                  saleEndDate={product.saleEnd}
                 />
               ))}
             </div>
@@ -63,4 +63,4 @@ const FlashSalePage = () => {
   );
 };
 
-export default FlashSalePage;
+export default SaleProductsPage;

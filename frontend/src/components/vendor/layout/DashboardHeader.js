@@ -14,10 +14,12 @@ import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 import { FaBell } from "react-icons/fa";
+import Image from "next/image";
 
 const DashboardHeader = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const currentPath = router.pathname;
 
   const { vendorInfo, notificationCount, notifications } = useSelector((state) => state.vendors);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -58,58 +60,62 @@ const DashboardHeader = () => {
     }
   };
   
+  //helper func for the active link
+  const isActive = (path) => currentPath === path ? "crimson" : "#555";
+
   return (
     <div className="w-full h-[80px] bg-white shadow sticky top-0 left-0 z-30 flex items-center justify-between px-4">
-      <div>
-        <Link href="/">
-          <img
-            src="https://shopo.quomodothemes.website/assets/images/logo.svg"
-            alt="Store Logo"
-          />
-        </Link>
-      </div>
+      {/* Logo */}
+      <Image
+        src="/logo.svg"
+        alt="Store Logo"
+        width={140}
+        height={80}
+        priority
+        className="cursor-pointer"
+      />
       <div className="flex items-center">
         <div className="flex items-center mr-4">
           <Link href="/vendor/dashboard">
-            <MdOutlineDashboard color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <MdOutlineDashboard size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/dashboard")} />
           </Link>
           <Link href="/vendor/orders">
-            <FiShoppingBag color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <FiShoppingBag size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/orders")} />
           </Link>
           <Link href="/vendor/products">
-            <FiPackage color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <FiPackage size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/products")} />
           </Link>
           <Link href="/vendor/create-product">
-            <IoMdAdd color="#555" size={28} className="mx-5 cursor-pointer hidden sm:block" />
+            <IoMdAdd size={28} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/create-product")} />
           </Link>
-          <Link href="/vendor/flash-sales">
-            <BsAlexa color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+          <Link href="/vendor/sales">
+            <BsAlexa size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/sales")} />
           </Link>
           <Link href="/vendor/create-flash-sale">
-            <IoIosAddCircle color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <IoIosAddCircle size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/create-flash-sale")} />
           </Link>
           <Link href="/vendor/withdraw">
-            <CiMoneyBill color="#555" size={28} className="mx-5 cursor-pointer hidden sm:block" />
+            <CiMoneyBill size={28} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/withdraw")} />
           </Link>
           <Link href="/vendor/bank-info">
-            <CiBank color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <CiBank size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/bank-info")} />
           </Link>
           <Link href="/vendor/inbox">
-            <BiMessageSquareDetail color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <BiMessageSquareDetail size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/inbox")} />
           </Link>
           <Link href="/vendor/coupons">
-            <AiOutlineGift color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <AiOutlineGift size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/coupons")} />
           </Link>
           <Link href="/vendor/refunds">
-            <HiOutlineReceiptRefund color="#555" size={25} className="mx-5 cursor-pointer hidden sm:block" />
+            <HiOutlineReceiptRefund size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/refunds")} />
           </Link>
           <Link href="/vendor/settings">
-            <CiSettings color="#555" size={26} className="mx-5 cursor-pointer hidden sm:block" />
+            <CiSettings size={26} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/settings")} />
           </Link>
 
           {/* 🔔 Notification Bell */}
           <div
-            className="relative mx-5 cursor-pointer hidden sm:block"
+            className="relative mx-5 cursor-pointer hidden lg:block"
             onClick={toggleNotifications}
           >
             <FaBell size={22} className="text-green-600" />
@@ -149,7 +155,7 @@ const DashboardHeader = () => {
           {/* 🔓 Logout */}
           <button
             onClick={handleVendorLogout}
-            className="mx-5 cursor-pointer hidden sm:block bg-transparent border-none"
+            className="mx-5 cursor-pointer hidden lg:block bg-transparent border-none"
           >
             <LuLogOut size={25} color="#555" />
           </button>

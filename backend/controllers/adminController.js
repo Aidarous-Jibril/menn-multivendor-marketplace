@@ -1,6 +1,8 @@
-const expressAsyncHandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary").v2;
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendMail");
 const mongoose = require("mongoose");
 const createAdminToken = require("../utils/adminToken");
 
@@ -10,6 +12,7 @@ const Vendor = require("../models/vendorModel");
 const Product = require("../models/productModel");
 const Order = require("../models/orderModel");
 const Sale = require("../models/saleModel");
+const Brand = require('../models/brandModel');
 const MainCategory = require("../models/mainCategory");
 const SubCategory = require('../models/subCategory');
 const SubSubCategory = require('../models/subSubCategory');
@@ -18,7 +21,7 @@ const Notification = require("../models/notificationModel");
 
 
 // Admin Registration
-const registerAdmin = expressAsyncHandler(async (req, res) => {
+const registerAdmin = asyncHandler(async (req, res) => {
   const { name, email, password, phoneNumber, avatar } = req.body;
 
   if (!name || !email || !password) {
@@ -57,7 +60,6 @@ const registerAdmin = expressAsyncHandler(async (req, res) => {
   });
     // Generate JWT token
     const token = createAdminToken(res, admin._id);
-console.log("TOKEN:", token)
   if (admin) {
     res.status(201).json({
       admin: {
@@ -78,31 +80,86 @@ console.log("TOKEN:", token)
 });
 
 // Admin Login
-const loginAdmin = expressAsyncHandler(async (req, res) => {
+const loginAdmin = asyncHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
+    
     const admin = await Admin.findOne({ email });
-
     if (!admin || !await bcrypt.compare(password, admin.password)) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
-
-    // Create JWT token and set it in the cookie
     createAdminToken(res, admin._id); 
   
-    // Send response with admin data (without password)
     res.json({
-      admin: { id: admin._id, email: admin.email, role: admin.role }
+      message: "Admin logged in successfully",
+      admin: {
+        _id: admin._id,
+        email: admin.email,
+        role: admin.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
+// Admin Forgot Password
+const forgotPasswordAdmin = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const admin = await Admin.findOne({ email });
+  if (!admin) {
+    return res.status(404).json({ error: "Admin not found" });
+  }
+
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  admin.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  admin.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  await admin.save();
+
+  const resetUrl = `http://localhost:3000/admin/reset-password/${resetToken}`;
+  const message = `You requested a password reset. Click to reset: ${resetUrl}`;
+
+  await sendEmail({
+    to: admin.email,
+    subject: "Admin Password Reset",
+    text: message,
+  });
+
+  res.status(200).json({ message: "Password reset email sent to admin" });
+});
+
+// Admin Reset Password
+const resetPasswordAdmin = asyncHandler(async (req, res) => {
+  const { token, newPassword, confirmPassword } = req.body;
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const admin = await Admin.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!admin) {
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  admin.password = await bcrypt.hash(newPassword, salt);
+
+  admin.password = newPassword;
+  admin.resetPasswordToken = undefined;
+  admin.resetPasswordExpire = undefined;
+  await admin.save();
+
+  res.status(200).json({ message: "Admin password reset successful" });
+});
+
 // Get Admin Profile
-const getAdminProfile = expressAsyncHandler(async (req, res) => {
-  // Assuming you have an authenticated admin (e.g., from req.admin or req.user)
-  const admin = await Admin.findById(req.admin._id).select("-password"); // exclude password
+const getAdminProfile = asyncHandler(async (req, res) => {
+  const admin = await Admin.findById(req.admin._id).select("-password"); 
   if (admin) {
     res.status(200).json({ success: true, admin });
   } else {
@@ -111,7 +168,7 @@ const getAdminProfile = expressAsyncHandler(async (req, res) => {
 });
 
 // Update Admin Profile
-const updateAdminProfile = expressAsyncHandler(async (req, res) => {
+const updateAdminProfile = asyncHandler(async (req, res) => {
   // Assuming req.admin._id is set by an authentication middleware
   const admin = await Admin.findById(req.admin._id);
   if (!admin) {
@@ -157,7 +214,7 @@ const logoutAdmin = (req, res) => {
 
 // ---------- USER MANAGEMENT ----------
 // Get all users
-const getAllUsers = expressAsyncHandler(async (req, res) => {
+const getAllUsers = asyncHandler(async (req, res) => {
   try {
     const users = await User.find();
 
@@ -179,7 +236,7 @@ const getAllUsers = expressAsyncHandler(async (req, res) => {
 });
 
 // Get single user by ID
-const getUserById = expressAsyncHandler(async (req, res) => {
+const getUserById = asyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -201,7 +258,7 @@ const getUserById = expressAsyncHandler(async (req, res) => {
 });
 
 // Edit user details
-const updateUser = expressAsyncHandler(async (req, res) => {
+const updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -216,7 +273,7 @@ const updateUser = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete user
-const deleteUser = expressAsyncHandler(async (req, res) => {
+const deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
     return res.status(404).json({ message: "User not found" });
@@ -231,13 +288,13 @@ const deleteUser = expressAsyncHandler(async (req, res) => {
 
 // ---------- VENDOR MANAGEMENT ----------
 // Get all vendors
-const getAllVendors = expressAsyncHandler(async (req, res) => {
+const getAllVendors = asyncHandler(async (req, res) => {
   const vendors = await Vendor.find();
   return res.status(200).json({ success: true, vendors });
 });
 
 // Get single vendor by ID
-const getVendorById = expressAsyncHandler(async (req, res) => {
+const getVendorById = asyncHandler(async (req, res) => {
   const vendor = await Vendor.findById(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" , vendor});
@@ -246,7 +303,7 @@ const getVendorById = expressAsyncHandler(async (req, res) => {
 });
 
 // Update vendor details
-const updateVendor = expressAsyncHandler(async (req, res) => {
+const updateVendor = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, email, phoneNumber, address, zipCode, avatar } = req.body;
 
@@ -271,7 +328,7 @@ const updateVendor = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete vendor
-const deleteVendor = expressAsyncHandler(async (req, res) => {
+const deleteVendor = asyncHandler(async (req, res) => {
   const vendor = await Vendor.findByIdAndDelete(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" });
@@ -280,7 +337,7 @@ const deleteVendor = expressAsyncHandler(async (req, res) => {
 });
 
 // Block vendor
-const blockVendor = expressAsyncHandler(async (req, res) => {
+const blockVendor = asyncHandler(async (req, res) => {
   const vendor = await Vendor.findById(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" });
@@ -291,7 +348,7 @@ const blockVendor = expressAsyncHandler(async (req, res) => {
 });
 
 // Unblock vendor
-const unblockVendor = expressAsyncHandler(async (req, res) => {
+const unblockVendor = asyncHandler(async (req, res) => {
   const vendor = await Vendor.findById(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" });
@@ -303,7 +360,7 @@ const unblockVendor = expressAsyncHandler(async (req, res) => {
 
 // ---------- ORDER MANAGEMENT ----------
 // Get all orders
-const getAllOrders = expressAsyncHandler(async (req, res) => {
+const getAllOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find()
     .populate("user")
     .populate("items.productId");
@@ -312,7 +369,7 @@ const getAllOrders = expressAsyncHandler(async (req, res) => {
 });
 
 // Get single order by ID
-const getOrderById = expressAsyncHandler(async (req, res) => {
+const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate("user")
     .populate("items.productId");
@@ -325,7 +382,7 @@ const getOrderById = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete order
-const deleteOrder = expressAsyncHandler(async (req, res) => {
+const deleteOrder = asyncHandler(async (req, res) => {
   const order = await Order.findByIdAndDelete(req.params.id);
 
   if (!order) {
@@ -336,7 +393,7 @@ const deleteOrder = expressAsyncHandler(async (req, res) => {
 });
 
 // update the order status
-const updateOrderStatus = expressAsyncHandler(async (req, res) => {
+const updateOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -362,7 +419,7 @@ const updateOrderStatus = expressAsyncHandler(async (req, res) => {
 });
 
 // Update full order
-const updateOrder = expressAsyncHandler(async (req, res) => {
+const updateOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, shippingAddress, paymentInfo, totalAmount } = req.body;
 
@@ -387,7 +444,7 @@ const updateOrder = expressAsyncHandler(async (req, res) => {
 });
 
 // Process refund
-const refundOrder = expressAsyncHandler(async (req, res) => {
+const refundOrder = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (!order) {
@@ -409,7 +466,7 @@ const refundOrder = expressAsyncHandler(async (req, res) => {
 });
 
 // New function to get orders by user ID
-const getUserOrders = expressAsyncHandler(async (req, res) => {
+const getUserOrders = asyncHandler(async (req, res) => {
     const userId = req.params.userId;
 
     const orders = await Order.find({ user: userId })
@@ -422,120 +479,10 @@ const getUserOrders = expressAsyncHandler(async (req, res) => {
 // ---------- PRODUCT MANAGEMENT ----------
 // Admin creates a product; admin selects vendor from a dropdown (vendorId)
 const uploadImages = require("../utils/uploadImages");
+const createProduct = asyncHandler(async (req, res) => {
+  console.log("🧾 Incoming request body:", req.body);
+  console.log("🖼️ Uploaded files:", req.files);
 
-// const createProduct = expressAsyncHandler(async (req, res) => {
-//   console.log("BODY:", req.body);
-//   try {
-//     const {
-//       name,
-//       description,
-//       mainCategory,
-//       subCategory,
-//       subSubCategory,
-//       brand,
-//       originalPrice,
-//       discountPrice,
-//       stock,
-//       vendorId,
-//       isFeatured,
-//       attributes, // This comes in as a JSON string
-//     } = req.body;
-
-//     // Validate required fields
-//     if (
-//       !name ||
-//       !description ||
-//       !mainCategory ||
-//       !subCategory ||
-//       !subSubCategory ||
-//       stock == null ||
-//       discountPrice == null ||
-//       !vendorId
-//     ) {
-//       return res.status(400).json({ message: "Missing required fields." });
-//     }
-
-//     // Look up the vendor
-//     const vendor = await Vendor.findById(vendorId);
-//     if (!vendor) {
-//       return res.status(400).json({ message: "Invalid vendor ID" });
-//     }
-
-//     // Helper to find a category by ID or slug
-//     const findCategory = async (model, value) => {
-//       if (mongoose.Types.ObjectId.isValid(value)) {
-//         return model.findById(value);
-//       } else {
-//         return model.findOne({ slug: new RegExp(`^${value}$`, "i") });
-//       }
-//     };
-
-//     const existingMainCategory = await findCategory(MainCategory, mainCategory);
-//     const existingSubCategory = await findCategory(SubCategory, subCategory);
-//     const existingSubSubCategory = await findCategory(SubSubCategory, subSubCategory);
-
-//     if (!existingMainCategory || !existingSubCategory || !existingSubSubCategory) {
-//       return res.status(400).json({
-//         message: "Invalid mainCategory, subCategory, or subSubCategory",
-//       });
-//     }
-
-//     // Process images from req.files
-//     let uploadedImages = [];
-//     if (req.files && req.files.length > 0) {
-//       // Convert the file buffers to base64
-//       const imagesBase64 = req.files.map((file) =>
-//         `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
-//       );
-//       uploadedImages = await uploadImages(imagesBase64);
-//     }
-    
-
-//     // Parse attributes (which was sent as a JSON string)
-//     const parsedAttributes = attributes ? JSON.parse(attributes) : {};
-
-//     // Construct product data
-//     const productData = {
-//       name,
-//       description,
-//       mainCategory: existingMainCategory.slug,
-//       subCategory: existingSubCategory.slug,
-//       subSubCategory: existingSubSubCategory.slug,
-//       brand: brand || "",
-//       originalPrice: originalPrice || 0,
-//       discountPrice,
-//       stock,
-//       vendorId,
-//       isFeatured: isFeatured || false,
-//       images: uploadedImages,
-//       attributes: new Map(Object.entries(parsedAttributes)),
-//       vendor: {
-//         name: vendor.name,
-//         avatar: vendor.avatar,
-//         createdAt: vendor.createdAt,
-//         address: vendor.address,
-//         phoneNumber: vendor.phoneNumber,
-//         email: vendor.email,
-//         zipCode: vendor.zipCode,
-//         reviews: vendor.reviews,
-//       },
-//     };
-
-//     console.log("product Data:", productData);
-//     // Create product in the database
-//     const createdProduct = await Product.create(productData);
-//     return res.status(201).json({
-//       message: "Product created successfully",
-//       product: createdProduct,
-//     });
-//   } catch (error) {
-//     console.error("Admin createProduct error:", error);
-//     return res.status(500).json({ message: "Server error", error: error.message });
-//   }
-// });
-
-// Create Product
-const createProduct = expressAsyncHandler(async (req, res) => {
   try {
     const {
       name,
@@ -552,22 +499,21 @@ const createProduct = expressAsyncHandler(async (req, res) => {
       attributes,
     } = req.body;
 
-    if (
-      !name || !description || !mainCategory || !subCategory ||
-      !subSubCategory || stock == null || discountPrice == null || !vendorId
-    ) {
+    // Validate required fields
+    if (!name || !description || !mainCategory || !subCategory || !subSubCategory || stock == null || discountPrice == null || !vendorId) {
       return res.status(400).json({ message: "Missing required fields." });
     }
 
+    // Validate vendor
     const vendor = await Vendor.findById(vendorId);
     if (!vendor) return res.status(400).json({ message: "Invalid vendor ID" });
 
+    // Handle categories
     const findCategory = async (model, value) => {
       return mongoose.Types.ObjectId.isValid(value)
         ? model.findById(value)
         : model.findOne({ slug: new RegExp(`^${value}$`, "i") });
     };
-
     const existingMainCategory = await findCategory(MainCategory, mainCategory);
     const existingSubCategory = await findCategory(SubCategory, subCategory);
     const existingSubSubCategory = await findCategory(SubSubCategory, subSubCategory);
@@ -576,16 +522,38 @@ const createProduct = expressAsyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Invalid category provided" });
     }
 
+    // Handle image uploads
     let uploadedImages = [];
+
+    // 1. If files uploaded via FormData
     if (req.files?.length > 0) {
       const imagesBase64 = req.files.map((file) =>
         `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
       );
-      uploadedImages = await uploadImages(imagesBase64);
+      uploadedImages = await uploadImages(imagesBase64); // [{url, public_id}]
     }
 
-    const parsedAttributes = attributes ? JSON.parse(attributes) : {};
+    // 2. If JSON body contains image URLs (as string or array)
+    else if (req.body.images) {
+      let rawImages = req.body.images;
 
+      if (typeof rawImages === "string") {
+        try {
+          rawImages = JSON.parse(rawImages); // Handle stringified array
+        } catch (err) {
+          return res.status(400).json({ message: "Invalid image format." });
+        }
+      }
+
+      if (Array.isArray(rawImages)) {
+        uploadedImages = rawImages.map((url) => ({ url }));
+      }
+    }
+
+    // Parse attributes (if stringified JSON)
+    const parsedAttributes = typeof attributes === "string" ? JSON.parse(attributes) : attributes;
+
+    // Construct product data
     const productData = {
       name,
       description,
@@ -597,9 +565,9 @@ const createProduct = expressAsyncHandler(async (req, res) => {
       discountPrice,
       stock,
       vendorId,
-      isFeatured: isFeatured || false,
+      isFeatured: isFeatured === "true" || isFeatured === true,
       images: uploadedImages,
-      attributes: new Map(Object.entries(parsedAttributes)),
+      attributes: new Map(Object.entries(parsedAttributes || {})),
       vendor: {
         name: vendor.name,
         avatar: vendor.avatar,
@@ -613,24 +581,26 @@ const createProduct = expressAsyncHandler(async (req, res) => {
     };
 
     const createdProduct = await Product.create(productData);
+
     res.status(201).json({
       message: "Product created successfully",
       product: createdProduct,
     });
+
   } catch (error) {
-    console.error("createProduct error:", error);
+    console.error("❌ createProduct error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-// GET All Products 
-const getAllProducts = expressAsyncHandler(async (req, res) => {
+// GET All Products
+const getAllProducts = asyncHandler(async (req, res) => {
   const products = await Product.find();
   res.json(products);
 });
 
-//  GET Single Product
-const getProductById = expressAsyncHandler(async (req, res) => {
+// GET Single Product
+const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id)
     .populate("vendorId")
     .populate("reviews.user", "name email");
@@ -641,8 +611,9 @@ const getProductById = expressAsyncHandler(async (req, res) => {
 
   return res.status(200).json({ success: true, product });
 });
+
 // // Approve product ?????????
-// const approveProduct = expressexpressAsyncHandler(async (req, res) => {
+// const approveProduct = expressasyncHandler(async (req, res) => {
 //     const product = await Product.findById(req.params.id);
 
 //     if (product) {
@@ -658,8 +629,7 @@ const getProductById = expressAsyncHandler(async (req, res) => {
 
 
 // ---------- UPDATE PRODUCT ----------
-
-const editProduct = expressAsyncHandler(async (req, res) => {
+const editProduct = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
@@ -673,7 +643,7 @@ const editProduct = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete product
-const deleteProduct = expressAsyncHandler(async (req, res) => {
+const deleteProduct = asyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
 
   if (!product) {
@@ -685,7 +655,7 @@ const deleteProduct = expressAsyncHandler(async (req, res) => {
 
 // ---------- MAIN-CATEGORY MANAGEMENT ----------
 // Get all categories
-const getAllCategories = expressAsyncHandler(async (req, res) => {
+const getAllCategories = asyncHandler(async (req, res) => {
   try {
     const categories = await MainCategory.find().populate({
       path: "subcategories",
@@ -698,7 +668,7 @@ const getAllCategories = expressAsyncHandler(async (req, res) => {
 });
 
 // Add new category
-const addCategory = expressAsyncHandler(async (req, res) => {
+const addCategory = asyncHandler(async (req, res) => {
   try {
     const { name, slug, imageUrl } = req.body;
 
@@ -717,7 +687,7 @@ const addCategory = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete category
-const getCategoryById = expressAsyncHandler(async (req, res) => {
+const getCategoryById = asyncHandler(async (req, res) => {
   try {
     const category = await MainCategory.findById(req.params.id).populate("subcategories");
     if (!category) {
@@ -730,7 +700,7 @@ const getCategoryById = expressAsyncHandler(async (req, res) => {
 });
 
 // Edit category
-const editCategory = expressAsyncHandler(async (req, res) => {
+const editCategory = asyncHandler(async (req, res) => {
   try {
     const category = await MainCategory.findById(req.params.id);
     if (!category) {
@@ -750,7 +720,7 @@ const editCategory = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete category
-const deleteCategory = expressAsyncHandler(async (req, res) => {
+const deleteCategory = asyncHandler(async (req, res) => {
   try {
     const category = await MainCategory.findByIdAndDelete(req.params.id);
     if (!category) {
@@ -763,10 +733,9 @@ const deleteCategory = expressAsyncHandler(async (req, res) => {
 });
 
 
-
 // ---------- SUBCATEGORY MANAGEMENT ----------
 // Get SubCategories by Main Category ID or all subcategories
-const getAllSubCategories =  expressAsyncHandler(async (req, res) => {
+const getAllSubCategories =  asyncHandler(async (req, res) => {
     try {
         const { mainCategoryId } = req.query;  
         let subcategories = [];
@@ -795,7 +764,7 @@ const getAllSubCategories =  expressAsyncHandler(async (req, res) => {
 });
 
 // Add a new subcategory
-const createSubCategory = expressAsyncHandler(async (req, res) => {
+const createSubCategory = asyncHandler(async (req, res) => {
     const { name, slug, imageUrl, mainCategory } = req.body;
     const subCategoryExists = await SubCategory.findOne({ slug });
     if (subCategoryExists) {
@@ -804,14 +773,14 @@ const createSubCategory = expressAsyncHandler(async (req, res) => {
     const subCategory = new SubCategory({ name, slug, imageUrl, mainCategory });
     await subCategory.save();
 
-    // ✅ Add SubCategory to MainCategory
+    //Add SubCategory to MainCategory
     await MainCategory.findByIdAndUpdate(mainCategory, { $push: { subcategories: subCategory._id } });
 
     res.status(201).json({ message: "Subcategory added successfully", subCategory });
 });
 
 // Get Single SubCategory
-const getSubCategoryById = expressAsyncHandler(async (req, res) => {
+const getSubCategoryById = asyncHandler(async (req, res) => {
     const subCategory = await SubCategory.findById(req.params.id).populate("mainCategory").populate("subsubcategories");
 
     if (!subCategory) {
@@ -822,7 +791,7 @@ const getSubCategoryById = expressAsyncHandler(async (req, res) => {
 });
 
 // Update subcategory
-const updateSubCategory = expressAsyncHandler(async (req, res) => {
+const updateSubCategory = asyncHandler(async (req, res) => {
   const subCategoryId = req.params.id;
   const subCategory = await SubCategory.findById(subCategoryId);
 
@@ -840,14 +809,14 @@ const updateSubCategory = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete subcategory
-const deleteSubCategory = expressAsyncHandler(async (req, res) => {
+const deleteSubCategory = asyncHandler(async (req, res) => {
     const subCategoryId = req.params.id;
     const subCategory = await SubCategory.findByIdAndDelete(subCategoryId);
     if (!subCategory) {
       return res.status(404).json({ message: "Subcategory not found" });
     }
 
-    // ✅ Remove subCategory reference from SubCategory
+    //Remove subCategory reference from SubCategory
     await MainCategory.findByIdAndUpdate(subCategory.mainCategory, { $pull: { subcategories: subCategory._id } });
     
     res.status(200).json({
@@ -858,7 +827,7 @@ const deleteSubCategory = expressAsyncHandler(async (req, res) => {
 
 // ---------- SUB-SUBCATEGORY MANAGEMENT ----------
 // Get all sub-subcategories
-const getAllSubSubCategories = expressAsyncHandler(async (req, res) => {
+const getAllSubSubCategories = asyncHandler(async (req, res) => {
     try {
         const { subCategoryId } = req.query;  
         let subSubcategories = [];
@@ -883,20 +852,22 @@ const getAllSubSubCategories = expressAsyncHandler(async (req, res) => {
 });
 
 // Create sub-subcategory
-const createSubSubCategory = expressAsyncHandler(async (req, res) => {
+const createSubSubCategory = asyncHandler(async (req, res) => {
     const { name, slug, imageUrl, subCategory } = req.body;
     const newSubSubCategory = new SubSubCategory({ name, slug, imageUrl, subCategory, });
+  
+    // First, save the sub-subcategory
+    const saved = await newSubSubCategory.save();
 
   // Add to subCategory as reference
   await SubCategory.findByIdAndUpdate(subCategory, {
     $push: { subsubcategories: saved._id },
   });
-    const saved = await newSubSubCategory.save();
     res.status(201).json({ message: 'SubSubCategory created successfully', subSubCategory: saved });
   });
 
 // Get Single Sub-SubCategory
-const getSubSubCategoryById = expressAsyncHandler(async (req, res) => {
+const getSubSubCategoryById = asyncHandler(async (req, res) => {
     const subSubCategory = await SubSubCategory.findById(req.params.id).populate("subCategory");
 
     if (!subSubCategory) {
@@ -907,7 +878,7 @@ const getSubSubCategoryById = expressAsyncHandler(async (req, res) => {
 });
 
 // Update sub-subcategory
-const updateSubSubCategory = expressAsyncHandler(async (req, res) => {
+const updateSubSubCategory = asyncHandler(async (req, res) => {
     const subSubCategoryId = req.params.id;
     const subSubCategory = await SubSubCategory.findById(subSubCategoryId);
 
@@ -929,14 +900,14 @@ const updateSubSubCategory = expressAsyncHandler(async (req, res) => {
   });
   
 // Delete sub-subcategory
-const deleteSubSubCategory = expressAsyncHandler(async (req, res) => {
+const deleteSubSubCategory = asyncHandler(async (req, res) => {
     const subSubCategoryId = req.params.id;
     const subSubCategory = await SubSubCategory.findByIdAndDelete(subSubCategoryId);
 
     if (!subSubCategory) {
       return res.status(404).json({ message: "Sub-subcategory not found" });
     }
-    // ✅ Remove SubSubCategory reference from SubCategory
+    // Remove SubSubCategory reference from SubCategory
     await SubCategory.findByIdAndUpdate(subSubCategory.subCategory, { $pull: { subsubcategories: subSubCategory._id } });
 
     res.status(200).json({
@@ -947,7 +918,7 @@ const deleteSubSubCategory = expressAsyncHandler(async (req, res) => {
 
 // ---------- COUPON MANAGEMENT ----------
 // Get all coupons
-const getAllCoupons = expressAsyncHandler(async (req, res) => {
+const getAllCoupons = asyncHandler(async (req, res) => {
     const coupons = await CouponCode.find()
       .populate("vendorId")
       .populate("selectedProducts");
@@ -959,7 +930,7 @@ const getAllCoupons = expressAsyncHandler(async (req, res) => {
 });
 
 // Get single coupon by ID
-const getCouponById = expressAsyncHandler(async (req, res) => {
+const getCouponById = asyncHandler(async (req, res) => {
     const coupon = await CouponCode.findById(req.params.id)
       .populate("vendorId")
       .populate("selectedProducts");
@@ -972,7 +943,7 @@ const getCouponById = expressAsyncHandler(async (req, res) => {
 });
 
 // Add a new coupon
-const addCoupon = expressAsyncHandler(async (req, res) => {
+const addCoupon = asyncHandler(async (req, res) => {
     const { code, discount, type, validityStart, validityEnd, status, vendorId } = req.body;
 
     const existingCoupon = await CouponCode.findOne({ name: code });
@@ -995,7 +966,7 @@ const addCoupon = expressAsyncHandler(async (req, res) => {
 });
 
 // Edit coupon
-const updateCoupon = expressAsyncHandler(async (req, res) => {
+const updateCoupon = asyncHandler(async (req, res) => {
     const coupon = await CouponCode.findById(req.params.id)
       .populate("vendorId")
       .populate("selectedProducts");
@@ -1017,7 +988,7 @@ const updateCoupon = expressAsyncHandler(async (req, res) => {
   });
   
 // Delete coupon
-const deleteCoupon = expressAsyncHandler(async (req, res) => {
+const deleteCoupon = asyncHandler(async (req, res) => {
     const coupon = await CouponCode.findByIdAndDelete(req.params.id);
 
     if (!coupon) {
@@ -1028,7 +999,7 @@ const deleteCoupon = expressAsyncHandler(async (req, res) => {
 });
 
 // ---------- SALES MANAGEMENT ----------
-const createSale = expressAsyncHandler(async (req, res) => {
+const createSale = asyncHandler(async (req, res) => {
   const {
     name,
     description,
@@ -1116,7 +1087,7 @@ const createSale = expressAsyncHandler(async (req, res) => {
 });
 
   // Get All Sales
-  const getAllSales = expressAsyncHandler(async (req, res) => {
+  const getAllSales = asyncHandler(async (req, res) => {
     const sales = await Sale.find();
     res.status(200).json({
       message: "Sales fetched successfully",
@@ -1125,14 +1096,14 @@ const createSale = expressAsyncHandler(async (req, res) => {
   });
   
   // Get Single Sale
-  const getSaleById = expressAsyncHandler(async (req, res) => {
+  const getSaleById = asyncHandler(async (req, res) => {
     const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
     res.status(200).json(sale);
   });
   
   // Update Sale
-  const updateSale = expressAsyncHandler(async (req, res) => {
+  const updateSale = asyncHandler(async (req, res) => {
     const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
   
@@ -1153,15 +1124,78 @@ const createSale = expressAsyncHandler(async (req, res) => {
   });
   
   // Delete Sale
-  const deleteSale = expressAsyncHandler(async (req, res) => {
+  const deleteSale = asyncHandler(async (req, res) => {
     const sale = await Sale.findByIdAndDelete(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
   
     res.status(200).json({ message: "Sale deleted successfully" });
   });
 
+  
+// @desc    Create a new brand
+// @route   POST /api/admin/brands
+const createBrand = asyncHandler(async (req, res) => {
+  const { name, description, logo } = req.body;
+
+  const existingBrand = await Brand.findOne({ name });
+  if (existingBrand) {
+    return res.status(400).json({ message: 'Brand already exists' });
+  }
+
+  const brand = await Brand.create({ name, description, logo });
+  res.status(201).json({ success: true, brand });
+});
+
+// @desc    Get all brands
+// @route   GET /api/admin/brands
+const getAllBrands = asyncHandler(async (req, res) => {
+  const brands = await Brand.find().sort({ createdAt: -1 });
+  res.status(200).json({ success: true, brands });
+});
+
+// @desc    Get single brand by ID
+// @route   GET /api/admin/brands/:id
+const getBrandById = asyncHandler(async (req, res) => {
+  const brand = await Brand.findById(req.params.id);
+  if (!brand) {
+    return res.status(404).json({ message: 'Brand not found' });
+  }
+  res.status(200).json({ success: true, brand });
+});
+
+// @desc    Update brand
+// @route   PUT /api/admin/brands/:id
+const updateBrand = asyncHandler(async (req, res) => {
+  const { name, description, logo } = req.body;
+
+  const brand = await Brand.findById(req.params.id);
+  if (!brand) {
+    return res.status(404).json({ message: 'Brand not found' });
+  }
+
+  brand.name = name || brand.name;
+  brand.description = description || brand.description;
+  brand.logo = logo || brand.logo;
+
+  const updatedBrand = await brand.save();
+  res.status(200).json({ success: true, brand: updatedBrand });
+});
+
+// @desc    Delete brand
+// @route   DELETE /api/admin/brands/:id
+const deleteBrand = asyncHandler(async (req, res) => {
+  const brand = await Brand.findById(req.params.id);
+  if (!brand) {
+    return res.status(404).json({ message: 'Brand not found' });
+  }
+
+  await brand.deleteOne();
+  res.status(200).json({ success: true, message: 'Brand deleted successfully' });
+});
+
+
 // ---------- REFUND ORDER MANAGEMENT ----------
-const adminRefundOrder = expressAsyncHandler(async (req, res) => {
+const adminRefundOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;       // Order ID
   const { status } = req.body;     // "refund_approved" | "refund_rejected"
 
@@ -1195,7 +1229,7 @@ const adminRefundOrder = expressAsyncHandler(async (req, res) => {
 
 
 // Update Admin Security (e.g., password update)
-const updateAdminSecurity = expressAsyncHandler(async (req, res) => {
+const updateAdminSecurity = asyncHandler(async (req, res) => {
   //  req.admin._id is populated via auth middleware
   const admin = await Admin.findById(req.admin._id);
   if (!admin) {
@@ -1203,6 +1237,7 @@ const updateAdminSecurity = expressAsyncHandler(async (req, res) => {
   }
   
   const { currentPassword, newPassword } = req.body;
+  console.log(currentPassword, newPassword)
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: "Please provide current and new passwords" });
   }
@@ -1213,7 +1248,8 @@ const updateAdminSecurity = expressAsyncHandler(async (req, res) => {
   }
 
   // Hash new password and update
-  admin.password = await bcrypt.hash(newPassword, 10);
+  // admin.password = await bcrypt.hash(newPassword, 10);
+   admin.password = newPassword; 
   const updatedAdmin = await admin.save();
 
   res.status(200).json({
@@ -1222,15 +1258,14 @@ const updateAdminSecurity = expressAsyncHandler(async (req, res) => {
     admin: updatedAdmin,
   }); 
 // const testPassword = "Test1234!"; // or "Test1234!" or anything else
-// const hashedPassword = "$2a$10$5wsJ5pQPdpZwHgkPTfcQUuw57IZZSHwjhO1ykams/ztj0gN8A4SN2";
+// const hashedPassword = "$2a$10$adve9WAn3JXEK8jHjJk91OajURQpl7CQgTtJooMaLbsK5X4O31D8y";
 
 // bcrypt.compare(testPassword, hashedPassword).then((result) => {
 //   console.log("Match result:", result); // true or false
 // });
 });
 
-const getAdminDashboardStats = expressAsyncHandler(async (req, res) => {
-  console.log("🔧 getAdminDashboardStats called");
+const getAdminDashboardStats = asyncHandler(async (req, res) => {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -1263,7 +1298,7 @@ const getAdminDashboardStats = expressAsyncHandler(async (req, res) => {
   // 1. Get valid product IDs
   const validProductIds = await Product.find().distinct("_id");
   const validProductIdSet = new Set(validProductIds.map(id => id.toString()));
-  console.log("✅ Valid product IDs:", validProductIds.map(id => id.toString()));
+  // console.log("Valid product IDs:", validProductIds.map(id => id.toString()));
 
   // 2. Build product count map from order items
   const productCountMap = {};
@@ -1278,7 +1313,7 @@ const getAdminDashboardStats = expressAsyncHandler(async (req, res) => {
     }
   }
 
-  console.log("📊 Product Count Map:", productCountMap);
+  // console.log("📊 Product Count Map:", productCountMap);
 
   // 3. Find best-selling product ID
   let bestProductId = null;
@@ -1321,7 +1356,7 @@ const getAdminDashboardStats = expressAsyncHandler(async (req, res) => {
 });
 
 // Weekly sales & orders trend
-const getWeeklyTrends = expressAsyncHandler(async (req, res) => {
+const getWeeklyTrends = asyncHandler(async (req, res) => {
   const today = new Date();
   const last7Days = [];
 
@@ -1356,19 +1391,19 @@ const getWeeklyTrends = expressAsyncHandler(async (req, res) => {
 });
 
 
-const getAdminNotificationCount = expressAsyncHandler(async (req, res) => {
+const getAdminNotificationCount = asyncHandler(async (req, res) => {
   // Count only unread notifications (if you track `isRead` or similar)
   const count = await Notification.countDocuments({ isRead: false });
 
   res.status(200).json({ count });
 });
 
-const getAdminNotifications = expressAsyncHandler(async (req, res) => {
+const getAdminNotifications = asyncHandler(async (req, res) => {
   const notifications = await Notification.find().sort({ createdAt: -1 }).limit(20); // show latest 20
   res.status(200).json(notifications);
 });
 
-const markNotificationAsRead = expressAsyncHandler(async (req, res) => {
+const markNotificationAsRead = asyncHandler(async (req, res) => {
   const { id } = req.params;
   console.log("ID", id)
   console.log("Marking as Read")
@@ -1377,7 +1412,7 @@ const markNotificationAsRead = expressAsyncHandler(async (req, res) => {
 });
 
 // Delete an admin notification
-const deleteAdminNotification = expressAsyncHandler(async (req, res) => {
+const deleteAdminNotification = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const deleted = await Notification.findByIdAndDelete(id);
@@ -1392,6 +1427,8 @@ const deleteAdminNotification = expressAsyncHandler(async (req, res) => {
 module.exports = { 
     registerAdmin,
     loginAdmin, 
+    forgotPasswordAdmin,
+    resetPasswordAdmin,
     getAdminProfile,
     updateAdminProfile,
     logoutAdmin,
@@ -1443,6 +1480,11 @@ module.exports = {
     createSale,
     updateSale,
     deleteSale,
+    createBrand,
+    getAllBrands,
+    getBrandById,
+    updateBrand,
+    deleteBrand,
     adminRefundOrder,
     updateAdminSecurity,
     getAdminDashboardStats,

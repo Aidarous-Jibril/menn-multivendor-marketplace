@@ -17,9 +17,16 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "Please enter a password"],
-      minlength: [6, "Minimum password length is 6 characters"],
+      required: false, // ✅ Allow Google users to skip password
+      validate: {
+        validator: function (value) {
+          // ✅ Only validate length if password is provided
+          return !value || value.length >= 6;
+        },
+        message: "Minimum password length is 6 characters",
+      },
     },
+    
     phoneNumber: {
       type: String,
       default: 72000000
@@ -66,7 +73,9 @@ const userSchema = new mongoose.Schema(
         default: ""
       },
     },
-
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    
     createdAt: {
       type: Date,
       default: Date.now,
@@ -77,9 +86,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Encrypt password using bcrypt before saving
+// Pre-save middleware to hash password
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return next();
   }
 

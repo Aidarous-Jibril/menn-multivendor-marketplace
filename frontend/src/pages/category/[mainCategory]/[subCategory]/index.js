@@ -3,38 +3,43 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
+import { capitalizeWords } from "@/lib/utils";
+
 import Head from "next/head";
 import axios from "axios";
+import HeaderPromo from "@/components/layout/HeaderPromo";
+import Image from "next/image";
 
 const SubCategoryPage = ({ categories, subSubcategories }) => {
   const router = useRouter();
   const { mainCategory, subCategory } = router.query;
 
-  // Find the name of the current subcategory
-  const currentSubCategory = categories.find(
-    (maincat) => maincat.slug === mainCategory
-  );
-
   return (
     <>
       <Head>
+        <title>{capitalizeWords(subCategory || "Subcategory")} | HornCart</title>
         <meta
           name="description"
-          content={`Explore products in the ${subCategory ? subCategory.replace(/-/g, " ") : "Unknown Category"} category`}
+          content={`Discover items under ${capitalizeWords(subCategory || "subcategory")} in our ${capitalizeWords(mainCategory || "")} category.`}
         />
       </Head>
+
       <div className="min-h-screen flex flex-col">
-        <Header categories={categories} />;
+        <HeaderPromo />
+        <Header categories={categories} />
         <div className="flex-grow py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
-          {/* Back to Subcategories Link */}
-          <Link href={`/category/${mainCategory}`} passHref legacyBehavior>
-            <a className="text-blue-600 hover:underline mb-4 inline-block">
-              &larr; Back to {currentSubCategory?.name || "previous category"}
-            </a>
-          </Link>
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            {subCategory ? subCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
-          </h2>
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            items={[
+              { label: mainCategory, href: `/category/${mainCategory}` },
+              { label: subCategory },
+            ]}
+          />
+
+          <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            {subCategory ? capitalizeWords(subCategory) : "Unknown Sub-Subcategory"}
+          </h1>
 
           {subSubcategories?.length > 0 ? (
             <div className="relative overflow-x-auto">
@@ -50,17 +55,19 @@ const SubCategoryPage = ({ categories, subSubcategories }) => {
                       legacyBehavior
                     >
                       <a className="cursor-pointer">
-                        <div className="w-20 md:w-24 lg:w-32 h-20 md:h-24 lg:h-32 rounded-full bg-gray-100 overflow-hidden">
-                          <img
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full bg-white flex items-center justify-center">
+                          <Image
                             src={
                               subSubCat.imageUrl ||
-                              "https://via.placeholder.com/100"
+                              "https://placehold.co/100x100/cccccc/000000?text=No+Image"
                             }
                             alt={subSubCat.name}
-                            className="w-full h-full object-cover"
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 sm:w-12 sm:h-12 md:w-20 md:h-20 object-contain"
                           />
                         </div>
-                        <p className="text-sm my-4 truncate">{subSubCat.name}</p>
+                        <p className="text-[10px] sm:text-xs md:text-sm font-medium mt-2 truncate">{subSubCat.name}</p>
                       </a>
                     </Link>
                   </div>

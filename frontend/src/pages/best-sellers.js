@@ -6,9 +6,11 @@ import BestSellers from '@/components/routes/BestSellers';
 
 const BestSellersPage = () => {
   return (
-    <div>
+     <div className="flex flex-col min-h-screen">
       <Header activeHeading={2} />
-      <BestSellers />
+      <main className="flex-grow">
+        <BestSellers />
+      </main>
       <Footer />
     </div>
   );

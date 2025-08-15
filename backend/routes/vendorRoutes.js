@@ -4,6 +4,8 @@ const multer = require('multer');
 const {
   registerVendor,
   loginVendor,
+  forgotVendorPassword,
+  resetVendorPassword,
   logoutVendor,
   getVendorInfo,
   updateVendorProfile,
@@ -36,6 +38,8 @@ router.delete("/notifications/:id", isVendor, deleteVendorNotification);
 
 router.post('/register', upload.single("avatar"), registerVendor);
 router.post('/login', loginVendor);
+router.post('/forgot-password', forgotVendorPassword);
+router.post('/reset-password', resetVendorPassword);
 router.get('/logout', logoutVendor);
 router.get('/:id', getVendorInfo);
 router.get('/', getAllVendors); 

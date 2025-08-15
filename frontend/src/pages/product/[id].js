@@ -248,9 +248,9 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
             </div>
             <button
               onClick={addToCartHandler}
-              className="flex items-center justify-center px-6 py-2.5 bg-gray-900 text-white text-lg font-medium rounded-lg shadow hover:bg-gray-800"
+              className="flex items-center justify-center px-6 py-2.5 bg-gray-900 text-white text-sm md:text-md lg:text-lg font-medium rounded-lg shadow hover:bg-gray-800"
             >
-              Add To Cart
+              + Cart
             </button>
             {/* Wishlist Icon Button */}
             <button
@@ -265,9 +265,9 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
             </button>
             <button
               onClick={openReviewModal}
-              className="flex items-center justify-center px-6 py-2.5 bg-blue-500 text-white text-lg font-medium rounded-lg shadow hover:bg-blue-600"
+              className="flex items-center justify-center px-6 py-2.5 bg-blue-500 text-white text-sm md:text-md lg:text-lg font-medium rounded-lg shadow hover:bg-blue-600"
             >
-              Leave a Review
+              Leave Review
             </button>
           </div>
         </div>
@@ -459,6 +459,7 @@ const ProductAttributes = ({ attributes }) => {
   );
 };
 
+
 export async function getServerSideProps({ params }) {
   const { id } = params;
   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -466,7 +467,6 @@ export async function getServerSideProps({ params }) {
   try {
     // Fetch the product first
     const productRes = await axios.get(`${baseURL}/api/products/${id}`).catch((err) => {
-      console.error("Single Product Error:", err);
       return null;
     });
 

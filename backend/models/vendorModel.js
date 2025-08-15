@@ -53,10 +53,13 @@ const vendorSchema = new mongoose.Schema({
   isApproved: {  
     type: Boolean,
     default: true,  
-  }
-}, {
-  timestamps: true
-});
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+}, 
+{ timestamps: true }
+);
+
 
 vendorSchema.pre('save', async function(next) {
   if (!this.isModified('password')) {

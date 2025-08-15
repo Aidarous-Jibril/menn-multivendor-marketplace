@@ -1,40 +1,42 @@
 import React from "react";
 import ProductCard from "@/components/product/ProductCard";
-import Link from "next/link";
 import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
+import HeaderPromo from "@/components/layout/HeaderPromo";
+import Breadcrumbs from "@/components/common/Breadcrumbs";
+import { capitalizeWords } from "@/lib/utils";
+
 import Head from "next/head";
 import axios from "axios";
 
 
 const SubSubCategoryPage = ({ categories, subSubcategories, products, mainCategory, subCategory, subSubCategory }) => {
-  // Find the name of the current subcategory
-  const currentSubCategory = subSubcategories.find(
-    (subSub) => subSub.slug === subSubCategory
-  );
-
   return (
     <>
       <Head>
+        <title>{capitalizeWords(subSubCategory || "Products")} | Sahanso</title>
         <meta
           name="description"
-          content={`Explore products in the ${subSubCategory ? subSubCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"} under ${subCategory ? subCategory.replace(/-/g, " ") : "Unknown Subcategory"} category`}
+          content={`Browse high-quality products in ${capitalizeWords(subSubCategory || "this category")}, part of ${capitalizeWords(subCategory || "")}.`}
         />
       </Head>
+
       <div className="min-h-screen flex flex-col">
+      <HeaderPromo />
         <Header categories={categories} />
         <div className="flex-grow py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
-          {mainCategory && subCategory && (
-            <Link href={`/category/${mainCategory}/${subCategory}`} passHref legacyBehavior>
-              <a className="text-blue-600 hover:underline mb-4 inline-block">
-                &larr; Back to {currentSubCategory?.name || "previous category"}
-              </a>
-            </Link>
-          )}
+          {/* Breadcrumbs */}
+          <Breadcrumbs
+            items={[
+              { label: mainCategory, href: `/category/${mainCategory}` },
+              { label: subCategory, href: `/category/${mainCategory}/${subCategory}` },
+              { label: subSubCategory }
+            ]}
+          />
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-            {subSubCategory ? subSubCategory.replace(/-/g, " ") : "Unknown Sub-Subcategory"}
-          </h2>
+          <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            {capitalizeWords(subSubCategory || "Unknown Sub-Subcategory")}
+          </h1>
 
           {products.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -43,9 +45,7 @@ const SubSubCategoryPage = ({ categories, subSubcategories, products, mainCatego
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500">
-              No products available in this category.
-            </p>
+            <p className="text-center text-gray-500">No products available in this category yet.</p>
           )}
         </div>
         <Footer />

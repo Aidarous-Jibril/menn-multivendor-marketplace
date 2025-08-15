@@ -2,7 +2,7 @@
 import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
 import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
 import AllSaleProducts from '@/components/vendor/AllSaleProducts';
-import withAdminAuth from "@/lib/withAdminAuth";
+import withVendorAuth from "@/lib/withVendorAuth";
 
 const VendorAllSaleProducts = () => {
   return (
@@ -22,4 +22,4 @@ const VendorAllSaleProducts = () => {
   );
 };
 
-export default withAdminAuth(VendorAllSaleProducts);
+export default withVendorAuth(VendorAllSaleProducts);

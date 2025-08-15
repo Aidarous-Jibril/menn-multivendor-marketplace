@@ -1,7 +1,7 @@
 import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
 import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
 import CreateFlashSale from "@/components/vendor/CreateFlashSale";
-import withAdminAuth from "@/lib/withAdminAuth";
+import withVendorAuth from "@/lib/withVendorAuth";
 
 const VendorCreateFlashSale = () => {
   return (
@@ -21,5 +21,5 @@ const VendorCreateFlashSale = () => {
   );
 };
 
-export default withAdminAuth(VendorCreateFlashSale);
+export default withVendorAuth(VendorCreateFlashSale);
 

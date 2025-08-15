@@ -9,7 +9,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // Routes
-router.get("/", getSiteSettings);
+router.get("/", isAdmin, getSiteSettings);
 router.put("/", isAdmin, upload.single("logo"), updateSiteSettings);
 
 module.exports = router;

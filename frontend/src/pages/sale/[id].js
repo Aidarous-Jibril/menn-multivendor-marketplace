@@ -5,17 +5,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaStar } from "react-icons/fa";
+import Image from "next/image";
+import axios from "axios";
+
+import {  Button, TextField, Modal, Box } from "@mui/material";
+
 import { addItemToCart } from "@/redux/slices/cartSlice";
 import { addItemToWishList, removeItemFromWishList} from "@/redux/slices/wishListSlice";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import axios from "axios";
 import ProductCard from "@/components/product/ProductCard";
-import Image from "next/image";
-import {  Button, TextField, Modal, Box } from "@mui/material";
 
 
-const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
+const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
   const router = useRouter();
   const { id } = router.query;
   const dispatch = useDispatch();
@@ -27,14 +29,8 @@ const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
   const [count, setCount] = useState(1);
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [selectedImage, setSelectedImage] = useState(sale?.images?.length > 0 ? sale?.images[0].url : "/default-image.jpg");
- const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [review, setReview] = useState({ rating: 0, comment: "" }); 
-    const [sampleRating, setSampleRating] = useState(0);
-  
-  // for sample rating
-  useEffect(() => {
-    setSampleRating(Math.random() * (5 - 3) + 3);
-  }, []);
 
   useEffect(() => {
     if (wishListItems.find((item) => item._id === id)) {
@@ -181,7 +177,7 @@ const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
               {/* Countdown Timer */}
               <div className="mt-3">
                 <CountdownTimer
-                  endDate={sale?.endDate}
+                  endDate={sale?.saleEnd}
                   textColor="text-white"
                   bgColor="bg-red-600"
                   textSize="text-sm"
@@ -198,57 +194,34 @@ const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
                   </span>
                 )}
               </div>
-              {/* <div className="flex items-center mt-2">
-                <span className="flex text-yellow-500 text-sm">
-                  {Array.from({ length: 5 }).map((_, index) => (
-                    <FaStar
-                      key={index}
-                      className={`${
-                        sale?.rating >= index + 1
-                          ? "text-yellow-500"
-                          : "text-gray-300"
-                      }`}
-                    />
-                  ))}
-                  {Array.from({ length: 5 }, (_, index) => (
-                    <FaStar
-                      key={index}
-                      className={index < Math.floor(sampleRating) ? "text-yellow-500" : "text-gray-300"}
-                      size={14}
-                    />
-                  ))}
-                </span>
-                <span className="text-yellow-500 text-sm font-bold ml-2">
-                  {sale?.rating || "4.5"}{sampleRating.toFixed(1)} / 5
-                </span>
-                <span className="text-sm ml-4 text-gray-600">
-                  {sale?.sold_out} Sold
-                </span>
-              </div> */}
+
               <div className="flex items-center mt-2">
-                {/* Star Ratings */}
                 <span className="flex text-yellow-500 text-sm">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <FaStar
                       key={index}
                       className={`${
-                        (sale?.rating || sampleRating) >= index + 1
-                          ? "text-yellow-500"
-                          : "text-gray-300"
+                        sale?.rating >= index + 1 ? "text-yellow-500" : "text-gray-300"
                       }`}
                     />
                   ))}
                 </span>
 
-                {/* Rating Value */}
                 <span className="text-yellow-500 text-sm font-bold ml-2">
-                  {(sale?.rating || sampleRating).toFixed(1)} / 5
+                  {sale?.rating?.toFixed(1)} / 5
                 </span>
 
-                {/* Sold Count */}
-                <span className="text-sm ml-4 text-gray-600">
-                  {sale?.sold_out} Sold
-                </span>
+                {sale?.numReviews > 0 && (
+                  <span className="text-sm ml-3 text-gray-600">
+                    ({sale.numReviews} review{sale.numReviews > 1 ? "s" : ""})
+                  </span>
+                )}
+
+                {sale?.sold_out > 0 && (
+                  <span className="text-sm ml-4 text-gray-600">
+                    {sale.sold_out} Sold
+                  </span>
+                )}
               </div>
 
               {/* Stock Status */}
@@ -284,7 +257,7 @@ const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
               </div>
               <button
                 onClick={addToCartHandler}
-                className="flex items-center justify-center px-6 py-2.5 bg-gray-900 text-white text-lg font-medium rounded-lg shadow hover:bg-gray-800"
+                className="px-4 py-2 bg-gray-900 text-white text-sm sm:text-base rounded shadow hover:bg-gray-800  w-full sm:w-auto"
               >
                 Add To Cart
               </button>
@@ -301,7 +274,7 @@ const FlashProductDetails = ({ sale, similarProducts, vendorProducts }) => {
               </button>
               <button
                 onClick={openReviewModal}
-                className="flex items-center justify-center px-6 py-2.5 bg-blue-500 text-white text-lg font-medium rounded-lg shadow hover:bg-blue-600"
+                className="px-4 py-2 bg-blue-500 text-white text-sm sm:text-base rounded shadow hover:bg-blue-600 w-full sm:w-auto"
               >
                 Leave a Review
             </button>
@@ -426,7 +399,7 @@ import {
   FaVial,
 } from "react-icons/fa";
 import CountdownTimer from "@/components/routes/sales/CountdownTimer";
-import { Typography } from "@mui/joy";
+import Typography from "@mui/joy/Typography";
 import { createProductReview } from "@/redux/slices/productSlice";
 
 // Mapping of attributes to icons
@@ -493,37 +466,7 @@ const ProductAttributes = ({ attributes }) => {
   );
 };
 
-// export async function getServerSideProps({ params }) {
-//   const { id } = params;
-//   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"; 
 
-//   try {
-//     const saleRes = await axios.get(`${baseURL}/api/sales/${id}`);
-//     const sale = saleRes?.data.sale;
-//     console.log("SALE logged in getServerSideProps:", sale)
-//     // Fetch similar products and vendor products in parallel
-//     const [similarProductsRes, vendorProductsRes] = await Promise.all([
-//       axios.get(`${baseURL}/api/products?subSubCategory=${sale.subSubCategory}`),
-//       axios.get(`${baseURL}/api/products/${sale.vendorId}/products`)
-//     ]);
-
-//     const similarProducts = similarProductsRes.data.products;
-//     const vendorProducts = vendorProductsRes.data.products;
-
-//     return {
-//       props: {
-//         sale,
-//         similarProducts,
-//         vendorProducts,
-//       },
-//     };
-//   } catch (error) {
-//     console.error("Failed to fetch data:", error.message);
-//     return {
-//       notFound: true,
-//     };
-//   }
-// }
 export async function getServerSideProps({ params }) {
   const { id } = params;
   const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -548,7 +491,6 @@ export async function getServerSideProps({ params }) {
       results[0].status === "fulfilled" ? results[0].value.data.products : [];
     const vendorProducts =
       results[1].status === "fulfilled" ? results[1].value.data.products : [];
-console.log("similarProducts:", similarProducts)
     return {
       props: {
         sale,
@@ -557,11 +499,11 @@ console.log("similarProducts:", similarProducts)
       },
     };
   } catch (error) {
-    console.error("Failed to fetch sale:", error.message);
+    console.error("Failed to  sale:", error.message);
     return {
       notFound: true,
     };
   }
 }
-export default FlashProductDetails;
+export default SaleProductDetails;
 

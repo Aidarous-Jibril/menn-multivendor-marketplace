@@ -1,55 +1,102 @@
-import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
-import { loginUser } from '@/redux/slices/userSlice';
-import { toast } from 'react-toastify';
-import Router, { useRouter } from 'next/router'; 
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { loginUser } from "@/redux/slices/userSlice";
+import { toast } from "react-toastify";
+import Router, { useRouter } from "next/router";
 
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const dispatch = useDispatch();
   const router = useRouter();
   const { error } = router.query;
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const userData = { email, password };
       const result = await dispatch(loginUser(userData));
-      if (result.type === 'user/loginUser/fulfilled') {
-        Router.push('/user/profile'); 
-      } else {
-        toast.error(result.payload); 
-      }
+
+      if (result.type === "user/loginUser/fulfilled") {
+        if (rememberMe) {
+          localStorage.setItem("userInfo", JSON.stringify(result.payload.user));
+        } else {
+          sessionStorage.setItem("userInfo", JSON.stringify(result.payload.user));
+        }
+        toast.success(result.payload.message || "Login successful!");
+        Router.push("/user/profile");
+      } else if (result.type === "user/loginUser/rejected") {
+        toast.error(result.payload || "Login failed");
+      }          
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
     }
   };
-  const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/user/profile" });  // Redirect after Google sign-in
-  };
 
+  useEffect(() => {
+    const syncGoogleUser = async () => {
+      const userInfo = localStorage.getItem("userInfo");
+      if (userInfo) return; // prevent re-sync if already logged in
+
+      const session = await getSession(); // from next-auth/react
+      if (session?.user?.email) {
+        try {
+          const res = await fetch(
+            "http://localhost:8000/api/users/google-login",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({
+                name: session.user.name,
+                email: session.user.email,
+                image: session.user.image,
+              }),
+            }
+          );
+          const data = await res.json();
+
+          if (data.success) {
+            // Store to Redux + localStorage manually
+            dispatch({
+              type: "user/loginUser/fulfilled",
+              payload: { user: data.user },
+            });
+            localStorage.setItem("userInfo", JSON.stringify(data.user));
+            router.push("/user/profile");
+          }
+        } catch (error) {
+          console.error("Google login sync failed:", error);
+        }
+      }
+    };
+
+    syncGoogleUser();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Login to your account
         </h2>
       </div>
       {/* // later in JSX: */}
-  {error && (
-    <p className="text-red-500 text-sm text-center mb-2">
-      Google sign-in failed. Please try again.
-    </p>
-  )}
+      {error && (
+        <p className="text-red-500 text-sm text-center mb-2">
+          Google sign-in failed. Please try again.
+        </p>
+      )}
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
@@ -81,7 +128,7 @@ const SignIn = () => {
               </label>
               <div className="mt-1 relative">
                 <input
-                  type={visible ? 'text' : 'password'}
+                  type={visible ? "text" : "password"}
                   name="password"
                   autoComplete="current-password"
                   required
@@ -110,6 +157,8 @@ const SignIn = () => {
                   type="checkbox"
                   name="remember-me"
                   id="remember-me"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
                   className="relative float-left -ml-[1.5rem] mr-[6px] mt-[0.15rem] h-[1.125rem] w-[1.125rem]"
                 />
                 <label
@@ -120,7 +169,7 @@ const SignIn = () => {
                 </label>
               </div>
               <a
-                href="#!"
+                href="/user/forgot-password"
                 className="text-blue-700 transition duration-150 ease-in-out hover:text-primary-600 focus:text-primary-600 active:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500 dark:focus:text-primary-500 dark:active:text-primary-600"
               >
                 Forgot password?
@@ -132,19 +181,26 @@ const SignIn = () => {
               </button>
             </div>
           </form>
+
+          <div className="flex items-center my-4">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="mx-4 text-gray-400 text-sm">OR</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
           <button
-  onClick={() => signIn("google", { callbackUrl: "/user/profile" })}
-  className="flex items-center justify-center px-6 py-3 mt-4 text-gray-600 border rounded-lg hover:bg-gray-50"
->
-  <FcGoogle className="w-6 h-6 mr-2" />
-  Sign in with Google
-</button>
+            onClick={() => signIn("google", { callbackUrl: "/user/profile" })}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 transition-all"
+          >
+            <FcGoogle className="w-5 h-5" />
+            <span>Continue with Google</span>
+          </button>
 
           <p className="mt-12 text-s font-light text-center">
             {" "}
             Don't have an account?{" "}
             <a
-              href="/register"
+              href="/user/register"
               className="font-medium text-blue-600 dark:text-gray-200 hover:underline"
             >
               Register

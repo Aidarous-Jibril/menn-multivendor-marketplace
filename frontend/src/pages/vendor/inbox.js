@@ -1,7 +1,7 @@
 import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
 import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
 import VendorInboxMessages from '@/components/vendor/VendorInboxMessages';
-import withAdminAuth from "@/lib/withAdminAuth";
+import withVendorAuth from "@/lib/withVendorAuth";
 
 const VendorInbox = () => {
   return (
@@ -21,4 +21,4 @@ const VendorInbox = () => {
   );
 };
 
-export default withAdminAuth(VendorInbox);
+export default withVendorAuth(VendorInbox);

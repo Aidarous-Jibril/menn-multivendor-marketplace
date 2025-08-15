@@ -7,6 +7,7 @@ import { AiOutlineCamera } from 'react-icons/ai';
 // Local imports (Redux slice and component)
 import { updateVendorAvatar, updateVendorInformation } from '@/redux/slices/vendorSlice';
 import Loader from './layout/Loader';
+import ClientOnly from '../common/ClientOnly';
 
 
 const VendorSettings = () => {
@@ -18,8 +19,7 @@ const VendorSettings = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [zipCode, setZipCode] = useState("");
   const [email, setEmail] = useState("");
-console.log("vendorInfo:", vendorInfo)
-  const [hasMounted, setHasMounted] = useState(false);
+
   const dispatch = useDispatch();
 
   // Initialize local state from vendorInfo
@@ -33,15 +33,8 @@ console.log("vendorInfo:", vendorInfo)
         setZipCode(vendorInfo.zipCode || "");
         setEmail(vendorInfo.email || "");
     }
-}, [vendorInfo]);
+  }, [vendorInfo]);
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  if (!hasMounted) {
-    return null;
-  }
 
   if (isLoading) {
     return <Loader />;
@@ -88,115 +81,117 @@ console.log("vendorInfo:", vendorInfo)
   
 
   return (
-    <div className="w-full h-full bg-gray-100 px-2 sm:px-4 md:px-6 lg:px-8 xl:px-12 rounded-md flex flex-col">
+    <ClientOnly>
+      <div className="w-full h-full bg-gray-100 px-2 sm:px-4 md:px-6 lg:px-8 xl:px-12 rounded-md flex flex-col">
 
-      <div className="flex justify-center w-full mb-6">
-        <div className="relative">
-          <img
-            src={avatar || "https://logowik.com/content/uploads/images/shop-app6999.jpg"}
-            className="w-[150px] h-[150px] rounded-full object-cover border-[3px] border-[#3ad132]"
-            alt="Vendor Avatar"
-          />
-          <div className="w-[30px] h-[30px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px]">
-            <input type="file" id="image" className="hidden" onChange={handleImage} />
-            <label htmlFor="image">
-              <AiOutlineCamera className="text-[#3ad132]" />
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <form onSubmit={updateVendorHandler}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          <div className="flex flex-col">
-            <label className="font-semibold text-gray-700 mb-2">Store Name</label>
-            <input
-              type="text"
-              className="border border-gray-300 rounded-md p-2"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+        <div className="flex justify-center w-full mb-6">
+          <div className="relative">
+            <img
+              src={avatar || "https://logowik.com/content/uploads/images/shop-app6999.jpg"}
+              className="w-[150px] h-[150px] rounded-full object-cover border-[3px] border-[#3ad132]"
+              alt="Vendor Avatar"
             />
-          </div>
-          <div className="flex flex-col">
-            <label className="font-semibold text-gray-700 mb-2">Address</label>
-            <input
-              type="text"
-              className="border border-gray-300 rounded-md p-2"
-              required
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
+            <div className="w-[30px] h-[30px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px]">
+              <input type="file" id="image" className="hidden" onChange={handleImage} />
+              <label htmlFor="image">
+                <AiOutlineCamera className="text-[#3ad132]" />
+              </label>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col mb-6">
-          <label className="font-semibold text-gray-700 mb-2">Description</label>
-          <textarea
-            className="border border-gray-300 rounded-md p-2"
-            rows={4}
-            required
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          <div className="flex flex-col">
-            <label className="font-semibold text-gray-700 mb-2">Phone Number</label>
-            <input
-              type="text"
-              className="border border-gray-300 rounded-md p-2"
-              required
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="font-semibold text-gray-700 mb-2">Zip Code</label>
-            <input
-              type="text"
-              className="border border-gray-300 rounded-md p-2"
-              required
-              value={zipCode}
-              onChange={(e) => setZipCode(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col mb-6">
-            <label className="font-semibold text-gray-700 mb-2">Email</label>
-            <input
-                type="email"
+        <form onSubmit={updateVendorHandler}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700 mb-2">Store Name</label>
+              <input
+                type="text"
                 className="border border-gray-300 rounded-md p-2"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700 mb-2">Address</label>
+              <input
+                type="text"
+                className="border border-gray-300 rounded-md p-2"
+                required
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col mb-6">
+            <label className="font-semibold text-gray-700 mb-2">Description</label>
+            <textarea
+              className="border border-gray-300 rounded-md p-2"
+              rows={4}
+              required
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700 mb-2">Phone Number</label>
+              <input
+                type="text"
+                className="border border-gray-300 rounded-md p-2"
+                required
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="font-semibold text-gray-700 mb-2">Zip Code</label>
+              <input
+                type="text"
+                className="border border-gray-300 rounded-md p-2"
+                required
+                value={zipCode}
+                onChange={(e) => setZipCode(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col mb-6">
+              <label className="font-semibold text-gray-700 mb-2">Email</label>
+              <input
+                  type="email"
+                  className="border border-gray-300 rounded-md p-2"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+              />
+          </div>
+
+
+          <button type="submit" className="w-full bg-[#3a24db] text-white py-2 rounded-md text-lg">
+            Update Store Information
+          </button>
+        </form>
+
+        <div className="bg-gray-100 p-4 rounded-md mt-8">
+          <h3 className="font-semibold text-xl mb-4">Bank Information</h3>
+          <p className="text-gray-700 mb-2">
+            <strong>Account Holder:</strong> {vendorInfo?.vendorBankInfo?.accountHolderName || "N/A"}
+          </p>
+          <p className="text-gray-700 mb-2">
+            <strong>Bank Name:</strong> {vendorInfo?.vendorBankInfo?.bankName || "N/A"}
+          </p>
+          <p className="text-gray-700 mb-2">
+            <strong>Account Number:</strong> {vendorInfo?.vendorBankInfo?.bankAccountNumber || "N/A"}
+          </p>
+          <p className="text-gray-700 mb-2">
+            <strong>IBAN:</strong> {vendorInfo?.vendorBankInfo?.iban || "N/A"}
+          </p>
         </div>
-
-
-        <button type="submit" className="w-full bg-[#3a24db] text-white py-2 rounded-md text-lg">
-          Update Store Information
-        </button>
-      </form>
-
-      <div className="bg-gray-100 p-4 rounded-md mt-8">
-        <h3 className="font-semibold text-xl mb-4">Bank Information</h3>
-        <p className="text-gray-700 mb-2">
-          <strong>Account Holder:</strong> {vendorInfo?.vendorBankInfo?.accountHolderName || "N/A"}
-        </p>
-        <p className="text-gray-700 mb-2">
-          <strong>Bank Name:</strong> {vendorInfo?.vendorBankInfo?.bankName || "N/A"}
-        </p>
-        <p className="text-gray-700 mb-2">
-          <strong>Account Number:</strong> {vendorInfo?.vendorBankInfo?.bankAccountNumber || "N/A"}
-        </p>
-        <p className="text-gray-700 mb-2">
-          <strong>IBAN:</strong> {vendorInfo?.vendorBankInfo?.iban || "N/A"}
-        </p>
       </div>
-    </div>
+    </ClientOnly>
   );
 };
 

@@ -178,42 +178,8 @@ const SignUp = () => {
             </div>
           </form>
 
-          <div className="flex items-center justify-between mt-8">
-            <span className="w-1/5 border-b dark:border-gray-600 lg:w-1/5"></span>
-            <a href="#" className="text-xs text-center text-gray-500 uppercase dark:text-gray-400 hover:underline">
-              or login with Google
-            </a>
-            <span className="w-1/5 border-b dark:border-gray-400 lg:w-1/5"></span>
-          </div>
-
-          <a
-            href="#"
-            className="flex items-center justify-center px-6 py-3 mt-4 text-gray-600 transition-colors duration-300 transform border rounded-lg dark:border-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600"
-          >
-            <svg className="w-6 h-6 mx-2" viewBox="0 0 40 40">
-              <path
-                d="M36.3425 16.7358H35V16.6667H20V23.3333H29.4192C28.045 27.2142 24.3525 30 20 30C14.4775 30 10 25.5225 10 20C10 14.4775 14.4775 9.99999 20 9.99999C22.5492 9.99999 24.3525 10.9875 25.5808 12.2317L30.0867 7.89667C27.7717 5.7175 24.3558 4 20 4C10.7883 4 3.33334 10.795 3.33334 20C3.33334 29.205 10.795 36.6667 20 36.6667C29.205 36.6667 36.6667 29.205 36.6667 20C36.6667 18.9717 36.5642 17.9642 36.3425 16.7358Z"
-                fill="#FFC107"
-              />
-              <path
-                d="M5.25497 12.5458L10.0991 15.97C11.4808 12.4675 15.3775 9.99999 20 9.99999C22.5492 9.99999 24.3525 10.9875 25.5808 12.2317L30.0867 7.89667C27.7717 5.7175 24.3558 4 20 4C13.7475 4 8.34166 7.55916 5.25497 12.5458Z"
-                fill="#FF3D00"
-              />
-              <path
-                d="M20 36.6667C24.2675 36.6667 27.9967 35.09 30.3333 32.4133L25.775 28.4442C24.5858 29.405 23.1558 30.0358 20 30.0358C15.6675 30.0358 11.9983 27.2658 10.625 23.4125L5.20834 26.9933C8.25084 32.1942 13.625 36.6667 20 36.6667Z"
-                fill="#4CAF50"
-              />
-              <path
-                d="M36.3425 16.7358H35V16.6667H20V23.3333H29.4192C28.7525 25.2783 27.585 27.0033 25.9967 28.2267C25.9967 28.2267 25.9967 28.2267 25.9967 28.2267L25.775 28.4442L30.3333 32.4133C29.9967 32.7492 36.6667 28.3333 36.6667 20C36.6667 18.9717 36.5642 17.9642 36.3425 16.7358Z"
-                fill="#1976D2"
-              />
-            </svg>
-
-            <span className="mx-2">Sign in with Google</span>
-          </a>
-
           <div className="mt-6 text-center">
-            <Link href="/login" legacyBehavior>
+            <Link href="/user/login" legacyBehavior>
               <a className="text-sm text-blue-600 hover:text-blue-500">
                 Already have an account? Login
               </a>

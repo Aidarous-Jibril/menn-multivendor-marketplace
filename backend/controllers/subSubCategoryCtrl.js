@@ -7,7 +7,6 @@ const SubSubCategory = require('../models/subSubCategory');
 const getAllSubSubcategories = async (req, res) => {
     try {
         const { subCategorySlug } = req.query;
-        console.log("subCategorySlug IS:", subCategorySlug)
         let subSubcategories = [];
 
         if (subCategorySlug) {
@@ -21,7 +20,6 @@ const getAllSubSubcategories = async (req, res) => {
         } else {
             subSubcategories = await SubSubCategory.find();
         }
-        console.log("subSubcategories ARE:", subSubcategories)
 
         res.status(200).json({subSubcategories, message: "sub-Subcategories fetchech successfully"});
     } catch (error) {

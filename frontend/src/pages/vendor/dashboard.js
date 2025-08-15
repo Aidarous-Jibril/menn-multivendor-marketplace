@@ -1,9 +1,9 @@
 import DashboardHeader from "@/components/vendor/layout/DashboardHeader";
 import DashboardSideBar from "@/components/vendor/layout/DashboardSideBar";
 import DashboardHero from "@/components/vendor/layout/DashboardHero";
-import withAdminAuth from "@/lib/withAdminAuth";
+import withVendorAuth from "@/lib/withVendorAuth";
 
-const AdminDashboard = () => {
+const VendorDashboard = () => {
   return (
     <div className="flex flex-col h-screen">
       <DashboardHeader />
@@ -21,4 +21,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default withAdminAuth(AdminDashboard);
+export default withVendorAuth(VendorDashboard);
