@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from 'axios';
+import axiosInstance from '@/utils/axiosInstance';
 
 // Initial state
 const initialState = {
@@ -15,7 +15,7 @@ export const createOrder = createAsyncThunk(
   "orders/createOrder",
   async (orderData, { rejectWithValue }) => {
     try {
-      const response = await axios.post("/api/orders", orderData, { withCredentials: true });
+      const response = await axiosInstance.post("/api/orders", orderData, { withCredentials: true });
       console.log("RESPONSE:", response.data.orders)
       return response.data; // Return multiple orders
     } catch (error) {
@@ -29,7 +29,7 @@ export const fetchVendorOrders = createAsyncThunk(
   "orders/fetchVendorOrders",
   async (vendorId, { rejectWithValue }) => {
       try {
-          const response = await axios.get(`/api/orders/vendor-orders/${vendorId}`);
+          const response = await axiosInstance.get(`/api/orders/vendor-orders/${vendorId}`);
           return response.data.orders;
       } catch (error) {
           return rejectWithValue(error.response?.data?.message || "Error fetching orders");
@@ -42,7 +42,7 @@ export const updateOrderStatus = createAsyncThunk(
   "orders/updateOrderStatus",
   async ({ orderId, status, vendorId }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/orders/update-status/${orderId}`, { status, vendorId }, { withCredentials: true });
+      const { data } = await axiosInstance.put(`/api/orders/update-status/${orderId}`, { status, vendorId }, { withCredentials: true });
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to update order status.");
@@ -57,7 +57,7 @@ export const fetchSingleOrder = createAsyncThunk(
   async (orderId, { rejectWithValue }) => {
     console.log("Fetching order with ID:", orderId);
     try {
-      const response = await axios.get(`/api/orders/${orderId}`);
+      const response = await axiosInstance.get(`/api/orders/${orderId}`);
       return response.data.order;
     } catch (error) {
       return rejectWithValue(
@@ -71,7 +71,7 @@ export const fetchSingleOrder = createAsyncThunk(
 export const deleteOrder = createAsyncThunk("orders/deleteOrder", async ({ orderId, vendorId }, { rejectWithValue }) => {
   try {
     console.log("Deleting order:", orderId, "for vendor:", vendorId);
-    const { data } = await axios.delete(`/api/orders/${orderId}`, { data: { vendorId } });
+    const { data } = await axiosInstance.delete(`/api/orders/${orderId}`, { data: { vendorId } });
     console.log("Delete response:", data);
     return { orderId, message: data.message };
   } catch (error) {
@@ -85,7 +85,7 @@ export const getUserAllOrders = createAsyncThunk(
   "orders/getUserAllOrders",
   async (userId, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/orders/user-orders/${userId}`, {
+      const { data } = await axiosInstance.get(`/api/orders/user-orders/${userId}`, {
         withCredentials: true,
       });
       return data.orders;
@@ -100,7 +100,7 @@ export const refundOrderRequest = createAsyncThunk(
   "orders/refundOrderRequest",
   async ({ orderId, status }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/orders/refund/${orderId}`, { status });
+      const { data } = await axiosInstance.put(`/api/orders/refund/${orderId}`, { status });
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Refund request failed");
@@ -112,7 +112,7 @@ export const fetchVendorRefundedOrders = createAsyncThunk(
   "orders/fetchVendorRefundedOrders",
   async (vendorId, { rejectWithValue }) => {
     try {
-      const { data }= await axios.get(`/api/orders/vendor-refunds/${vendorId}`);
+      const { data }= await axiosInstance.get(`/api/orders/vendor-refunds/${vendorId}`);
       return data.orders;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch refunded orders");

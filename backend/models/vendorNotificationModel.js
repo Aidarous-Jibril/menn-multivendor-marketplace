@@ -1,4 +1,3 @@
-// models/vendorNotificationModel.js
 const mongoose = require("mongoose");
 
 const vendorNotificationSchema = new mongoose.Schema(

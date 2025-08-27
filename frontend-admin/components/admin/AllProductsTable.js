@@ -1,5 +1,5 @@
 // React-related imports
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 
 // Third-party library imports
 import { AiOutlineDelete, AiOutlineEye, AiOutlineEdit } from "react-icons/ai";
@@ -34,7 +34,6 @@ const AllProductsTable = () => {
 
   /* ============ Local State ============ */
   // Filtering & Search
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   // Filter criteria
   const [mainCategory, setMainCategory] = useState("");
@@ -107,37 +106,35 @@ const AllProductsTable = () => {
   
   
   // Filter products based on selected filters and search query
-  const filterProducts = () => {
-    let filtered = [...products];
-    if (mainCategory) {
-      filtered = filtered.filter((product) => product.mainCategory === mainCategory);
-    }
-    if (subCategory) {
-      filtered = filtered.filter((product) => product.subCategory === subCategory);
-    }
-    if (subSubCategory) {
-      filtered = filtered.filter((product) => product.subSubCategory === subSubCategory);
-    }
-    if (selectedBrand) {
-      filtered = filtered.filter((product) => product.brand === selectedBrand);
-    }
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product._id.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    return filtered;
-  };
+const filteredProducts = useMemo(() => {
+  const list = Array.isArray(products) ? products : [];
+  let filtered = [...list];
 
-  useEffect(() => {
-    setFilteredProducts(filterProducts());
-  }, [mainCategory, subCategory, subSubCategory, selectedBrand, products, searchQuery]);
+  if (mainCategory) {
+    filtered = filtered.filter(p => p.mainCategory === mainCategory);
+  }
+  if (subCategory) {
+    filtered = filtered.filter(p => p.subCategory === subCategory);
+  }
+  if (subSubCategory) {
+    filtered = filtered.filter(p => p.subSubCategory === subSubCategory);
+  }
+  if (selectedBrand) {
+    filtered = filtered.filter(p => p.brand === selectedBrand);
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(p =>
+      (p.name || "").toLowerCase().includes(q) ||
+      (p.brand || "").toLowerCase().includes(q) ||
+      (p._id || "").toLowerCase().includes(q)
+    );
+  }
+  return filtered;
+}, [products, mainCategory, subCategory, subSubCategory, selectedBrand, searchQuery]);
 
 
-  /* ============  Handlers – Filters & Search =========== */    
+  // Handlers – Filters & Search     
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
 
   const handleFilterReset = () => {
@@ -167,7 +164,7 @@ const AllProductsTable = () => {
 
   const handleSubSubCategoryChange = (e) => setSubSubCategory(e.target.value);
 
-  /* ============  Handlers – Editing =========== */    
+  // Handlers – Editing 
   const handleProductEdit = (product) => {
     setSelectedProduct(product);
     setUpdatedProduct({
@@ -248,7 +245,7 @@ const AllProductsTable = () => {
     }
   };
 
-/* ============ Handlers – Creating New Product =========== */
+  // Handlers – Creating New Product
   const handleNewProductInputChange = (e) => {
     const { name, value } = e.target;
     setNewProduct((prev) => ({
@@ -300,7 +297,7 @@ const handleCreateProduct = async () => {
   }
 };
 
-  /* ============  Handlers – Deletion =========== */    
+  // Handlers – Deletion
   const handleDelete = async () => {
     try {
       const result = await dispatch(deleteProduct(productToDelete));
@@ -322,13 +319,13 @@ const handleCreateProduct = async () => {
     setOpenDeleteModal(true);
   };
 
-  /* ============  Handlers – Viewing Product Detailsn =========== */    
+  // Handlers – Viewing Product Detailsn 
   const handleViewProduct = async (productId) => {
       await dispatch(fetchSingleProduct(productId));
       setOpenViewModal(true);
   };
 
-  /* ============ Table Configuration =========== */    
+  // Table Configuration
   // Helper function to capitalize first letter
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const columns = [
@@ -546,7 +543,16 @@ const handleCreateProduct = async () => {
                       <Divider style={{ margin: "10px 0" }} />
                       <div style={{ display: "flex", gap: "10px" }}>
                         {singleProduct.images.map((img, index) => (
-                          <img key={index} src={img.url} alt={`Product Image ${index + 1}`} width="100" height="100" style={{ borderRadius: "5px" }} />
+                          <Image
+                            key={img?._id || index}
+                            src={img?.url || "/images/fallbackImage.jpg"}
+                            alt={`Product Image ${index + 1}`}
+                            width={100}
+                            height={100}
+                            sizes="(max-width: 768px) 80px, 100px"
+                            priority={index === 0}          // only the first one if it’s above the fold
+                            style={{ borderRadius: 5, objectFit: "cover" }}
+                          />
                         ))}
                       </div>
                     </CardContent>

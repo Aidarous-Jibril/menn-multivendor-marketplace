@@ -1,5 +1,5 @@
-const asyncHandler = require("express-async-handler");
-const createToken = require("../utils/createToken");
+const expressAsyncHandler = require("express-async-handler");
+const userToken = require("../utils/userToken");
 const cloudinary = require("../utils/cloudinary");
 const validator = require("validator");
 const User = require("../models/userModel");
@@ -7,18 +7,15 @@ const Notification = require("../models/notificationModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail"); 
 
-const registerUser = asyncHandler(async (req, res) => {
-  console.log(req.body)
+const registerUser = expressAsyncHandler(async (req, res) => {
   const { name, email, password, avatar } = req.body;
 
-  // Validate input data
   if (!name || !email || !password || !avatar || !validator.isEmail(email)) {
     res.status(400).json({ error: "Invalid input data" });
     return;
   }
 
   try {
-    // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
       res.status(400).json({ error: "User already exists" });
@@ -28,7 +25,6 @@ const registerUser = asyncHandler(async (req, res) => {
     // Upload avatar to Cloudinary
     const myCloud = await cloudinary.uploader.upload(avatar, { folder: "avatars" });
 
-    // Create new user object
     const newUser = {
       name,
       email,
@@ -41,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
     const user = await User.create(newUser);
 
-    const token = createToken(res, user._id);
+    const token = userToken(res, user._id);
     
     // Create a notification for admins when new user registers
     await Notification.create({
@@ -57,7 +53,7 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 // Log in user
-const loginUser = asyncHandler(async (req, res) => {
+const loginUser = expressAsyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -67,7 +63,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
   if (user && (await user.matchPassword(password))) {
-    createToken(res, user._id);
+    userToken(res, user._id);
     res.status(200).json({
       success: true,
       user,
@@ -79,7 +75,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 // Forgot PWD
-const forgotPassword = asyncHandler(async (req, res) => {
+const forgotPassword = expressAsyncHandler(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
@@ -88,7 +84,6 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   // Generate reset token
   const resetToken = crypto.randomBytes(20).toString("hex");
-  console.log("resetToken:", resetToken)
 
   user.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
   user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
@@ -107,7 +102,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
 });
 
 // Reset Password 
-const resetPassword = asyncHandler(async (req, res) => {
+const resetPassword = expressAsyncHandler(async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
 
@@ -131,7 +126,6 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Password reset successful!" });
 });
 
-
 // Log out user
 const logoutUser = (req, res) => {
   res.cookie("user_token", null, {
@@ -142,8 +136,7 @@ const logoutUser = (req, res) => {
 };
 
 // Update user profile
-const updateUserProfile = asyncHandler(async (req, res) => {
-  console.log("PHONE", req.body.phoneNumber)
+const updateUserProfile = expressAsyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.body.id); 
     if (!user) {
@@ -171,7 +164,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 });
 
 // Get user by user-id
-const getUser = asyncHandler(async (req, res) => {
+const getUser = expressAsyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -188,7 +181,7 @@ const getUser = asyncHandler(async (req, res) => {
 });
 
 // Update user avatar
-const updateUserAvatar = asyncHandler(async (req, res) => {
+const updateUserAvatar = expressAsyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
@@ -227,8 +220,9 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 // Add user address
-const addUserAddress = asyncHandler(async (req, res) => {
-  console.log(req.body)
+const addUserAddress = expressAsyncHandler(async (req, res) => {
+  console.log("BODY", req.body)
+  console.log("USER ID", req.user.id)
   try {
     const user = await User.findById(req.user.id);
 
@@ -255,7 +249,7 @@ const addUserAddress = asyncHandler(async (req, res) => {
 });
 
 // Delete user address
-const deleteUserAddress = asyncHandler(async (req, res) => {
+const deleteUserAddress = expressAsyncHandler(async (req, res) => {
   try {
     const userId = req.user._id;
     const addressId = req.params.id;
@@ -276,8 +270,7 @@ const deleteUserAddress = asyncHandler(async (req, res) => {
 });
 
 // Update user password
-const updateUserPassword = asyncHandler(async (req, res) => {
-  console.log("REQ.BODY", req.body)
+const updateUserPassword = expressAsyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("+password");
 
@@ -304,7 +297,7 @@ const updateUserPassword = asyncHandler(async (req, res) => {
 });
 
 // Add payment method
-const addPaymentMethod = asyncHandler(async (req, res) => {
+const addPaymentMethod = expressAsyncHandler(async (req, res) => {
   const { cardHolderName, cardNumber, expiryDate, cvv } = req.body;
   const userId = req.user.id;
 
@@ -329,7 +322,7 @@ const addPaymentMethod = asyncHandler(async (req, res) => {
 });
 
 // Delete payment method
-const deletePaymentMethod = asyncHandler(async (req, res) => {
+const deletePaymentMethod = expressAsyncHandler(async (req, res) => {
   const { id } = req.user; 
 
   try {
@@ -352,7 +345,7 @@ const deletePaymentMethod = asyncHandler(async (req, res) => {
   }
 });
 
-const googleLogin = asyncHandler(async (req, res) => {
+const googleLogin = expressAsyncHandler(async (req, res) => {
   const { name, email, image } = req.body;
 
   if (!email) {
@@ -380,7 +373,7 @@ const googleLogin = asyncHandler(async (req, res) => {
   }
 
   // Issue cookie
-  createToken(res, user._id);
+  userToken(res, user._id);
 
   res.status(200).json({
     success: true,

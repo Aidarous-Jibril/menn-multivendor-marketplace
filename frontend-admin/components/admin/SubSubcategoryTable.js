@@ -9,6 +9,7 @@ import EditSubSubCategoryModal from '../common/EditSubSubCategoryModal';
 // import your redux actions
 import { fetchSubSubcategories, fetchSubcategories, createSubSubcategory, updateSubSubcategory, deleteSubSubcategory} from '@/redux/adminSlice';
 import SearchProducts from '../common/SearchProducts';
+import Image from 'next/image';
 
 const SubSubCategoryTable = () => {
   const dispatch = useDispatch();
@@ -116,7 +117,17 @@ const SubSubCategoryTable = () => {
       headerName: 'Image',
       flex: 1,
       renderCell: (params) =>
-        params.value ? <img src={params.value} alt="" width="40" height="40" /> : 'No Image',
+        params.value ? (
+          <Image src={params.value}
+            alt="Category"
+            width={50}
+            height={50}
+            style={{ borderRadius: 4, objectFit: "cover" }}
+            sizes="50px"
+          />
+        ) : (
+          'No Image'
+        ),
     },
     {
       field: 'subCategory',

@@ -1,4 +1,3 @@
-// models/userModel.js
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
@@ -17,10 +16,10 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: false, // ✅ Allow Google users to skip password
+      required: false, // Allow Google users to skip password
       validate: {
         validator: function (value) {
-          // ✅ Only validate length if password is provided
+          // Only validate length if password is provided
           return !value || value.length >= 6;
         },
         message: "Minimum password length is 6 characters",

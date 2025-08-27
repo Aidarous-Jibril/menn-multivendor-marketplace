@@ -9,11 +9,12 @@ import { toast } from "react-toastify";
 import { format } from "date-fns";
 
 // Local imports
-import {deleteVendor, fetchAllVendors, blockVendor, unblockVendor, fetchVendorById, updateVendor} from "@/redux/adminSlice";
+import { fetchAllVendors, blockVendor, unblockVendor, fetchVendorById, updateVendor, deleteVendor} from "@/redux/adminSlice";
 import EditProductModal from "../common/ProductEditModal";
 import ProductTable from "../common/ProductTable";
 import SearchProducts from "../common/SearchProducts";
 import Loader from "./layout/Loader";
+import Image from "next/image";
 
 const AllVendorsTable = () => {
   const dispatch = useDispatch();
@@ -32,12 +33,6 @@ const AllVendorsTable = () => {
         dispatch(fetchAllVendors());
       }
     }, [dispatch, adminInfo]);
-
-  if (error) return <p className="text-red-500">{error}</p>;
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
 
   useEffect(() => {
     let filtered = [...vendors];
@@ -60,6 +55,10 @@ const AllVendorsTable = () => {
     setFilteredVendors(filtered);
   }, [searchQuery, vendors]);
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   const handleVendorEdit = (vendor) => {
     setSelectedVendorId(vendor.id);
     setUpdatedVendor({
@@ -75,11 +74,12 @@ const AllVendorsTable = () => {
   };
 
   const handleDeleteConfirmation = (vendorId) => {
+    setSelectedVendorId(vendorId);            
     setOpenDeleteDialog(true);
   };
 
   const handleDeleteVendor = async () => {
-    const result = await dispatch(deleteVendor(selectedVendor));
+    const result = await dispatch(deleteVendor(selectedVendorId));
     if (result.type === "admin/deleteVendor/fulfilled") {
       toast.success("Vendor deleted!");
     } else {
@@ -126,7 +126,7 @@ const AllVendorsTable = () => {
     try {
       const result = await dispatch(
         updateVendor({
-          id: selectedVendorId, // This should be set from the vendor selected in the modal
+          id: selectedVendorId, 
           updatedVendor: updatedVendor, // Updated vendor data from the form
         })
       );
@@ -192,11 +192,9 @@ const AllVendorsTable = () => {
         <div style={{ display: "flex", justifyContent: "center" }}>
           <Tooltip title={params.row.isBlocked ? "Inactive" : "Active"}>
             <Switch
-              checked={!params.row.isBlocked} // Active if not blocked
-              onChange={() =>
-                handleStatusToggle(params.row.id, params.row.isBlocked)
-              }
-              disabled={params.row.isApproved} // Disable toggle if vendor is approved
+              checked={!params.row.isBlocked} 
+              onChange={() => handleStatusToggle(params.row.id, params.row.isBlocked) }
+              disabled={!!params.row.isApproved}
             />
           </Tooltip>
         </div>
@@ -223,7 +221,7 @@ const AllVendorsTable = () => {
               variant="contained"
               color="primary"
               size="small"
-              onClick={() => handleVendorEdit(params.row)} // Open edit modal
+              onClick={() => handleVendorEdit(params.row)}
               style={{ minWidth: "auto", padding: "6px 12px" }}
             >
               <AiOutlineEdit size={16} />
@@ -274,10 +272,11 @@ const AllVendorsTable = () => {
     <div className="w-full min-h-screen overflow-hidden">
       {isLoading ? (
         <Loader /> 
-      ) : (
+        ) : error ? (
+          <div className="p-6 text-red-600">{String(error)}</div>
+        ) : (
         <div className="w-full p-4 md:p-8 rounded-md">
           <div className="flex items-center mb-6">
-            {/* <i className="fas fa-store text-2xl text-orange-500 mr-2"></i> */}
             <h1 className="text-2xl font-semibold">Vendors List</h1>
             <span className="ml-2 bg-gray-200 text-gray-700 text-sm font-medium px-2.5 py-0.5 rounded-full">
               {vendors?.length || 0}
@@ -334,12 +333,12 @@ const AllVendorsTable = () => {
                 <CardContent>
                   <Typography variant="h6">Vendor Avatar</Typography>
                   <Divider style={{ margin: "10px 0" }} />
-                  <img
-                    src={singleVendor.avatar?.url}
-                    alt="Vendor Avatar"
-                    width="100"
-                    height="100"
-                    style={{ borderRadius: "50%" }}
+                  <Image
+                    src={singleVendor?.avatar?.url || "/images/avatar-placeholder.png"}
+                    alt={`${singleVendor?.name || "Vendor"} Avatar`}
+                    width={100}
+                    height={100}
+                    className="rounded-full object-cover"
                   />
                 </CardContent>
               </Card>
@@ -391,7 +390,7 @@ const AllVendorsTable = () => {
         data={updatedVendor}
         onInputChange={handleInputChange}
         onSave={handleUpdateVendor}
-        isVendorEdit={true} // Set true for vendor editing
+        isVendorEdit={true} 
       />
 
       {/* Delete Confirmation Dialog */}

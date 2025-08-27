@@ -1,10 +1,10 @@
 const conversationModel = require("../models/conversationModel");
 const Message = require("../models/messageModel");
-const asyncHandler = require("express-async-handler");
+const expressAsyncHandler = require("express-async-handler");
 const cloudinary = require("cloudinary");
 
 // Create a new message
-const createNewMessage = asyncHandler(async (req, res, next) => {
+const createNewMessage = expressAsyncHandler(async (req, res, next) => {
     try {
       // Extract message data from the request body
       const messageData = req.body;
@@ -44,7 +44,7 @@ const createNewMessage = asyncHandler(async (req, res, next) => {
 });
 
 // Get all messages with a specific conversation id
-const getAllMessagesWithConversation = async (req, res, next) => {
+const getAllMessagesWithConversation = expressAsyncHandler(async (req, res, next) => {
     try {
         // Find all messages with the provided conversation id
         const messages = await Message.find({
@@ -60,7 +60,7 @@ const getAllMessagesWithConversation = async (req, res, next) => {
         // Handle any errors
         res.status(500).json(error);
       }
-}
+});
 
 module.exports = {
     createNewMessage,

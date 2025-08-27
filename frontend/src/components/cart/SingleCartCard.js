@@ -35,7 +35,6 @@ const decrement = () => {
     setValue(newQty);
     quantityChangeHandler({ ...data, qty: newQty });
 
-    // Update localStorage cart items
     const cartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
     const updatedCart = cartItems.map((item) =>
       item._id === data._id ? { ...item, qty: newQty } : item
@@ -70,11 +69,14 @@ const decrement = () => {
       {/* Product Data */}
       <div className="flex items-center justify-between">
         {/* Product Image */}
-        <Link href={`/product/${data._id}`} className="w-[100px] h-auto">
-          <img
-            src={data.images[0]?.url}
-            alt={data.name}
-            className="w-full h-auto rounded-[5px] cursor-pointer"
+        <Link href={`/product/${data._id}`} className="w-[100px]">
+          <Image
+            src={data?.images?.[0]?.url || '/images/product-placeholder.jpg'}
+            alt={data?.name || 'Product image'}
+            width={100}
+            height={100}
+            className="rounded-[5px] cursor-pointer w-full h-auto"
+            sizes="100px"
           />
         </Link>
 

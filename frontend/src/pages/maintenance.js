@@ -1,22 +1,18 @@
 import Image from 'next/image';
 import Head from 'next/head';
 import { useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 const MaintenancePage = () => {
-  const maintenanceEndTime = useSelector(
-    (state) => state.settings.siteSettings?.advanced?.maintenanceEndTime
-  );
-    console.log("maintenanceEndTime:", maintenanceEndTime)
-    const targetDate = maintenanceEndTime
-    ? new Date(Date.parse(maintenanceEndTime)) // stays in UTC
-    : null;
-    const [timeLeft, setTimeLeft] = useState({});
+  const maintenanceEndTime = useSelector( (state) => state.settings.siteSettings?.advanced?.maintenanceEndTime );
 
-  console.log("Raw end time from Redux:", maintenanceEndTime);
-console.log("Parsed targetDate:", targetDate);
-console.log("Browser local time now:", new Date());
-console.log("UTC now:", new Date().toISOString());
+  const [timeLeft, setTimeLeft] = useState({});
+
+  const targetDate = useMemo(() => {
+  if (!maintenanceEndTime) return null;
+  const ts = Date.parse(maintenanceEndTime);
+  return Number.isNaN(ts) ? null : new Date(ts); // stays in UTC
+  }, [maintenanceEndTime]);
 
   useEffect(() => {
     if (!targetDate) return;
@@ -47,7 +43,7 @@ console.log("UTC now:", new Date().toISOString());
   return (
     <>
       <Head>
-        <title>We'll be back soon!</title>
+        <title>We&apos;ll be back soon!</title>
       </Head>
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 bg-gray-50">
         <Image

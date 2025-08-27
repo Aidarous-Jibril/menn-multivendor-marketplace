@@ -1,4 +1,3 @@
-// CreateItemModal.js
 import React from "react";
 import {
   Dialog,
@@ -16,7 +15,7 @@ const CreateItemModal = ({
   onClose,
   newItem,              
   onInputChange,
-  onAttributeChange,     // for attribute changes
+  onAttributeChange,     
   onSave,
   selectedBrand,
   categories = [],

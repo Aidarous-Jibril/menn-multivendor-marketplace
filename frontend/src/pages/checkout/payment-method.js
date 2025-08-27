@@ -12,16 +12,9 @@ import { setPaymentMethod } from "@/redux/slices/checkoutSlice";
 const steps = ["User Login", "Shipping Address", "Payment Method", "Place Order"];
 
 const CustomStepLabel = styled(StepLabel)(({ theme }) => ({
-  "& .MuiStepLabel-label": {
-    fontWeight: "600",
-    color: "#9E9E9E",
-  },
-  "& .Mui-active .MuiStepLabel-label": {
-    color: "#E44343",
-  },
-  "& .Mui-completed .MuiStepLabel-label": {
-    color: "#4CAF50",
-  },
+  "& .MuiStepLabel-label": { fontWeight: "600", color: "#9E9E9E", },
+  "& .Mui-active .MuiStepLabel-label": { color: "#E44343", },
+  "& .Mui-completed .MuiStepLabel-label": { color: "#4CAF50", },
 }));
 
 const PaymentMethod = ({ categories }) => {

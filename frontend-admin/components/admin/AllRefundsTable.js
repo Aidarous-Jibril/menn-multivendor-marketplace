@@ -38,12 +38,10 @@ const AllRefundsTable = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openViewModal, setOpenViewModal] = useState(false);
 
-  // Fetch all orders on mount
   useEffect(() => {
     dispatch(fetchOrders());
   }, [dispatch]);
 
-  // Filter logic
   useEffect(() => {
     if (!orders?.length) {
       setFilteredOrders([]);
@@ -63,7 +61,6 @@ const AllRefundsTable = () => {
     setSearchQuery(e.target.value);
   };
 
-  // Handler for viewing details
   const handleViewOrder = async (orderId) => {
     try {
       await dispatch(fetchSingleOrder(orderId));
@@ -76,10 +73,8 @@ const AllRefundsTable = () => {
     setOpenViewModal(false);
   };
 
-  // Handler for status changes
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      // If the new status is a refund approval or rejection, call adminRefundOrder
       if (newStatus === "refund_approved" || newStatus === "refund_rejected") {
         const result = await dispatch(
           adminRefundOrder({ orderId, status: newStatus })
@@ -91,7 +86,6 @@ const AllRefundsTable = () => {
           toast.error("Failed to update refund status");
         }
       } else {
-        // Otherwise, normal status update
         const result = await dispatch( updateOrderStatus({ id: orderId, status: newStatus }) );
         console.log("RESULT", result)
         if (result.type === "admin/updateOrderStatus/fulfilled") {
@@ -106,7 +100,6 @@ const AllRefundsTable = () => {
     }
   };
 
-  // Table columns
   const columns = [
     {
       field: "id",

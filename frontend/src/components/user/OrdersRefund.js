@@ -15,7 +15,7 @@ const OrdersRefund = () => {
   const { orders } = useSelector((state) => state.orders);
   const dispatch = useDispatch();
   console.log("orders:", orders)
-  const [isClient, setIsClient] = useState(false); // Ensure SSR compatibility
+  const [isClient, setIsClient] = useState(false); 
 
   useEffect(() => {
     setIsClient(true);
@@ -54,7 +54,7 @@ const OrdersRefund = () => {
     
         const label = status
           .replace(/_/g, ' ')
-          .replace(/\b\w/g, (l) => l.toUpperCase()); // Capitalize each word
+          .replace(/\b\w/g, (l) => l.toUpperCase()); 
     
         return <span className={`font-semibold ${color}`}>{label}</span>;
       },

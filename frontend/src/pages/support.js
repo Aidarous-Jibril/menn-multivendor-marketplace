@@ -12,7 +12,7 @@ const Support = () => {
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // ✅ Prevent automatic page reload / unintentional submit
+    e.preventDefault(); 
     try {
       const { data } = await axios.post('/api/support/contact', {
         email,
@@ -32,7 +32,7 @@ const Support = () => {
   return (
     <>
       <Head>
-        <title>Customer Service - Help & Support</title>
+        <title>Customer Service - Help &amp; Support</title>
       </Head>
 
       <div className="flex flex-col min-h-screen">
@@ -42,9 +42,7 @@ const Support = () => {
           {/* Hero Section */}
           <div className="max-w-4xl mx-auto text-center mb-10">
             <h1 className="text-4xl font-bold text-blue-700 mb-4">How can we help you today?</h1>
-            <p className="text-gray-600 text-lg">
-              Whether you're a buyer or a vendor, we’re here to assist you. Browse help topics or reach out to our support team.
-            </p>
+            <p className="text-gray-600 text-lg">Whether you&apos;re a buyer or a vendor, we’re here to assist you. </p>
           </div>
 
           {/* Contact Options */}
@@ -71,7 +69,7 @@ const Support = () => {
             <h2 className="text-2xl font-bold mb-6 text-center">Popular Help Topics</h2>
             <div className="grid gap-4">
               <Accordion title="How do I verify my vendor identity?">
-                You can upload your business documents in your Vendor Dashboard under the 'Verification' tab.
+                You can upload your business documents in your Vendor Dashboard under the &lsquo;Verification&rsquo; tab.
               </Accordion>
               <Accordion title="What happens if a customer requests a refund?">
                 Our system will notify the vendor and hold the transaction amount until the issue is resolved.
@@ -80,7 +78,7 @@ const Support = () => {
                 Vendors can create coupons, mark products as featured, or participate in flash sales from their dashboard.
               </Accordion>
               <Accordion title="What are the fees for selling on this platform?">
-                Please refer to our vendor terms or check the 'Fees & Commissions' section in your Vendor Dashboard.
+                Please refer to our vendor terms or check the &lsquo;Fees &amp; Commissions&rsquo; section in your Vendor Dashboard.
               </Accordion>
             </div>
           </div>

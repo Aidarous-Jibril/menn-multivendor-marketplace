@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 
 // Async thunks
 export const createSale = createAsyncThunk(
@@ -10,7 +10,7 @@ export const createSale = createAsyncThunk(
       const config = {
         headers: { 'Content-Type': 'multipart/form-data' },
       };
-      const { data } = await axios.post(
+      const { data } = await axiosInstance.post(
         '/api/Sales/create-Sale',
         newForm,
         config
@@ -26,7 +26,7 @@ export const getAllSales = createAsyncThunk(
   "sales/getAllSales",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/sales`);
+      const { data } = await axiosInstance.get(`/api/sales`);
       return data.sales;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -38,7 +38,7 @@ export const vendorGetAllSales = createAsyncThunk(
   "sales/vendorGetAllSales",
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/sales/vendor/${id}`);
+      const { data } = await axiosInstance.get(`/api/sales/vendor/${id}`);
       return data.sales;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -51,7 +51,7 @@ export const getSingleSale = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     console.log(id)
     try {
-      const { data } = await axios.get(`/api/sales/sale/${id}`); // Updated path
+      const { data } = await axiosInstance.get(`/api/sales/sale/${id}`); // Updated path
       console.log(data)
       return data.sale;
     } catch (error) {
@@ -65,7 +65,7 @@ export const vendorDeleteSale = createAsyncThunk(
   "sales/vendorDeleteSale",
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.delete(`/api/Sales/Sale/${id}`); // Updated path
+      const { data } = await axiosInstance.delete(`/api/Sales/Sale/${id}`); // Updated path
       return id;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -77,7 +77,7 @@ export const vendorUpdateSale = createAsyncThunk(
   "sales/vendorUpdateSale",
   async ({ id, updatedData }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/sales/sale/${id}`, updatedData);
+      const { data } = await axiosInstance.put(`/api/sales/sale/${id}`, updatedData);
       return data.sale;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -90,7 +90,7 @@ export const fetchSingleSaleByVendor = createAsyncThunk(
   async (id, { rejectWithValue }) => {
     console.log("ID:", id)
     try {
-      const { data } = await axios.get(`/api/sales/vendor-sale/${id}`);
+      const { data } = await axiosInstance.get(`/api/sales/vendor-sale/${id}`);
       console.log("SALE DATA:", data)
       return data.sale;
     } catch (error) {

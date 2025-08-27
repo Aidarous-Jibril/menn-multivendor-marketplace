@@ -39,14 +39,12 @@ const AllCouponsTable = () => {
     validityEnd: "",
   });
 
-  // Fetch all coupons when the component loads
   useEffect(() => {
     if (adminInfo) {
       dispatch(fetchAllCoupons());
     }
   }, [dispatch, adminInfo]);
 
- // Handle search query change
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
 
 // Handle search filter with optional chaining

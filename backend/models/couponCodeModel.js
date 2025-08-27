@@ -26,7 +26,7 @@ const couponCodeSchema = new mongoose.Schema({
         required: true,
     },
     status: {
-        type: String,  // Status could be "active", "inactive", etc.
+        type: String,  
         required: true,
     },
     vendorId: {

@@ -1,6 +1,6 @@
 //categorySlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '@/utils/axiosInstance';
 
 // -------------- CATEGORY ACTIONS --------------
 // Fetch main categories
@@ -8,7 +8,7 @@ export const fetchCategories = createAsyncThunk(
   'categories/fetchCategories',
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get('/api/categories');
+      const { data } = await axiosInstance.get('/api/categories');
       return data.categories;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -21,7 +21,7 @@ export const createMainCategory = createAsyncThunk(
   'categories/createMainCategory',
   async (categoryData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post('/api/categories', categoryData, {
+      const { data } = await axiosInstance.post('/api/categories', categoryData, {
         headers: { 'Content-Type': 'application/json' },
       });
       return data.category;
@@ -36,7 +36,7 @@ export const updateMainCategory = createAsyncThunk(
   'categories/updateMainCategory',
   async ({ categoryId, categoryData }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/categories/${categoryId}`, categoryData, {
+      const { data } = await axiosInstance.put(`/api/categories/${categoryId}`, categoryData, {
         headers: { 'Content-Type': 'application/json' },
       });
       return data.category;
@@ -51,7 +51,7 @@ export const deleteMainCategory = createAsyncThunk(
   'categories/deleteMainCategory',
   async (categoryId, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/categories/${categoryId}`);
+      await axiosInstance.delete(`/api/categories/${categoryId}`);
       return categoryId;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -65,7 +65,7 @@ export const fetchSubcategories = createAsyncThunk(
   'categories/fetchSubcategories',
   async (categorySlug, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/subcategories?categorySlug=${categorySlug}`);
+      const { data } = await axiosInstance.get(`/api/subcategories?categorySlug=${categorySlug}`);
       return data.subcategories;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -78,7 +78,7 @@ export const createSubcategory = createAsyncThunk(
   'categories/createSubcategory',
   async (subcategoryData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post('/api/subcategories', subcategoryData, {
+      const { data } = await axiosInstance.post('/api/subcategories', subcategoryData, {
         headers: { 'Content-Type': 'application/json' },
       });
       return data.subcategory;
@@ -93,7 +93,7 @@ export const updateSubcategory = createAsyncThunk(
   'categories/updateSubcategory',
   async ({ subcategoryId, subcategoryData }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/subcategories/${subcategoryId}`, subcategoryData, {
+      const { data } = await axiosInstance.put(`/api/subcategories/${subcategoryId}`, subcategoryData, {
         headers: { 'Content-Type': 'application/json' },
       });
       return data.subcategory;
@@ -108,7 +108,7 @@ export const deleteSubcategory = createAsyncThunk(
   'categories/deleteSubcategory',
   async (subcategoryId, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/subcategories/${subcategoryId}`);
+      await axiosInstance.delete(`/api/subcategories/${subcategoryId}`);
       return subcategoryId;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -122,7 +122,7 @@ export const fetchSubSubcategories = createAsyncThunk(
   'categories/fetchSubSubcategories',
   async (subCategorySlug, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/sub-subcategories?subCategorySlug=${subCategorySlug}`);
+      const { data } = await axiosInstance.get(`/api/sub-subcategories?subCategorySlug=${subCategorySlug}`);
       return data.subSubcategories;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);
@@ -135,7 +135,7 @@ export const createSubSubcategory = createAsyncThunk(
   'categories/createSubSubcategory',
   async (subSubcategoryData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post('/api/sub-subcategories', subSubcategoryData, {
+      const { data } = await axiosInstance.post('/api/sub-subcategories', subSubcategoryData, {
         headers: { 'Content-Type': 'application/json' },
       });
       return data.subSubcategory;
@@ -150,7 +150,7 @@ export const updateSubSubcategory = createAsyncThunk(
   'categories/updateSubSubcategory',
   async ({ subSubcategoryId, subSubcategoryData }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/sub-subcategories/${subSubcategoryId}`, subSubcategoryData, {
+      const { data } = await axiosInstance.put(`/api/sub-subcategories/${subSubcategoryId}`, subSubcategoryData, {
         headers: { 'Content-Type': 'application/json' },
       });
       return data.subSubcategory;
@@ -165,7 +165,7 @@ export const deleteSubSubcategory = createAsyncThunk(
   'categories/deleteSubSubcategory',
   async (subSubcategoryId, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/sub-subcategories/${subSubcategoryId}`);
+      await axiosInstance.delete(`/api/sub-subcategories/${subSubcategoryId}`);
       return subSubcategoryId;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);

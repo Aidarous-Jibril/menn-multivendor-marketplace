@@ -1,6 +1,6 @@
 // src/redux/slices/couponSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '@/utils/axiosInstance';
 
 
 // Thunk to fetch all coupons for a specific vendor
@@ -8,7 +8,7 @@ export const fetchAllCoupons = createAsyncThunk(
   'coupons/fetchAllCoupons',
   async (vendorId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/coupons/vendor/${vendorId}`);
+      const response = await axiosInstance.get(`/api/coupons/vendor/${vendorId}`);
       return response.data.coupons;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -22,7 +22,7 @@ export const createCoupon = createAsyncThunk(
   async (couponData, { rejectWithValue }) => {
     console.log("couponData:", couponData)
     try {
-      const response = await axios.post(`/api/coupons/create`, couponData);
+      const response = await axiosInstance.post(`/api/coupons/create`, couponData);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -35,7 +35,7 @@ export const deleteCoupon = createAsyncThunk(
   'coupons/deleteCoupon',
   async (couponId, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(`/api/coupons/${couponId}`);
+      const response = await axiosInstance.delete(`/api/coupons/${couponId}`);
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response.data);
@@ -48,7 +48,7 @@ export const updateCoupon = createAsyncThunk(
   'coupons/updateCoupon',
   async ({ couponId, couponData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`/api/coupons/${couponId}`, couponData);
+      const response = await axiosInstance.put(`/api/coupons/${couponId}`, couponData);
       return response.data.updatedCoupon; 
     } catch (error) {
       return rejectWithValue(error.response.data);

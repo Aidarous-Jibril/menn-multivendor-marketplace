@@ -37,6 +37,7 @@ const SaleProductManager = ({
   fetchVendorsThunk
 }) => {
   const dispatch = useDispatch();
+  const vendorId = vendorInfo?._id || null;
 
   const [filteredSales, setFilteredSales] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,27 +64,42 @@ const SaleProductManager = ({
     originalPrice: "", discountPrice: "", stock: "", images: [], attributes: {}, vendorId: ""
   });
 
+  // helper to refetch sales appropriately
+  const refetchSales = () => {
+    if (isAdmin) dispatch(fetchSalesThunk());
+    else if (vendorId) dispatch(fetchSalesThunk(vendorId));
+  };
+
+  // INITIAL DATA LOAD
   useEffect(() => {
     if (isAdmin) {
       dispatch(fetchSalesThunk());
       dispatch(fetchVendorsThunk());
-    } else if (vendorInfo?._id) {
-      dispatch(fetchSalesThunk(vendorInfo._id));
+    } else if (vendorId) {
+      dispatch(fetchSalesThunk(vendorId));
     }
-  
     dispatch(fetchCategoriesThunk());
     dispatch(fetchBrandsThunk());
-  }, [dispatch, isAdmin, vendorInfo?._id]);
-  
+  }, [
+    dispatch,
+    isAdmin,
+    vendorId,
+    fetchSalesThunk,
+    fetchVendorsThunk,
+    fetchCategoriesThunk,
+    fetchBrandsThunk,
+  ]);
 
+  // DEPENDENT DROPDOWNS
   useEffect(() => {
     if (mainCategory) dispatch(fetchSubcategoriesThunk(mainCategory));
-  }, [mainCategory]);
+  }, [dispatch, mainCategory, fetchSubcategoriesThunk]);
 
   useEffect(() => {
     if (subCategory) dispatch(fetchSubSubcategoriesThunk(subCategory));
-  }, [subCategory]);
+  }, [dispatch, subCategory, fetchSubSubcategoriesThunk]);
 
+  // FILTERING
   useEffect(() => {
     let filtered = [...sales];
     if (mainCategory) filtered = filtered.filter(s => s.mainCategory === mainCategory);
@@ -91,9 +107,9 @@ const SaleProductManager = ({
     if (subSubCategory) filtered = filtered.filter(s => s.subSubCategory === subSubCategory);
     if (selectedBrand) filtered = filtered.filter(s => s.brand === selectedBrand);
     if (searchQuery) {
-      filtered = filtered.filter(
-        s => s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s._id.toLowerCase().includes(searchQuery.toLowerCase())
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(s =>
+        s.name.toLowerCase().includes(q) || s._id.toLowerCase().includes(q)
       );
     }
     setFilteredSales(filtered);
@@ -103,7 +119,7 @@ const SaleProductManager = ({
     const result = await dispatch(updateSaleThunk({ saleId: updatedSale.id, saleData: updatedSale }));
     if (result.type.includes("fulfilled")) {
       toast.success("Sale updated!");
-      dispatch(fetchSalesThunk());
+      refetchSales();
       setOpenEditModal(false);
     } else toast.error("Failed to update.");
   };
@@ -112,7 +128,7 @@ const SaleProductManager = ({
     const result = await dispatch(deleteSaleThunk(saleToDelete));
     if (result.type.includes("fulfilled")) {
       toast.success("Sale deleted!");
-      dispatch(fetchSalesThunk());
+      refetchSales();
     } else toast.error("Delete failed.");
     setOpenDeleteModal(false);
   };
@@ -127,7 +143,7 @@ const SaleProductManager = ({
     const result = await dispatch(createSaleThunk(formData));
     if (result.type.includes("fulfilled")) {
       toast.success("Created!");
-      dispatch(fetchSalesThunk());
+      refetchSales();
       setOpenCreateModal(false);
     } else toast.error("Create failed.");
   };

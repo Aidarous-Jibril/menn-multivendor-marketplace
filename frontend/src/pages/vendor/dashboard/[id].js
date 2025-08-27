@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {  FaTimes, FaSearch, FaFilter } from "react-icons/fa";
+import Image from "next/image";
 
 import {fetchSubcategories, fetchSubSubcategories } from "@/redux/slices/categorySlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,12 +22,11 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
   const [vendorInfo, setVendorInfo] = useState(null);
 
   useEffect(() => {
-    if (vendor) {
-      setVendorInfo(vendor);
-      localStorage.setItem("vendorInfo", JSON.stringify(vendorInfo));
-    }
+    if (!vendor) return;
+    setVendorInfo(vendor);
+    try { localStorage.setItem("vendorInfo", JSON.stringify(vendor)); } catch {}
   }, [vendor]);
- 
+
   useEffect(() => {
     if (mainCategory) {
       dispatch(fetchSubcategories(mainCategory));
@@ -98,10 +98,14 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
         <div className="bg-[#416B80] text-white p-10 rounded-lg text-center">
           <div className="flex justify-center items-center mb-4">
             {vendorInfo?.avatar?.url && (
-              <img
-                src={vendorInfo?.avatar?.url}
-                alt={`${vendorInfo?.name} Avatar`}
-                className="w-20 h-20 rounded-full object-cover"
+              <Image
+                src={vendorInfo.avatar.url}
+                alt={`${vendorInfo?.name || "Vendor"} Avatar`}
+                width={80}              
+                height={80}            
+                className="rounded-full object-cover"
+                sizes="80px"
+                // priority  // uncomment only if this avatar is above the fold
               />
             )}
           </div>
@@ -199,17 +203,18 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
         </div>
 
         {/* Product Section */}
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-wrap gap-4">
-            {filteredProducts && filteredProducts.map((product) => (
-                <div
-                  key={product._id}
-                  className=" bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                >
+        <div className="flex-grow py-8 container mx-auto px-4 sm:pb-20 md:pb-28">
+          {filteredProducts.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
+              {filteredProducts.map((product) => (
+                <div key={product._id} className="h-full">
                   <ProductCard product={product} />
                 </div>
               ))}
-          </div>
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No products available in this category yet.</p>
+          )}
         </div>
 
       </div>

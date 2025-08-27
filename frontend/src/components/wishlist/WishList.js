@@ -1,20 +1,47 @@
 import React from "react";
 import { RxCross1 } from "react-icons/rx";
 import { IoBagHandleOutline } from "react-icons/io5";
-import styles from "../../styles/styles";
+import { toast } from "react-toastify";
+
 import SingleWishListCard from "./SingleWishListCard";
 import { useDispatch, useSelector } from "react-redux";
 
+import styles from "../../styles/styles";
+import { addItemToCart } from "@/redux/slices/cartSlice";
+import { removeItemFromWishList } from "@/redux/slices/wishListSlice";
+
+
 const Wishlist = ({ setOpenWishlist }) => {
   const { wishListItems } = useSelector((state) => state.wishList);
+  const { cartItems } = useSelector((state) => state.cart);
+  
   const dispatch = useDispatch();
 
-  const addToCartHandler = (data) => {
-    // Dispatch action to add item to cart
+  const addToCartHandler = (product) => {
+    const already = cartItems.find((i) => i._id === product._id);
+    if (already) {
+      toast.error("Item already in cart!");
+      return false;
+    }
+    const qty = 1;
+    const stock = product?.stock ?? 0;
+    if (stock < qty) {
+      toast.error("Product stock limited!");
+      return false;
+    }
+    dispatch(addItemToCart({ ...product, qty }));
+    toast.success("Item added to cart successfully!");
+    return true;
   };
 
-  const removeFromWishListHandler = (data) => {
-    // Dispatch action to remove item from wishlist
+  const removeFromWishListHandler = (product) => {
+    dispatch(removeItemFromWishList(product));
+  };
+
+  // add to cart then auto-remove from wishlist
+  const addToCartAndRemove = (product) => {
+    const added = addToCartHandler(product);
+    if (added) removeFromWishListHandler(product);
   };
 
   return (
@@ -54,7 +81,7 @@ const Wishlist = ({ setOpenWishlist }) => {
                     <SingleWishListCard
                       key={index}
                       data={item}
-                      addToCartHandler={addToCartHandler}
+                      addToCartHandler={addToCartAndRemove}
                       removeFromWishListHandler={removeFromWishListHandler}
                     />
                   ))}

@@ -2,7 +2,7 @@ import React from 'react';
 import Header from '@/components/layout/Header';
 import OrderTracker from '@/components/user/OrderTracker';
 import ProfileSideBar from '@/components/user/layout/ProfileSideBar';
-import withAdminAuth from '@/lib/withAdminAuth';
+import withUserAuth from '@/lib/withUserAuth';
 
 const TrackOrder = () => {
   return (
@@ -21,4 +21,4 @@ const TrackOrder = () => {
   );
 };
 
-export default withAdminAuth(TrackOrder);
+export default withUserAuth(TrackOrder);

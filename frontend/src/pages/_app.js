@@ -1,63 +1,31 @@
-// import { Provider } from 'react-redux';
-// import { store } from '../redux/store';
-// import { ToastContainer } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-// import '../styles/globals.css'; //for tailwind css to work
+// src/pages/_app.js
+import React from "react";
+import { Provider } from "react-redux";
+import { wrapper } from "../redux/store";
+import { ToastContainer } from "react-toastify";
+import { SessionProvider } from "next-auth/react";
+import "react-toastify/dist/ReactToastify.css";
+import "../styles/globals.css";
 
-
-// function MyApp({ Component, pageProps }) {
-//   return (
-//     <Provider store={store}>
-//       <Component {...pageProps} />
-//       <ToastContainer />
-//     </Provider>
-//   );
-// }
-
-// export default MyApp;
-
-
-// import React from 'react';
-// import { Provider } from 'react-redux';
-// import { wrapper } from '../redux/store';
-// import { ToastContainer } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-// import '../styles/globals.css'; // for tailwind css to work
-
-
-// function MyApp({ Component, pageProps }) {
-//   return (
-//     <Provider store={wrapper.useWrappedStore(pageProps).store}>
-//       <Component {...pageProps} />
-//       <ToastContainer />
-//     </Provider>
-//   );
-// }
-
-// export default wrapper.withRedux(MyApp);
-
-
-import React from 'react';
-import { Provider } from 'react-redux';
-import { wrapper } from '../redux/store';
-import { ToastContainer } from 'react-toastify';
-import { SessionProvider } from 'next-auth/react'; 
-import 'react-toastify/dist/ReactToastify.css';
-import '../styles/globals.css'; // Tailwind CSS
-
+import { Inter } from "next/font/google";
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 function MyApp({ Component, pageProps }) {
-  const { store } = wrapper.useWrappedStore(pageProps); 
+  const { store } = wrapper.useWrappedStore(pageProps);
 
   return (
-    <SessionProvider session={pageProps.session}> 
-      <Provider store={store}>
-        <Component {...pageProps} />
-        <ToastContainer />
-      </Provider>
-    </SessionProvider>
+    <div className={inter.className}>
+      <SessionProvider session={pageProps.session}>
+        <Provider store={store}>
+          {/* Landmark for the skip link */}
+          <main id="main-content">
+            <Component {...pageProps} />
+          </main>
+          <ToastContainer />
+        </Provider>
+      </SessionProvider>
+    </div>
   );
 }
 
 export default MyApp;
-

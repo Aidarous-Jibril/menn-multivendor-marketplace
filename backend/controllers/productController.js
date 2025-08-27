@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const mongoose = require('mongoose');
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const expressAsyncHandler = require("express-async-handler");
 const cloudinary = require("../utils/cloudinary");
 
 const Product = require("../models/productModel");
@@ -14,7 +14,7 @@ const SubCategory = require("../models/subCategory");
 const SubSubCategory = require("../models/subSubCategory");
 
 // Create product
-const createProduct = catchAsyncErrors(async (req, res, next) => {
+const createProduct = expressAsyncHandler(async (req, res, next) => {
   const { mainCategory, subCategory, subSubCategory, brand, attributes, vendorId, isFeatured,  } = req.body;
 
   try {
@@ -92,7 +92,6 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
 });
 
 const uploadImages = async (images) => {
-  console.log("IMAGES:", images);
 
   if (!Array.isArray(images)) {
     throw new Error("Images should be an array of URLs, file paths, or Base64 strings.");
@@ -167,9 +166,8 @@ const uploadImages = async (images) => {
 };
 
 // Get all products of a store
-const getVendorAllProducts = catchAsyncErrors(async (req, res) => {
+const getVendorAllProducts = expressAsyncHandler(async (req, res) => {
   const vendorId = req.params.vendorId;
-console.log("vendor ID", vendorId)
   try {
     if (!mongoose.Types.ObjectId.isValid(vendorId)) {
       return res.status(400).json({ message: "Invalid vendor ID" });
@@ -189,7 +187,7 @@ console.log("vendor ID", vendorId)
 });
 
 // Delete product
-const deleteProduct = catchAsyncErrors(async (req, res) => {
+const deleteProduct = expressAsyncHandler(async (req, res) => {
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     
@@ -210,7 +208,7 @@ const deleteProduct = catchAsyncErrors(async (req, res) => {
 });
 
 // Update product
-const updateProduct = catchAsyncErrors(async (req, res, next) => {
+const updateProduct = expressAsyncHandler(async (req, res, next) => {
   const { id } = req.params;
   const { name, originalPrice, discountPrice, stock, brand, mainCategory, subCategory, subSubCategory } = req.body;
 
@@ -225,7 +223,6 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
       subCategory,
       subSubCategory,
     }, { new: true });
-      console.log("UPDATED Product:", updatedProduct)
     res.json(updatedProduct);
   } catch (error) {
     res.status(500).json({ message: "Error updating product" });
@@ -233,7 +230,7 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Get all products
-const getAllProducts = catchAsyncErrors(async (req, res) => {
+const getAllProducts = expressAsyncHandler(async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
     if (!products) {
@@ -249,7 +246,7 @@ const getAllProducts = catchAsyncErrors(async (req, res) => {
 });
 
 // Get a single product by ID
-const getProductById = catchAsyncErrors(async (req, res) => {
+const getProductById = expressAsyncHandler(async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
       .populate({
@@ -270,9 +267,8 @@ const getProductById = catchAsyncErrors(async (req, res) => {
 });
 
 // Fetch products by subSubCategorySlug
-const getProductsBySubSubCategory = catchAsyncErrors(async (req, res) => {
+const getProductsBySubSubCategory = expressAsyncHandler(async (req, res) => {
   const { subSubCategory } = req.query;
-  console.log("subSubCategory is", subSubCategory)
   // Use a regex for case-insensitive match and ignore hyphens/spaces if needed
   const regex = new RegExp(subSubCategory.replace(/\s+/g, '[-\\s]?'), "i");
   const products = await Product.find({ subSubCategory: regex });
@@ -285,7 +281,7 @@ const getProductsBySubSubCategory = catchAsyncErrors(async (req, res) => {
 });
 
 // Get a single product for vendor dashboard
-const getVendorSingleProduct = catchAsyncErrors(async (req, res) => {
+const getVendorSingleProduct = expressAsyncHandler(async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
@@ -300,13 +296,13 @@ const getVendorSingleProduct = catchAsyncErrors(async (req, res) => {
 
     res.status(200).json({ success: true, product });
   } catch (error) {
-    console.error("Error fetching vendor product:", error.message);
+    // console.error("Error fetching vendor product:", error.message);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
 
-const createProductReview = catchAsyncErrors(async (req, res) => {
+const createProductReview = expressAsyncHandler(async (req, res) => {
   const { user, rating, comment, productId } = req.body;
 
   if (!rating) {
@@ -334,7 +330,7 @@ const createProductReview = catchAsyncErrors(async (req, res) => {
     const review = {
       user,
       rating: Number(rating),
-      comment,
+      comment: comment?.trim() || "",
       productId,
     };
     
@@ -343,7 +339,6 @@ const createProductReview = catchAsyncErrors(async (req, res) => {
     
     // Calculate average rating
     product.rating = product.reviews.reduce((acc, item) => item.rating + acc, 0) / product.reviews.length;
-    console.log("product in backend:", product)
 
     await product.save();
     return res

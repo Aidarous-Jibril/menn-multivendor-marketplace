@@ -1,27 +1,63 @@
+// import { useRouter } from "next/router";
+// import { useEffect, useState } from "react";
+// import { useSelector } from "react-redux";
+
+// const withUserAuth = (WrappedComponent) => {
+//   return (props) => {
+//     const router = useRouter();
+//     const { userInfo } = useSelector((state) => state.user);
+//     const [isClient, setIsClient] = useState(false);
+
+//     useEffect(() => {
+//       setIsClient(true); // Prevent hydration mismatch
+//     }, []);
+
+//     useEffect(() => {
+//       if (!userInfo || !userInfo.email) {
+//         router.push("/user/login");
+//       }
+//     }, [userInfo, router]);
+
+//     if (!isClient) return null;
+
+//     return userInfo && userInfo.email ? <WrappedComponent {...props} /> : null;
+//   };
+// };
+
+// export default withUserAuth;
+
+// src/lib/withUserAuth.js
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
 const withUserAuth = (WrappedComponent) => {
-  return (props) => {
+  const WrappedName =
+    WrappedComponent.displayName || WrappedComponent.name || "Component";
+
+  const WithUserAuth = (props) => {
     const router = useRouter();
     const { userInfo } = useSelector((state) => state.user);
     const [isClient, setIsClient] = useState(false);
 
+    // avoid hydration mismatch
     useEffect(() => {
-      setIsClient(true); // Prevent hydration mismatch
+      setIsClient(true);
     }, []);
 
     useEffect(() => {
+      if (!isClient) return;
       if (!userInfo || !userInfo.email) {
-        router.push("/user/login");
+        router.replace("/user/login");
       }
-    }, [userInfo, router]);
+    }, [isClient, userInfo, router]); // <-- include userInfo
 
     if (!isClient) return null;
-
     return userInfo && userInfo.email ? <WrappedComponent {...props} /> : null;
   };
+
+  WithUserAuth.displayName = `withUserAuth(${WrappedName})`;
+  return WithUserAuth;
 };
 
 export default withUserAuth;

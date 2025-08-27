@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import Head from "next/head";
 import { useDispatch } from "react-redux";
-import { forgotAdminPassword } from "@/redux/slices/adminSlice";
+import { forgotAdminPassword } from "@/redux/adminSlice";
 
 const AdminForgotPassword = () => {
   const dispatch = useDispatch();

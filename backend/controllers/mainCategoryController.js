@@ -1,8 +1,8 @@
-//controllers/mainCategory
 const MainCategory = require("../models/mainCategory");
+const expressAsyncHandler = require("express-async-handler");
 
 // Create a new category
-const createCategory = async (req, res) => {
+const createCategory = expressAsyncHandler(async (req, res) => {
     try {
         // Extract name, slug, imageUrl, and subcategories from the request body
         const { name, slug, imageUrl, subcategories } = req.body;
@@ -18,10 +18,10 @@ const createCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 // Get all categories
-const getCategories = async (req, res) => {
+const getCategories = expressAsyncHandler(async  (req, res) => {
     try {
         // Find all categories and populate subcategories with subsubcategories
         const categories = await MainCategory.find()
@@ -35,10 +35,10 @@ const getCategories = async (req, res) => {
     } catch (error) {
         res.status(500).json({ msg: 'Internal Server Error' });
     }
-};
+});
 
 // Get a single category by ID
-const getCategoryById = async (req, res) => {
+const getCategoryById = expressAsyncHandler(async  (req, res) => {
     try {
         const categoryId = req.params.id;
         const category = await MainCategory.findById(categoryId).populate('subcategories');
@@ -50,10 +50,10 @@ const getCategoryById = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 // Update a category by ID
-const updateCategory = async (req, res) => {
+const updateCategory = expressAsyncHandler(async  (req, res) => {
     try {
         const categoryId = req.params.id;
         const { name, slug, imageUrl, subcategories } = req.body;
@@ -74,10 +74,10 @@ const updateCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 // Delete a category by ID
-const deleteCategory = async (req, res) => {
+const deleteCategory = expressAsyncHandler(async  (req, res) => {
     try {
         const categoryId = req.params.id;
         const deletedCategory = await MainCategory.findByIdAndDelete(categoryId);
@@ -89,7 +89,7 @@ const deleteCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 module.exports = {
     createCategory,

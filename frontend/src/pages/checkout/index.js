@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 
 const Checkout = () => {
   const router = useRouter();
-  const { userInfo } = useSelector((state) => state.user); // Get auth status from Redux
+  const { userInfo } = useSelector((state) => state.user); 
 
   useEffect(() => {
     if (userInfo) {
@@ -14,7 +14,7 @@ const Checkout = () => {
     }
   }, [userInfo, router]);
 
-  return null; // No UI needed, it's just a redirect
+  return null; 
 };
 
 export default Checkout;

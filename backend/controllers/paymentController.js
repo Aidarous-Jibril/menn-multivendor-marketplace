@@ -98,7 +98,6 @@ const capturePayPalPayment = async (req, res) => {
       }
 
       if (payment.state === "approved") {
-        console.log("Payment approved:", payment);
 
         return res.status(200).json({
           success: true,

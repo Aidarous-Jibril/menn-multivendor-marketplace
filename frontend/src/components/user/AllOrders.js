@@ -26,7 +26,7 @@ const AllOrders = () => {
       dispatch(getUserAllOrders(userInfo._id));
       dispatch(setOrderItems([]));
     }    
-  }, [dispatch, userInfo]);
+  }, [dispatch, userInfo, isLoading]);
 
   const mockOrders = orders.length === 0 ? [] : orders;
 

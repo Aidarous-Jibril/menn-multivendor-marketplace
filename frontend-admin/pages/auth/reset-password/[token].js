@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { resetAdminPassword } from "@/redux/slices/adminSlice";
+import { resetAdminPassword } from "@/redux/adminSlice";
 
 const AdminResetPassword = () => {
   const router = useRouter();

@@ -8,6 +8,7 @@ const {
   resetVendorPassword,
   logoutVendor,
   getVendorInfo,
+  getVendorProfile,
   updateVendorProfile,
   updateVendorAvatar,
   getAllVendors,
@@ -29,12 +30,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fieldSize: 25 * 1024 * 1024 } });
 
-// Routes
-// Vendor Notifications (place these at the top)
+
 router.get("/notifications", isVendor, getVendorNotifications);
 router.get("/notifications/count", isVendor, getVendorNotificationCount);
 router.put("/notifications/:id/read", isVendor, markVendorNotificationAsRead);
 router.delete("/notifications/:id", isVendor, deleteVendorNotification);
+
+router.get('/profile', isVendor, getVendorProfile); 
 
 router.post('/register', upload.single("avatar"), registerVendor);
 router.post('/login', loginVendor);

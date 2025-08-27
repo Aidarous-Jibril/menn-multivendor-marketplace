@@ -1,4 +1,3 @@
-// pages/product/[id].js
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,12 +14,11 @@ import Image from "next/image";
 import {  Button, TextField, Modal, Box } from "@mui/material";
 
 
-
 const ProductDetailPage = ({ product, similarProducts, vendorProducts, categories}) => {
   const router = useRouter();
   const { id } = router.query;
   const dispatch = useDispatch();
-  const { error } = useSelector((state) => state.products);
+
   const { cartItems } = useSelector((state) => state.cart);
   const { wishListItems } = useSelector((state) => state.wishList);
   const {userInfo} = useSelector((state) => state.user);
@@ -87,10 +85,14 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
   };
 
   const submitReview = async () => {
+    if (!review.rating) {
+      toast.error("Please provide a rating before submitting.");
+      return;
+    }
     const newReviewData = {
       user: userInfo,
       rating: review.rating,
-      comment: review.comment,
+      comment: review.comment?.trim() || "",
       productId: product._id,
     };  
     try {
@@ -102,20 +104,19 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
         router.push(`/product/${product?._id}`);
       } else if (result.type === "products/createProductReview/rejected") {
         toast.error(result.payload || "You have already reviewed this product.");
-        window.location.reload(); 
+        // window.location.reload(); 
       }
     } catch (err) {
       console.error("Unexpected error:", err);
       window.location.reload(); 
     }
   };
-  
-  if (!product || error) {
+
+
+  if (!product) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-red-500 text-lg font-semibold">
-          {error || "Product not found!"}
-        </p>
+        <p className="text-red-500 text-lg font-semibold">Product not found!</p>
       </div>
     );
   }
@@ -181,51 +182,60 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
 
           {/* Product Details Content */}
           <div>
-            <h1 className="text-gray-800 text-3xl font-semibold">
+            {/* Title */}
+            <h1 className="text-gray-800 font-semibold text-[clamp(1.25rem,3.6vw,2rem)]">
               {product?.name}
             </h1>
+
+            {/* Prices */}
             <div className="flex items-center mt-3">
-              <span className="text-2xl text-black font-bold">
+              <span className="text-black font-bold text-[clamp(1.125rem,3.6vw,1.5rem)]">
                 ${product?.discountPrice}
               </span>
               {product?.originalPrice > product?.discountPrice && (
-                <span className="text-gray-500 text-lg line-through ml-3">
+                <span className="ml-3 text-gray-500 line-through text-[clamp(0.95rem,3vw,1.125rem)]">
                   ${product?.originalPrice}
                 </span>
               )}
             </div>
+
+            {/* Rating + Sold */}
             <div className="flex items-center mt-2">
-              <span className="flex text-yellow-500 text-sm">
+              {/* React-icons scale with font-size, so size the wrapper */}
+              <span className="flex text-yellow-500 text-[clamp(0.85rem,2.7vw,1rem)]">
                 {Array.from({ length: 5 }).map((_, index) => (
                   <FaStar
                     key={index}
                     className={`${
-                      product?.rating >= index + 1
-                        ? "text-yellow-500"
-                        : "text-gray-300"
+                      product?.rating >= index + 1 ? "text-yellow-500" : "text-gray-300"
                     }`}
                   />
                 ))}
               </span>
-              <span className="text-yellow-500 text-sm font-bold ml-2">
+              <span className="ml-2 text-yellow-500 font-bold text-[clamp(0.85rem,2.7vw,1rem)]">
                 ({product?.rating || "4.5"})
               </span>
-              <span className="text-sm ml-4 text-gray-600">
-                {product?.sold_out} Sold 
+              <span className="ml-4 text-gray-600 text-[clamp(0.85rem,2.5vw,0.95rem)]">
+                {product?.sold_out} Sold
               </span>
             </div>
 
             {/* Stock Status */}
             <div className="mt-2">
               <span
-                className={`text-sm font-semibold ${
+                className={`font-semibold text-[clamp(0.85rem,2.5vw,1rem)] ${
                   product?.stock > 0 ? "text-green-500" : "text-red-500"
                 }`}
               >
                 {product?.stock > 0 ? "In Stock" : "Sold Out"}
               </span>
             </div>
-            <p className="mt-4 text-gray-600">{product?.description}</p>
+
+            {/* Description */}
+            <p className="mt-4 text-gray-600 leading-relaxed text-[clamp(0.95rem,2.7vw,1.05rem)]">
+              {product?.description}
+            </p>
+
             <ProductAttributes attributes={product?.attributes} />
           </div>
 
@@ -299,7 +309,8 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
           
           {/* Rating Selection */}
           <div className="flex items-center mt-4">
-            <span className="mr-2">Rating:</span>
+            {/* <span className="mr-2">Rating:</span> */}
+            <span className="text-red-500">*</span> Rating:
             {[1, 2, 3, 4, 5].map((ratingValue) => (
               <FaStar
                 key={ratingValue}
@@ -318,7 +329,7 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
             fullWidth
             multiline
             rows={4}
-            placeholder="Write your review here..."
+            placeholder="(Optional) Write your review here..."
             value={review.comment}
             onChange={(e) => setReview({ ...review, comment: e.target.value })}
             sx={{ mt: 2 }}
@@ -335,33 +346,33 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
           </Box>
         </Box>
       </Modal>
+      {/* Related Products and More from Store */}
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_360px] gap-8 items-start">
+        <section className="min-w-0"> 
+          <h3 className="text-xl font-semibold">Related Products</h3>
 
-        {/* Related Products and More from Store */}
-        <div className="mt-12 flex flex-col md:flex-row justify-between gap-6">
-          {/* More from the Store Section */}
-          <div className="mt-12">
-            <h3 className="text-xl font-semibold">Related Products</h3>
-            <div className="mt-6 flex flex-row gap-4">
-              {similarProducts?.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
+          {/* horizontally scrollable row */}
+          <div className="mt-6 -mx-2 px-2 grid grid-flow-col auto-cols-[minmax(280px,1fr)] gap-4 overflow-x-auto pb-2 snap-x snap-mandatory">
+            {(similarProducts || []).slice(0, 12).map((p) => (
+              <div key={p._id} className="snap-start">
+                <ProductCard product={p} />
+              </div>
+            ))}
           </div>
+        </section>
 
-          {/* More from the Store Section */}
-          <div className="mt-12">
-            <h3 className="text-xl font-semibold">More From The Store</h3>
-            <div className="mt-6 flex flex-col gap-4">
-              {vendorProducts?.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  isMoreFromSeller={true}
-                />
-              ))}
-            </div>
+        <aside className="md:w-[360px]">
+          <h3 className="text-xl font-semibold">More From The Store</h3>
+
+          {/* vertical list with its own scroll (prevents the page from stretching) */}
+          <div className="mt-6 flex flex-col gap-4 max-h-[640px] overflow-y-auto pr-1">
+            {(vendorProducts || []).slice(0, 12).map((p) => (
+              <ProductCard key={p._id} product={p} isMoreFromSeller />
+            ))}
           </div>
-        </div>
+        </aside>
+      </div>
+
         <div className="mt-12"></div>
       </div>
 
@@ -494,7 +505,6 @@ export async function getServerSideProps({ params }) {
           return null;
         }),
       ]);
-      console.log("vendorProducts ARE:", vendorProductsRes?.data?.products  )
 
     return {
       props: {

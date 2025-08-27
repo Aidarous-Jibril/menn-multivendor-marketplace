@@ -11,7 +11,6 @@ import { IoMdPeople } from "react-icons/io";
 import { FaStoreAlt, FaBell } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
-// import { fetchAdminNotificationCount, fetchAdminNotifications, markNotificationAsRead, logoutAdmin, deleteAdminNotification } from "@/redux/adminSlice";
 import { toast } from "react-toastify";
 import { RiSubscript2 } from "react-icons/ri";
 import Image from "next/image";
@@ -169,14 +168,15 @@ const DashboardHeader = () => {
           </button>
 
           {/* 👤 Avatar */}
-          <Link href={`/admin/${adminInfo?._id}`}>
-            <img
-              src={
-                adminInfo?.avatar?.url ||
-                "https://images.assetsdelivery.com/compings_v2/marsono/marsono1804/marsono180400465.jpg"
-              }
-              alt="Admin Avatar"
-              className="w-[50px] h-[50px] rounded-full object-cover"
+          <Link href={`/admin/${adminInfo?._id}`} className="inline-block">
+            <Image
+              src={adminInfo?.avatar?.url || "/images/admin-placeholder.png"}
+              alt={adminInfo?.name ? `${adminInfo.name} avatar` : "Admin avatar"}
+              width={50}
+              height={50}
+              className="rounded-full object-cover"
+              sizes="50px"
+              // unoptimized
             />
           </Link>
         </div>

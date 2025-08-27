@@ -10,7 +10,7 @@ import Head from "next/head";
 import axios from "axios";
 
 
-const SubSubCategoryPage = ({ categories, subSubcategories, products, mainCategory, subCategory, subSubCategory }) => {
+const SubSubCategoryPage = ({ categories, products, mainCategory, subCategory, subSubCategory }) => {
   return (
     <>
       <Head>

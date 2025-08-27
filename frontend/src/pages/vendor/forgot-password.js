@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Head from "next/head";
 import { useDispatch } from "react-redux";
 import { forgotVendorPassword } from "@/redux/slices/vendorSlice";
+import Link from "next/link";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -73,11 +74,11 @@ const ForgotPasswordPage = () => {
             </button>
           </form>
 
-          <p className="text-sm text-center mt-6 text-gray-500">
-            Remember your password?{" "}
-            <a href="/vendor/login" className="text-blue-600 hover:underline">
-              Back to Login
-            </a>
+          <p className="text-sm mt-4">
+            Remembered your password?{" "}
+            <Link href="/vendor/login" className="text-blue-600 hover:underline">
+              Sign in
+            </Link>
           </p>
         </div>
       </div>

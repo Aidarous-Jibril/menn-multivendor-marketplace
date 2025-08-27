@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import Head from "next/head";
+import Link from "next/link";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState("");
@@ -19,9 +20,7 @@ const ForgotPasswordPage = () => {
 
       const res = await fetch("http://localhost:8000/api/users/forgot-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json", },
         credentials: "include",
         body: JSON.stringify({ email }),
       });
@@ -82,9 +81,7 @@ const ForgotPasswordPage = () => {
 
           <p className="text-sm text-center mt-6 text-gray-500">
             Remember your password?{" "}
-            <a href="/user/login" className="text-blue-600 hover:underline">
-              Back to Login
-            </a>
+            <Link href="/user/login/" className="text-blue-600 ...">Back to login</Link>
           </p>
         </div>
       </div>

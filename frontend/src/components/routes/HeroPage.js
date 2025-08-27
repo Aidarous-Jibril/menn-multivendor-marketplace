@@ -25,7 +25,7 @@ const HeroPage = () => {
     slidesToScroll: 1,
     arrows: false,
     beforeChange: (_, next) => setDotActive(next),
-    appendDots: dots => (
+    appendDots: (dots) => (
       <div
         style={{
           position: "absolute",
@@ -38,7 +38,7 @@ const HeroPage = () => {
         <ul className="flex justify-between items-center p-0 m-0">{dots}</ul>
       </div>
     ),
-    customPaging: i => (
+    customPaging: (i) => (
       <div
         style={{
           width: "30px",
@@ -59,30 +59,31 @@ const HeroPage = () => {
   };
 
   return (
-    <div className="w-full h-full relative">
-      <Head>
-        <link rel="preload" as="image" href="/images/bannerImgOne.jpg" />
-     </Head>
-    
-      <Slider {...settings}>
-        {images.map((image, index) => (
-          <div key={index}>
-            <Image
-              src={image.src}
-              alt={image.alt}
-              layout="responsive"
-              width={1920}
-              height={1080}
-              priority={index === 0}
-              loading={index === 0 ? "eager" : "lazy"}
-              placeholder="blur"
-              blurDataURL="/images/blur-placeholder.jpg" 
-            />
-          </div>
-        ))}
-      </Slider>
+    <section
+      className=" hero relative w-full overflow-hidden h-[260px] sm:h-[300px] md:h-[340px] lg:h-[360px] xl:h-[340px] 2xl:h-[420px]"
+    >
+      <div className="w-full h-full relative">
+        <Head>
+          <link rel="preload" as="image" href="/images/bannerImgOne.jpg" />
+        </Head>
 
-    </div>
+        <Slider {...settings}>
+          {images.map((image, index) => (
+            <div key={index}>
+              <Image
+                src={image.src}
+                alt={image.alt}
+                layout="responsive"
+                width={1920}
+                height={880}
+                priority={index === 0}
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            </div>
+          ))}
+        </Slider>
+      </div>
+    </section>
   );
 };
 

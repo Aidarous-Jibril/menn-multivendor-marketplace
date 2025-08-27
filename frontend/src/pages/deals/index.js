@@ -6,8 +6,9 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import Loader from "@/components/vendor/layout/Loader";
 import { getAllSales } from "@/redux/slices/saleSlice";
+import axios from "axios";
 
-const SaleProductsPage = () => {
+const SaleProductsPage = ({ categories }) => {
   const dispatch = useDispatch();
   const { sales, isLoading, error } = useSelector((state) => state.sales);
 
@@ -21,10 +22,10 @@ const SaleProductsPage = () => {
       const saleEndDate = new Date(product.saleEnd);
       return saleEndDate >= currentDate;
     });
-  };  
+  };
 
   const validSales = filterValidSales(sales);
-  
+
   return (
     <>
       <Head>
@@ -35,7 +36,7 @@ const SaleProductsPage = () => {
         />
       </Head>
       <div className="flex flex-col min-h-screen">
-        <Header />
+        <Header activeHeading={4} categories={categories} />
         <main className="flex-1 mx-auto w-full max-w-[1600px] px-2 sm:px-4 lg:px-10 my-8">
           <h2 className="text-3xl font-bold text-center mb-8">Sale Products</h2>
           <hr className="mb-8" />
@@ -56,11 +57,31 @@ const SaleProductsPage = () => {
             </div>
           )}
         </main>
-
         <Footer />
       </div>
     </>
   );
 };
+
+export async function getServerSideProps() {
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  try {
+    const categoriesRes = await axios.get(`${baseURL}/api/categories`);
+
+    return {
+      props: {
+        categories: categoriesRes?.data?.categories || [],
+      },
+    };
+  } catch (error) {
+    console.error("Failed to fetch categories:", error.message);
+    return {
+      props: {
+        categories: [],
+      },
+    };
+  }
+}
 
 export default SaleProductsPage;

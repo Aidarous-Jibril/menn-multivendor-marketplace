@@ -1,7 +1,7 @@
 // storeSlice.js
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 
 // Helper function to check if we are in the browser environment
 const isBrowser = () => typeof window !== "undefined";
@@ -26,7 +26,7 @@ export const registerStore = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      const { data } = await axios.post("/api/stores/register", credentials, config);
+      const { data } = await axiosInstance.post("/api/stores/register", credentials, config);
       if (isBrowser()) {
         localStorage.setItem("storeInfo", JSON.stringify(data.store));
       }
@@ -46,7 +46,7 @@ export const loginStore = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      const { data } = await axios.post("/api/stores/login", credentials, config);
+      const { data } = await axiosInstance.post("/api/stores/login", credentials, config);
       if (isBrowser()) {
         localStorage.setItem("storeInfo", JSON.stringify(data.store));
       }
@@ -61,7 +61,7 @@ export const logoutStore = createAsyncThunk(
   "store/logout",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/stores/logout", { withCredentials: true });
+      const { data } = await axiosInstance.get("/api/stores/logout", { withCredentials: true });
       if (isBrowser()) {
         localStorage.removeItem("storeInfo");
         localStorage.removeItem("cartItems");
@@ -83,7 +83,7 @@ export const getStoreInfo = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      const { data } = await axios.get(`/api/stores/get-store-info/${id}`, config);
+      const { data } = await axiosInstance.get(`/api/stores/get-store-info/${id}`, config);
       if (isBrowser()) {
         localStorage.setItem("storeInfo", JSON.stringify(data.store));
       }
@@ -98,7 +98,7 @@ export const updateStoreInformation = createAsyncThunk(
   "store/updateInfo",
   async ({ name, description, address, phoneNumber, zipCode, id }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(
+      const { data } = await axiosInstance.put(
         "/api/stores/update-store-info",
         { name, description, address, phoneNumber, zipCode, id },
         {

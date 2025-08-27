@@ -1,5 +1,6 @@
+import axiosInstance from "@/utils/axiosInstance";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+
 
 
 // Helper function to check if we are in the browser environment
@@ -25,7 +26,7 @@ export const registerVendor = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      const { data } = await axios.post("/api/vendors/register", credentials, config);
+      const { data } = await axiosInstance.post("/api/vendors/register", credentials, config);
       localStorage.setItem("vendorInfo", JSON.stringify(data));
       return data
     } catch (error) {
@@ -39,18 +40,18 @@ export const loginVendor = createAsyncThunk(
   "vendor/loginVendor",
   async (vendorData, { rejectWithValue }) => {
     try {
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          withCredentials: true,
-        },
-      };
-      const { data } = await axios.post("/api/vendors/login", vendorData, config);
-      console.log("DATA:",)
+      const { data } = await axiosInstance.post(
+        "/api/vendors/login",
+        vendorData,
+        {
+          withCredentials: true,             
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
-      return data
+      return data;
     } catch (error) {
-      return rejectWithValue(error.response.data.error);
+      return rejectWithValue(error.response?.data?.error || "Login failed");
     }
   }
 );
@@ -60,7 +61,7 @@ export const forgotVendorPassword = createAsyncThunk(
   "vendor/forgotVendorPassword",
   async (email, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post("/api/vendors/forgot-password", { email });
+      const { data } = await axiosInstance.post("/api/vendors/forgot-password", { email });
       return data.message;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || "Failed to send reset email");
@@ -73,7 +74,7 @@ export const resetVendorPassword = createAsyncThunk(
   "vendor/resetVendorPassword",
   async ({ token, newPassword, confirmPassword }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post("/api/vendors/reset-password", {
+      const { data } = await axiosInstance.post("/api/vendors/reset-password", {
         token,
         newPassword,
         confirmPassword,
@@ -90,7 +91,7 @@ export const logoutVendor = createAsyncThunk(
   "vendor/logoutVendor",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/vendors/logout", { withCredentials: true });
+      const { data } = await axiosInstance.get("/api/vendors/logout", { withCredentials: true });
       localStorage.removeItem("vendorInfo");
       localStorage.removeItem("cartItems");
       localStorage.removeItem("wishListItems");
@@ -106,7 +107,7 @@ export const getAllVendors = createAsyncThunk(
   "vendor/getAllVendors",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/vendors");
+      const { data } = await axiosInstance.get("/api/vendors");
       return data.vendors;
     } catch (error) {
       return rejectWithValue(error.response.data.error);
@@ -124,7 +125,7 @@ export const getVendorInfo = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      const { data } = await axios.get(`/api/vendors/get-vendor-info/${id}`, config);
+      const { data } = await axiosInstance.get(`/api/vendors/get-vendor-info/${id}`, config);
       localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
       return data.vendor;
     } catch (error) {
@@ -138,7 +139,7 @@ export const updateVendorInformation = createAsyncThunk(
   "vendor/updateVendorInformation",
   async ({ name, description, address, phoneNumber, zipCode, email, id }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(
+      const { data } = await axiosInstance.put(
         "/api/vendors/update-vendor-info",
         { name, description, address, phoneNumber, zipCode, email, id },
         { withCredentials: true }
@@ -159,7 +160,7 @@ export const updateVendorAvatar = createAsyncThunk(
       const formData = new FormData();
       formData.append("avatar", avatar); // Attach the file
 
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `/api/vendors/update-avatar/${id}`,
         formData,
         {
@@ -181,7 +182,7 @@ export const fetchVendorById = createAsyncThunk(
   'vendor/fetchVendorById',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/vendors/${id}`);
+      const { data } = await axiosInstance.get(`/api/vendors/${id}`);
       localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
       return data.vendor;
     } catch (error) {
@@ -195,7 +196,7 @@ export const getVendorStatistics = createAsyncThunk(
   "vendor/getVendorStatistics",
   async (vendorId, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get(`/api/vendors/${vendorId}/statistics`);
+      const { data } = await axiosInstance.get(`/api/vendors/${vendorId}/statistics`);
       return { vendorId, ...data };
     } catch (error) {
       return rejectWithValue(error.response.data.error);
@@ -214,7 +215,7 @@ export const createVendorBankInfo = createAsyncThunk(
           "Content-Type": "application/json",
         },
       };
-      const { data } = await axios.post(`/api/vendors/${vendorId}/bank-info`, bankDetails, config); // Changed to POST
+      const { data } = await axiosInstance.post(`/api/vendors/${vendorId}/bank-info`, bankDetails, config); // Changed to POST
       localStorage.setItem("vendorInfo", JSON.stringify(data));
       return data;
     } catch (error) {
@@ -222,12 +223,13 @@ export const createVendorBankInfo = createAsyncThunk(
     }
   }
 );
+
 // Update Bank Info
 export const updateVendorBankInfo = createAsyncThunk(
   "vendors/updateVendorBankInfo",
   async ({ bankDetails, vendorId }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(`/api/vendors/${vendorId}/bank-info`, bankDetails);
+      const { data } = await axiosInstance.put(`/api/vendors/${vendorId}/bank-info`, bankDetails);
       console.log("DATA:", data);
       localStorage.setItem("vendorInfo", JSON.stringify(data.vendor));
       return data;
@@ -237,13 +239,13 @@ export const updateVendorBankInfo = createAsyncThunk(
   }
 );
 
-
 // Fetch notification count
 export const fetchVendorNotificationCount = createAsyncThunk(
   "vendor/fetchVendorNotificationCount",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/vendors/notifications/count", { withCredentials: true });
+      const { data } = await axiosInstance.get("/api/vendors/notifications/count", { withCredentials: true });
+      console.log("DATA_", data)
       return data.count;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || "Failed to fetch vendor notification count");
@@ -256,7 +258,7 @@ export const fetchVendorNotifications = createAsyncThunk(
   "vendor/fetchVendorNotifications",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/vendors/notifications", { withCredentials: true });
+      const { data } = await axiosInstance.get("/api/vendors/notifications", { withCredentials: true });
       return data.notifications;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || "Failed to fetch vendor notifications");
@@ -269,7 +271,7 @@ export const markVendorNotificationAsRead = createAsyncThunk(
   "vendor/markVendorNotificationAsRead",
   async (id, { rejectWithValue }) => {
     try {
-      await axios.put(`/api/vendors/notifications/${id}/read`, {}, { withCredentials: true });
+      await axiosInstance.put(`/api/vendors/notifications/${id}/read`, {}, { withCredentials: true });
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || "Failed to mark vendor notification as read");
@@ -282,7 +284,7 @@ export const deleteVendorNotification = createAsyncThunk(
   "vendor/deleteVendorNotification",
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/vendors/notifications/${id}`, { withCredentials: true });
+      await axiosInstance.delete(`/api/vendors/notifications/${id}`, { withCredentials: true });
       return id;
     } catch (error) {
       return rejectWithValue(error.response?.data?.error || "Failed to delete vendor notification");

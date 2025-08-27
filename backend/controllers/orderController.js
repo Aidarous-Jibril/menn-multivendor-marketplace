@@ -1,75 +1,9 @@
-const asyncHandler = require("express-async-handler");
+const expressAsyncHandler = require("express-async-handler");
 const Order = require("../models/orderModel");
 const Notification = require("../models/notificationModel");
 const VendorNotification = require("../models/vendorNotificationModel");
 
-// Create Order    
-// const createOrder = asyncHandler(async (req, res) => {
-//   console.log("Incoming Order Data:", req.body);  // Debugging line
-
-//   const { items, user, shippingAddress, totalPrice, status, paymentInfo } = req.body;
-
-//   try {
-//     const vendorOrdersMap = new Map();
-
-//     // Group order items by vendorId
-//     for (const item of items) {
-//       const vendorId = item.vendorId;
-//       if (!vendorOrdersMap.has(vendorId)) {
-//         vendorOrdersMap.set(vendorId, []);
-//       }
-//       vendorOrdersMap.get(vendorId).push(item);
-//     }
-
-//     const orders = [];
-//     // Create order for each vendor
-//     for (const [vendorId, vendorItems] of vendorOrdersMap) {
-//       const vendorTotalPrice = vendorItems.reduce(
-//         (acc, item) => acc + (item.price * item.quantity),
-//         0
-//       );
-
-//       const newOrder = new Order({
-//         items: vendorItems.map((item) => ({
-//           productId: item.productId,
-//           name: item.name,
-//           quantity: item.quantity,
-//           price: item.price,
-//         })),
-//         user,
-//         vendorId,
-//         shippingAddress,
-//         totalPrice: vendorTotalPrice,
-//         status,
-//         paymentInfo,
-//       });
-
-//       const savedOrder = await newOrder.save();
-//       orders.push(savedOrder);
-//     }
-//     // ✅ Create a notification for admins
-//     await Notification.create({
-//       type: "new_order",
-//       message: `📦 New order placed with ${items.length} item(s)!`,
-//     });
-//     await VendorNotification.create({
-//       vendor: vendorId,
-//       type: "new_order",
-//       message: `📦 You received a new order with ${itemCount} item(s)!`,
-//     });
-//     res.status(201).json({
-//       success: true,
-//       orders,
-//       message: "Orders created successfully",
-//     });
-//   } catch (error) {
-//     console.error("Order creation error:", error);
-//     res.status(500).json({ error: error.message });
-//   } 
-// });
-
-const createOrder = asyncHandler(async (req, res) => {
-  console.log("Incoming Order Data:", req.body);
+const createOrder = expressAsyncHandler(async (req, res) => {
 
   const { items, user, shippingAddress, totalPrice, status, paymentInfo } = req.body;
 
@@ -138,7 +72,7 @@ const createOrder = asyncHandler(async (req, res) => {
 });
 
 // Get orders for a specific vendor
-const getVendorOrders = asyncHandler(async (req, res) => {
+const getVendorOrders = expressAsyncHandler(async (req, res) => {
   try {
       const { vendorId } = req.params;
       const orders = await Order.find({ vendorId }).sort({ createdAt: -1 });
@@ -150,7 +84,7 @@ const getVendorOrders = asyncHandler(async (req, res) => {
 
 
 // Get a single order
-const getSingleOrder = asyncHandler(async (req, res) => {
+const getSingleOrder = expressAsyncHandler(async (req, res) => {
   try {
     const { orderId } = req.params;
     const order = await Order.findById(orderId);
@@ -169,7 +103,7 @@ const getSingleOrder = asyncHandler(async (req, res) => {
 
  
 // Update order status (vendor can only update their own orders)
-const updateOrderStatus = asyncHandler(async (req, res) => {
+const updateOrderStatus = expressAsyncHandler(async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status, vendorId } = req.body;  
@@ -208,7 +142,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
 
 // delete order by vendor (vendor can only update their own orders)
-const deleteOrder = asyncHandler(async (req, res) => {
+const deleteOrder = expressAsyncHandler(async (req, res) => {
   try {
     const order = await Order.findOneAndDelete({ _id: req.params.orderId, vendorId: req.body.vendorId });
     if (!order) return res.status(404).json({ message: "Order not found." });
@@ -220,7 +154,7 @@ const deleteOrder = asyncHandler(async (req, res) => {
 });
 
 // Get orders for a specific user
-const getUserOrders = asyncHandler(async (req, res) => {
+const getUserOrders = expressAsyncHandler(async (req, res) => {
   try {
     const { userId } = req.params;
     const orders = await Order.find({ user: userId }).sort({ createdAt: -1 });
@@ -237,7 +171,7 @@ const getUserOrders = asyncHandler(async (req, res) => {
 });
 
 // Refund an order
-const refundOrder = asyncHandler(async (req, res) => {
+const refundOrder = expressAsyncHandler(async (req, res) => {
   try {
     const { orderId } = req.params;
     const { status } = req.body;
@@ -273,7 +207,7 @@ const refundOrder = asyncHandler(async (req, res) => {
 });
 
 // Get refunded orders for a specific vendor
-const getVendorRefundedOrders = asyncHandler(async (req, res) => {
+const getVendorRefundedOrders = expressAsyncHandler(async (req, res) => {
   try {
     const { vendorId } = req.params;
     const refundedOrders = await Order.find({

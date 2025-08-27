@@ -1,8 +1,9 @@
 const Brand = require('../models/brandModel');
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const expressAsyncHandler = require("express-async-handler");
 
 // Get all brands
-const getAllBrands = catchAsyncErrors(async (req, res, next) => {
+const getAllBrands = expressAsyncHandler(async (req, res, next) => {
   const brands = await Brand.find();
   res.status(200).json({
     success: true,
@@ -11,7 +12,7 @@ const getAllBrands = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Create new brand
-const createBrand = catchAsyncErrors(async (req, res, next) => {
+const createBrand = expressAsyncHandler(async (req, res, next) => {
   const { name, description, logo, } = req.body;
 
   const brand = await Brand.create({
@@ -27,7 +28,7 @@ const createBrand = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Get single brand by ID
-const getBrandById = catchAsyncErrors(async (req, res, next) => {
+const getBrandById = expressAsyncHandler(async (req, res, next) => {
   const brand = await Brand.findById(req.params.id);
 
   if (!brand) {
@@ -44,7 +45,7 @@ const getBrandById = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Update brand
-const updateBrand = catchAsyncErrors(async (req, res, next) => {
+const updateBrand = expressAsyncHandler(async (req, res, next) => {
   let brand = await Brand.findById(req.params.id);
 
   if (!brand) {
@@ -66,7 +67,7 @@ const updateBrand = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Delete brand
-const deleteBrand = catchAsyncErrors(async (req, res, next) => {
+const deleteBrand = expressAsyncHandler(async (req, res, next) => {
   const brand = await Brand.findById(req.params.id);
 
   if (!brand) {

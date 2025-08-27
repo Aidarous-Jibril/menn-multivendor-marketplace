@@ -30,8 +30,8 @@ const HeaderPromo = () => {
 
   useEffect(() => {
     dispatch(getExchangeRates());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
 
   const handleLanguageChange = (label, code) => {
     setLanguage({ label, code });

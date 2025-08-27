@@ -7,6 +7,7 @@ import Router, { useRouter } from "next/router";
 
 import { getSession, signIn } from "next-auth/react";
 import { FcGoogle } from "react-icons/fc";
+import Link from "next/link";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -66,7 +67,6 @@ const SignIn = () => {
           const data = await res.json();
 
           if (data.success) {
-            // Store to Redux + localStorage manually
             dispatch({
               type: "user/loginUser/fulfilled",
               payload: { user: data.user },
@@ -81,10 +81,10 @@ const SignIn = () => {
     };
 
     syncGoogleUser();
-  }, []);
+  }, [dispatch, router]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-8 lg:px-8">
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -168,12 +168,12 @@ const SignIn = () => {
                   Remember me
                 </label>
               </div>
-              <a
+              <Link
                 href="/user/forgot-password"
                 className="text-blue-700 transition duration-150 ease-in-out hover:text-primary-600 focus:text-primary-600 active:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500 dark:focus:text-primary-500 dark:active:text-primary-600"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
             <div>
               <button className="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
@@ -198,13 +198,13 @@ const SignIn = () => {
 
           <p className="mt-12 text-s font-light text-center">
             {" "}
-            Don't have an account?{" "}
-            <a
+            Don&apos;t have an account?{" "}
+            <Link
               href="/user/register"
               className="font-medium text-blue-600 dark:text-gray-200 hover:underline"
             >
               Register
-            </a>
+            </Link>
           </p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-const asyncHandler = require("express-async-handler");
+const expressAsyncHandler = require("express-async-handler");
 const bcrypt = require("bcryptjs");
 const cloudinary = require("cloudinary").v2;
 const crypto = require("crypto");
@@ -21,7 +21,7 @@ const Notification = require("../models/notificationModel");
 
 
 // Admin Registration
-const registerAdmin = asyncHandler(async (req, res) => {
+const registerAdmin = expressAsyncHandler(async (req, res) => {
   const { name, email, password, phoneNumber, avatar } = req.body;
 
   if (!name || !email || !password) {
@@ -80,7 +80,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
 });
 
 // Admin Login
-const loginAdmin = asyncHandler(async (req, res) => {
+const loginAdmin = expressAsyncHandler(async (req, res) => {
   try {
     const { email, password } = req.body;
     
@@ -104,7 +104,7 @@ const loginAdmin = asyncHandler(async (req, res) => {
 });
 
 // Admin Forgot Password
-const forgotPasswordAdmin = asyncHandler(async (req, res) => {
+const forgotPasswordAdmin = expressAsyncHandler(async (req, res) => {
   const { email } = req.body;
   const admin = await Admin.findOne({ email });
   if (!admin) {
@@ -129,7 +129,7 @@ const forgotPasswordAdmin = asyncHandler(async (req, res) => {
 });
 
 // Admin Reset Password
-const resetPasswordAdmin = asyncHandler(async (req, res) => {
+const resetPasswordAdmin = expressAsyncHandler(async (req, res) => {
   const { token, newPassword, confirmPassword } = req.body;
 
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
@@ -158,7 +158,7 @@ const resetPasswordAdmin = asyncHandler(async (req, res) => {
 });
 
 // Get Admin Profile
-const getAdminProfile = asyncHandler(async (req, res) => {
+const getAdminProfile = expressAsyncHandler(async (req, res) => {
   const admin = await Admin.findById(req.admin._id).select("-password"); 
   if (admin) {
     res.status(200).json({ success: true, admin });
@@ -168,7 +168,7 @@ const getAdminProfile = asyncHandler(async (req, res) => {
 });
 
 // Update Admin Profile
-const updateAdminProfile = asyncHandler(async (req, res) => {
+const updateAdminProfile = expressAsyncHandler(async (req, res) => {
   // Assuming req.admin._id is set by an authentication middleware
   const admin = await Admin.findById(req.admin._id);
   if (!admin) {
@@ -214,7 +214,7 @@ const logoutAdmin = (req, res) => {
 
 // ---------- USER MANAGEMENT ----------
 // Get all users
-const getAllUsers = asyncHandler(async (req, res) => {
+const getAllUsers = expressAsyncHandler(async (req, res) => {
   try {
     const users = await User.find();
 
@@ -236,7 +236,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 // Get single user by ID
-const getUserById = asyncHandler(async (req, res) => {
+const getUserById = expressAsyncHandler(async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
 
@@ -258,7 +258,7 @@ const getUserById = asyncHandler(async (req, res) => {
 });
 
 // Edit user details
-const updateUser = asyncHandler(async (req, res) => {
+const updateUser = expressAsyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -273,7 +273,7 @@ const updateUser = asyncHandler(async (req, res) => {
 });
 
 // Delete user
-const deleteUser = asyncHandler(async (req, res) => {
+const deleteUser = expressAsyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
     return res.status(404).json({ message: "User not found" });
@@ -288,13 +288,13 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 // ---------- VENDOR MANAGEMENT ----------
 // Get all vendors
-const getAllVendors = asyncHandler(async (req, res) => {
+const getAllVendors = expressAsyncHandler(async (req, res) => {
   const vendors = await Vendor.find();
   return res.status(200).json({ success: true, vendors });
 });
 
 // Get single vendor by ID
-const getVendorById = asyncHandler(async (req, res) => {
+const getVendorById = expressAsyncHandler(async (req, res) => {
   const vendor = await Vendor.findById(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" , vendor});
@@ -303,7 +303,7 @@ const getVendorById = asyncHandler(async (req, res) => {
 });
 
 // Update vendor details
-const updateVendor = asyncHandler(async (req, res) => {
+const updateVendor = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, email, phoneNumber, address, zipCode, avatar } = req.body;
 
@@ -328,7 +328,7 @@ const updateVendor = asyncHandler(async (req, res) => {
 });
 
 // Delete vendor
-const deleteVendor = asyncHandler(async (req, res) => {
+const deleteVendor = expressAsyncHandler(async (req, res) => {
   const vendor = await Vendor.findByIdAndDelete(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" });
@@ -337,7 +337,7 @@ const deleteVendor = asyncHandler(async (req, res) => {
 });
 
 // Block vendor
-const blockVendor = asyncHandler(async (req, res) => {
+const blockVendor = expressAsyncHandler(async (req, res) => {
   const vendor = await Vendor.findById(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" });
@@ -348,7 +348,7 @@ const blockVendor = asyncHandler(async (req, res) => {
 });
 
 // Unblock vendor
-const unblockVendor = asyncHandler(async (req, res) => {
+const unblockVendor = expressAsyncHandler(async (req, res) => {
   const vendor = await Vendor.findById(req.params.id);
   if (!vendor) {
     return res.status(404).json({ message: "Vendor not found" });
@@ -360,7 +360,7 @@ const unblockVendor = asyncHandler(async (req, res) => {
 
 // ---------- ORDER MANAGEMENT ----------
 // Get all orders
-const getAllOrders = asyncHandler(async (req, res) => {
+const getAllOrders = expressAsyncHandler(async (req, res) => {
   const orders = await Order.find()
     .populate("user")
     .populate("items.productId");
@@ -369,7 +369,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
 });
 
 // Get single order by ID
-const getOrderById = asyncHandler(async (req, res) => {
+const getOrderById = expressAsyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate("user")
     .populate("items.productId");
@@ -382,7 +382,7 @@ const getOrderById = asyncHandler(async (req, res) => {
 });
 
 // Delete order
-const deleteOrder = asyncHandler(async (req, res) => {
+const deleteOrder = expressAsyncHandler(async (req, res) => {
   const order = await Order.findByIdAndDelete(req.params.id);
 
   if (!order) {
@@ -393,7 +393,7 @@ const deleteOrder = asyncHandler(async (req, res) => {
 });
 
 // update the order status
-const updateOrderStatus = asyncHandler(async (req, res) => {
+const updateOrderStatus = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
@@ -419,7 +419,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 });
 
 // Update full order
-const updateOrder = asyncHandler(async (req, res) => {
+const updateOrder = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, shippingAddress, paymentInfo, totalAmount } = req.body;
 
@@ -444,7 +444,7 @@ const updateOrder = asyncHandler(async (req, res) => {
 });
 
 // Process refund
-const refundOrder = asyncHandler(async (req, res) => {
+const refundOrder = expressAsyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
 
   if (!order) {
@@ -466,7 +466,7 @@ const refundOrder = asyncHandler(async (req, res) => {
 });
 
 // New function to get orders by user ID
-const getUserOrders = asyncHandler(async (req, res) => {
+const getUserOrders = expressAsyncHandler(async (req, res) => {
     const userId = req.params.userId;
 
     const orders = await Order.find({ user: userId })
@@ -479,10 +479,7 @@ const getUserOrders = asyncHandler(async (req, res) => {
 // ---------- PRODUCT MANAGEMENT ----------
 // Admin creates a product; admin selects vendor from a dropdown (vendorId)
 const uploadImages = require("../utils/uploadImages");
-const createProduct = asyncHandler(async (req, res) => {
-  console.log("🧾 Incoming request body:", req.body);
-  console.log("🖼️ Uploaded files:", req.files);
-
+const createProduct = expressAsyncHandler(async (req, res) => {
   try {
     const {
       name,
@@ -594,13 +591,13 @@ const createProduct = asyncHandler(async (req, res) => {
 });
 
 // GET All Products
-const getAllProducts = asyncHandler(async (req, res) => {
+const getAllProducts = expressAsyncHandler(async (req, res) => {
   const products = await Product.find();
   res.json(products);
 });
 
 // GET Single Product
-const getProductById = asyncHandler(async (req, res) => {
+const getProductById = expressAsyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id)
     .populate("vendorId")
     .populate("reviews.user", "name email");
@@ -612,24 +609,8 @@ const getProductById = asyncHandler(async (req, res) => {
   return res.status(200).json({ success: true, product });
 });
 
-// // Approve product ?????????
-// const approveProduct = expressasyncHandler(async (req, res) => {
-//     const product = await Product.findById(req.params.id);
-
-//     if (product) {
-//         product.isApproved = true;
-//         await product.save();
-//         res.json({ message: "Product approved successfully", product });
-//     } else {
-//         res.status(404).json({ message: "Product not found" });
-//     }
-// });
-
-// Edit product details
-
-
 // ---------- UPDATE PRODUCT ----------
-const editProduct = asyncHandler(async (req, res) => {
+const editProduct = expressAsyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
@@ -643,7 +624,7 @@ const editProduct = asyncHandler(async (req, res) => {
 });
 
 // Delete product
-const deleteProduct = asyncHandler(async (req, res) => {
+const deleteProduct = expressAsyncHandler(async (req, res) => {
   const product = await Product.findByIdAndDelete(req.params.id);
 
   if (!product) {
@@ -655,7 +636,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 // ---------- MAIN-CATEGORY MANAGEMENT ----------
 // Get all categories
-const getAllCategories = asyncHandler(async (req, res) => {
+const getAllCategories = expressAsyncHandler(async (req, res) => {
   try {
     const categories = await MainCategory.find().populate({
       path: "subcategories",
@@ -668,7 +649,7 @@ const getAllCategories = asyncHandler(async (req, res) => {
 });
 
 // Add new category
-const addCategory = asyncHandler(async (req, res) => {
+const addCategory = expressAsyncHandler(async (req, res) => {
   try {
     const { name, slug, imageUrl } = req.body;
 
@@ -687,7 +668,7 @@ const addCategory = asyncHandler(async (req, res) => {
 });
 
 // Delete category
-const getCategoryById = asyncHandler(async (req, res) => {
+const getCategoryById = expressAsyncHandler(async (req, res) => {
   try {
     const category = await MainCategory.findById(req.params.id).populate("subcategories");
     if (!category) {
@@ -700,7 +681,7 @@ const getCategoryById = asyncHandler(async (req, res) => {
 });
 
 // Edit category
-const editCategory = asyncHandler(async (req, res) => {
+const editCategory = expressAsyncHandler(async (req, res) => {
   try {
     const category = await MainCategory.findById(req.params.id);
     if (!category) {
@@ -720,7 +701,7 @@ const editCategory = asyncHandler(async (req, res) => {
 });
 
 // Delete category
-const deleteCategory = asyncHandler(async (req, res) => {
+const deleteCategory = expressAsyncHandler(async (req, res) => {
   try {
     const category = await MainCategory.findByIdAndDelete(req.params.id);
     if (!category) {
@@ -735,7 +716,7 @@ const deleteCategory = asyncHandler(async (req, res) => {
 
 // ---------- SUBCATEGORY MANAGEMENT ----------
 // Get SubCategories by Main Category ID or all subcategories
-const getAllSubCategories =  asyncHandler(async (req, res) => {
+const getAllSubCategories =  expressAsyncHandler(async (req, res) => {
     try {
         const { mainCategoryId } = req.query;  
         let subcategories = [];
@@ -764,23 +745,26 @@ const getAllSubCategories =  asyncHandler(async (req, res) => {
 });
 
 // Add a new subcategory
-const createSubCategory = asyncHandler(async (req, res) => {
-    const { name, slug, imageUrl, mainCategory } = req.body;
-    const subCategoryExists = await SubCategory.findOne({ slug });
-    if (subCategoryExists) {
-      return res.status(400).json({ message: "Subcategory already exists" });
-    }
-    const subCategory = new SubCategory({ name, slug, imageUrl, mainCategory });
-    await subCategory.save();
+const createSubCategory = expressAsyncHandler(async (req, res) => {
+  const { name, slug, imageUrl, mainCategory } = req.body;
 
-    //Add SubCategory to MainCategory
-    await MainCategory.findByIdAndUpdate(mainCategory, { $push: { subcategories: subCategory._id } });
+  const exists = await SubCategory.findOne({ slug });
+  if (exists) return res.status(400).json({ message: "Subcategory already exists" });
 
-    res.status(201).json({ message: "Subcategory added successfully", subCategory });
+  const createdsubCat = await SubCategory.create({ name, slug, imageUrl, mainCategory });
+
+  // maintain relation on main category
+  await MainCategory.findByIdAndUpdate(mainCategory, { $push: { subcategories: createdsubCat._id } });
+
+  const populated = await SubCategory.findById(createdsubCat._id)
+    .populate({ path: "mainCategory", select: "name slug imageUrl" })
+    .populate("subsubcategories");
+
+  res.status(201).json({ message: "Subcategory added successfully", subCategory: populated });
 });
 
 // Get Single SubCategory
-const getSubCategoryById = asyncHandler(async (req, res) => {
+const getSubCategoryById = expressAsyncHandler(async (req, res) => {
     const subCategory = await SubCategory.findById(req.params.id).populate("mainCategory").populate("subsubcategories");
 
     if (!subCategory) {
@@ -791,25 +775,26 @@ const getSubCategoryById = asyncHandler(async (req, res) => {
 });
 
 // Update subcategory
-const updateSubCategory = asyncHandler(async (req, res) => {
-  const subCategoryId = req.params.id;
-  const subCategory = await SubCategory.findById(subCategoryId);
+const updateSubCategory = expressAsyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const sub = await SubCategory.findById(id);
+  if (!sub) return res.status(404).json({ message: "Subcategory not found" });
 
-  if (!subCategory) {
-    return res.status(404).json({ message: "Subcategory not found" });
-  }
+  sub.name = req.body.name ?? sub.name;
+  sub.slug = req.body.slug ?? sub.slug;
+  sub.imageUrl = req.body.imageUrl ?? sub.imageUrl;
+  sub.mainCategory = req.body.mainCategory ?? sub.mainCategory;
+  await sub.save();
 
-  subCategory.name = req.body.name || subCategory.name;
-  subCategory.slug = req.body.slug || subCategory.slug;
-  subCategory.imageUrl = req.body.imageUrl || subCategory.imageUrl;
-  subCategory.mainCategory = req.body.mainCategory || subCategory.mainCategory;
+  const populated = await SubCategory.findById(sub._id)
+    .populate({ path: "mainCategory", select: "name slug imageUrl" })
+    .populate("subsubcategories");
 
-  await subCategory.save();
-  res.status(200).json({ message: "Subcategory updated successfully", subCategory });
+  res.status(200).json({ message: "Subcategory updated successfully", subCategory: populated });
 });
 
 // Delete subcategory
-const deleteSubCategory = asyncHandler(async (req, res) => {
+const deleteSubCategory = expressAsyncHandler(async (req, res) => {
     const subCategoryId = req.params.id;
     const subCategory = await SubCategory.findByIdAndDelete(subCategoryId);
     if (!subCategory) {
@@ -827,7 +812,7 @@ const deleteSubCategory = asyncHandler(async (req, res) => {
 
 // ---------- SUB-SUBCATEGORY MANAGEMENT ----------
 // Get all sub-subcategories
-const getAllSubSubCategories = asyncHandler(async (req, res) => {
+const getAllSubSubCategories = expressAsyncHandler(async (req, res) => {
     try {
         const { subCategoryId } = req.query;  
         let subSubcategories = [];
@@ -852,22 +837,20 @@ const getAllSubSubCategories = asyncHandler(async (req, res) => {
 });
 
 // Create sub-subcategory
-const createSubSubCategory = asyncHandler(async (req, res) => {
-    const { name, slug, imageUrl, subCategory } = req.body;
-    const newSubSubCategory = new SubSubCategory({ name, slug, imageUrl, subCategory, });
-  
-    // First, save the sub-subcategory
-    const saved = await newSubSubCategory.save();
+const createSubSubCategory = expressAsyncHandler(async (req, res) => {
+  const { name, slug, imageUrl, subCategory } = req.body;
 
-  // Add to subCategory as reference
-  await SubCategory.findByIdAndUpdate(subCategory, {
-    $push: { subsubcategories: saved._id },
-  });
-    res.status(201).json({ message: 'SubSubCategory created successfully', subSubCategory: saved });
-  });
+  const createdSubSubCat = await SubSubCategory.create({ name, slug, imageUrl, subCategory });
+  await SubCategory.findByIdAndUpdate(subCategory, { $push: { subsubcategories: createdSubSubCat._id } });
+
+  const populated = await SubSubCategory.findById(createdSubSubCat._id)
+    .populate({ path: "subCategory", select: "name slug imageUrl mainCategory" });
+
+  res.status(201).json({ message: "SubSubCategory created successfully", subSubCategory: populated });
+});
 
 // Get Single Sub-SubCategory
-const getSubSubCategoryById = asyncHandler(async (req, res) => {
+const getSubSubCategoryById = expressAsyncHandler(async (req, res) => {
     const subSubCategory = await SubSubCategory.findById(req.params.id).populate("subCategory");
 
     if (!subSubCategory) {
@@ -878,29 +861,25 @@ const getSubSubCategoryById = asyncHandler(async (req, res) => {
 });
 
 // Update sub-subcategory
-const updateSubSubCategory = asyncHandler(async (req, res) => {
-    const subSubCategoryId = req.params.id;
-    const subSubCategory = await SubSubCategory.findById(subSubCategoryId);
+const updateSubSubCategory = expressAsyncHandler(async (req, res) => {
+  const id = req.params.id;
+  const ssc = await SubSubCategory.findById(id);
+  if (!ssc) return res.status(404).json({ message: "Sub-subcategory not found" });
 
-    if (!subSubCategory) {
-      return res.status(404).json({ message: "Sub-subcategory not found" });
-    }
-  
-    subSubCategory.name = req.body.name || subSubCategory.name;
-    subSubCategory.slug = req.body.slug || subSubCategory.slug;
-    subSubCategory.imageUrl = req.body.imageUrl || subSubCategory.imageUrl;
-    subSubCategory.subCategory = req.body.subCategory || subSubCategory.subCategory;
-  
-    const updated = await subSubCategory.save();
-  
-    res.status(200).json({
-      message: "Sub-subcategory updated successfully",
-      subSubCategory: updated,
-    });
-  });
+  ssc.name = req.body.name ?? ssc.name;
+  ssc.slug = req.body.slug ?? ssc.slug;
+  ssc.imageUrl = req.body.imageUrl ?? ssc.imageUrl;
+  ssc.subCategory = req.body.subCategory ?? ssc.subCategory;
+  await ssc.save();
+
+  const populated = await SubSubCategory.findById(ssc._id)
+    .populate({ path: "subCategory", select: "name slug imageUrl mainCategory" });
+
+  res.status(200).json({ message: "Sub-subcategory updated successfully", subSubCategory: populated });
+});
   
 // Delete sub-subcategory
-const deleteSubSubCategory = asyncHandler(async (req, res) => {
+const deleteSubSubCategory = expressAsyncHandler(async (req, res) => {
     const subSubCategoryId = req.params.id;
     const subSubCategory = await SubSubCategory.findByIdAndDelete(subSubCategoryId);
 
@@ -918,11 +897,10 @@ const deleteSubSubCategory = asyncHandler(async (req, res) => {
 
 // ---------- COUPON MANAGEMENT ----------
 // Get all coupons
-const getAllCoupons = asyncHandler(async (req, res) => {
+const getAllCoupons = expressAsyncHandler(async (req, res) => {
     const coupons = await CouponCode.find()
       .populate("vendorId")
       .populate("selectedProducts");
-    console.log("coupons:", coupons)
       res.status(200).json({
         message: "Coupons fetched successfully",
         coupons,
@@ -930,7 +908,7 @@ const getAllCoupons = asyncHandler(async (req, res) => {
 });
 
 // Get single coupon by ID
-const getCouponById = asyncHandler(async (req, res) => {
+const getCouponById = expressAsyncHandler(async (req, res) => {
     const coupon = await CouponCode.findById(req.params.id)
       .populate("vendorId")
       .populate("selectedProducts");
@@ -943,7 +921,7 @@ const getCouponById = asyncHandler(async (req, res) => {
 });
 
 // Add a new coupon
-const addCoupon = asyncHandler(async (req, res) => {
+const addCoupon = expressAsyncHandler(async (req, res) => {
     const { code, discount, type, validityStart, validityEnd, status, vendorId } = req.body;
 
     const existingCoupon = await CouponCode.findOne({ name: code });
@@ -966,7 +944,7 @@ const addCoupon = asyncHandler(async (req, res) => {
 });
 
 // Edit coupon
-const updateCoupon = asyncHandler(async (req, res) => {
+const updateCoupon = expressAsyncHandler(async (req, res) => {
     const coupon = await CouponCode.findById(req.params.id)
       .populate("vendorId")
       .populate("selectedProducts");
@@ -988,7 +966,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
   });
   
 // Delete coupon
-const deleteCoupon = asyncHandler(async (req, res) => {
+const deleteCoupon = expressAsyncHandler(async (req, res) => {
     const coupon = await CouponCode.findByIdAndDelete(req.params.id);
 
     if (!coupon) {
@@ -999,7 +977,7 @@ const deleteCoupon = asyncHandler(async (req, res) => {
 });
 
 // ---------- SALES MANAGEMENT ----------
-const createSale = asyncHandler(async (req, res) => {
+const createSale = expressAsyncHandler(async (req, res) => {
   const {
     name,
     description,
@@ -1087,7 +1065,7 @@ const createSale = asyncHandler(async (req, res) => {
 });
 
   // Get All Sales
-  const getAllSales = asyncHandler(async (req, res) => {
+  const getAllSales = expressAsyncHandler(async (req, res) => {
     const sales = await Sale.find();
     res.status(200).json({
       message: "Sales fetched successfully",
@@ -1096,14 +1074,14 @@ const createSale = asyncHandler(async (req, res) => {
   });
   
   // Get Single Sale
-  const getSaleById = asyncHandler(async (req, res) => {
+  const getSaleById = expressAsyncHandler(async (req, res) => {
     const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
     res.status(200).json(sale);
   });
   
   // Update Sale
-  const updateSale = asyncHandler(async (req, res) => {
+  const updateSale = expressAsyncHandler(async (req, res) => {
     const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
   
@@ -1124,7 +1102,7 @@ const createSale = asyncHandler(async (req, res) => {
   });
   
   // Delete Sale
-  const deleteSale = asyncHandler(async (req, res) => {
+  const deleteSale = expressAsyncHandler(async (req, res) => {
     const sale = await Sale.findByIdAndDelete(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
   
@@ -1134,7 +1112,7 @@ const createSale = asyncHandler(async (req, res) => {
   
 // @desc    Create a new brand
 // @route   POST /api/admin/brands
-const createBrand = asyncHandler(async (req, res) => {
+const createBrand = expressAsyncHandler(async (req, res) => {
   const { name, description, logo } = req.body;
 
   const existingBrand = await Brand.findOne({ name });
@@ -1148,14 +1126,14 @@ const createBrand = asyncHandler(async (req, res) => {
 
 // @desc    Get all brands
 // @route   GET /api/admin/brands
-const getAllBrands = asyncHandler(async (req, res) => {
+const getAllBrands = expressAsyncHandler(async (req, res) => {
   const brands = await Brand.find().sort({ createdAt: -1 });
   res.status(200).json({ success: true, brands });
 });
 
 // @desc    Get single brand by ID
 // @route   GET /api/admin/brands/:id
-const getBrandById = asyncHandler(async (req, res) => {
+const getBrandById = expressAsyncHandler(async (req, res) => {
   const brand = await Brand.findById(req.params.id);
   if (!brand) {
     return res.status(404).json({ message: 'Brand not found' });
@@ -1165,7 +1143,7 @@ const getBrandById = asyncHandler(async (req, res) => {
 
 // @desc    Update brand
 // @route   PUT /api/admin/brands/:id
-const updateBrand = asyncHandler(async (req, res) => {
+const updateBrand = expressAsyncHandler(async (req, res) => {
   const { name, description, logo } = req.body;
 
   const brand = await Brand.findById(req.params.id);
@@ -1183,7 +1161,7 @@ const updateBrand = asyncHandler(async (req, res) => {
 
 // @desc    Delete brand
 // @route   DELETE /api/admin/brands/:id
-const deleteBrand = asyncHandler(async (req, res) => {
+const deleteBrand = expressAsyncHandler(async (req, res) => {
   const brand = await Brand.findById(req.params.id);
   if (!brand) {
     return res.status(404).json({ message: 'Brand not found' });
@@ -1195,7 +1173,7 @@ const deleteBrand = asyncHandler(async (req, res) => {
 
 
 // ---------- REFUND ORDER MANAGEMENT ----------
-const adminRefundOrder = asyncHandler(async (req, res) => {
+const adminRefundOrder = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;       // Order ID
   const { status } = req.body;     // "refund_approved" | "refund_rejected"
 
@@ -1229,7 +1207,7 @@ const adminRefundOrder = asyncHandler(async (req, res) => {
 
 
 // Update Admin Security (e.g., password update)
-const updateAdminSecurity = asyncHandler(async (req, res) => {
+const updateAdminSecurity = expressAsyncHandler(async (req, res) => {
   //  req.admin._id is populated via auth middleware
   const admin = await Admin.findById(req.admin._id);
   if (!admin) {
@@ -1237,7 +1215,7 @@ const updateAdminSecurity = asyncHandler(async (req, res) => {
   }
   
   const { currentPassword, newPassword } = req.body;
-  console.log(currentPassword, newPassword)
+  // console.log(currentPassword, newPassword)
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: "Please provide current and new passwords" });
   }
@@ -1265,13 +1243,12 @@ const updateAdminSecurity = asyncHandler(async (req, res) => {
 // });
 });
 
-const getAdminDashboardStats = asyncHandler(async (req, res) => {
+const getAdminDashboardStats = expressAsyncHandler(async (req, res) => {
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const orders = await Order.find({});
-  console.log("📦 Total orders found:", orders.length);
 
   const todayOrders = orders.filter(order => new Date(order.createdAt) >= today);
 
@@ -1298,7 +1275,6 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
   // 1. Get valid product IDs
   const validProductIds = await Product.find().distinct("_id");
   const validProductIdSet = new Set(validProductIds.map(id => id.toString()));
-  // console.log("Valid product IDs:", validProductIds.map(id => id.toString()));
 
   // 2. Build product count map from order items
   const productCountMap = {};
@@ -1313,7 +1289,6 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
     }
   }
 
-  // console.log("📊 Product Count Map:", productCountMap);
 
   // 3. Find best-selling product ID
   let bestProductId = null;
@@ -1326,7 +1301,6 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
     }
   }
 
-  console.log("🏆 Best Product ID:", bestProductId);
 
   // 4. Fetch product details
   let bestSellingProductName = "N/A";
@@ -1334,7 +1308,6 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
     const product = await Product.findById(bestProductId).select("name");
     if (product) {
       bestSellingProductName = product.name;
-      console.log("🎉 Best-Selling Product Found:", bestSellingProductName);
     } else {
       console.warn("⚠️ Product ID found in orders but not in DB:", bestProductId);
     }
@@ -1356,7 +1329,7 @@ const getAdminDashboardStats = asyncHandler(async (req, res) => {
 });
 
 // Weekly sales & orders trend
-const getWeeklyTrends = asyncHandler(async (req, res) => {
+const getWeeklyTrends = expressAsyncHandler(async (req, res) => {
   const today = new Date();
   const last7Days = [];
 
@@ -1391,28 +1364,26 @@ const getWeeklyTrends = asyncHandler(async (req, res) => {
 });
 
 
-const getAdminNotificationCount = asyncHandler(async (req, res) => {
+const getAdminNotificationCount = expressAsyncHandler(async (req, res) => {
   // Count only unread notifications (if you track `isRead` or similar)
   const count = await Notification.countDocuments({ isRead: false });
 
   res.status(200).json({ count });
 });
 
-const getAdminNotifications = asyncHandler(async (req, res) => {
+const getAdminNotifications = expressAsyncHandler(async (req, res) => {
   const notifications = await Notification.find().sort({ createdAt: -1 }).limit(20); // show latest 20
   res.status(200).json(notifications);
 });
 
-const markNotificationAsRead = asyncHandler(async (req, res) => {
+const markNotificationAsRead = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
-  console.log("ID", id)
-  console.log("Marking as Read")
   await Notification.findByIdAndUpdate(id, { isRead: true });
   res.status(200).json({ message: "Marked as read" });
 });
 
 // Delete an admin notification
-const deleteAdminNotification = asyncHandler(async (req, res) => {
+const deleteAdminNotification = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const deleted = await Notification.findByIdAndDelete(id);

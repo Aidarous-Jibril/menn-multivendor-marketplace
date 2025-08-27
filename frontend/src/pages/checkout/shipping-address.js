@@ -1,33 +1,71 @@
+// React & Next
+import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useDispatch, useSelector } from "react-redux";
+// Utils
+import axios from "axios";
+import { toast } from "react-toastify";
+import { Country, State, City } from "country-state-city";
+// UI – internal
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import fallbackImage from "../../../public/images/fallbackImage.jpg";
-import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
-import { resetCheckout, setOrderItems, setShippingAddress } from "@/redux/slices/checkoutSlice";
-import { useEffect, useState, useRef } from "react";
-import Link from "next/link";
-import { Stepper, Step, StepLabel, MenuItem, Select, Typography} from "@mui/material";
+import Footer from "@/components/layout/Footer";
+// UI – external
+import {
+  Stepper,
+  Step,
+  StepLabel,
+  MenuItem,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select as MSelect,
+} from "@mui/material";
 import { HiOutlineMinus, HiOutlineTrash, HiPlus } from "react-icons/hi";
+// Redux slices
+import {
+  resetCheckout,
+  setOrderItems,
+  setShippingAddress,
+} from "@/redux/slices/checkoutSlice";
 import { removeItemFromCart } from "@/redux/slices/cartSlice";
+import { addUserAddress } from "@/redux/slices/userSlice";
+// Assets
+import fallbackImage from "../../../public/images/fallbackImage.jpg";
 
-const steps = ["User Login", "Shipping Address", "Payment Method", "Place Order" ];
+const steps = [ "User Login", "Shipping Address", "Payment Method","Place Order" ];
 
 const ShippingAddress = ({ categories }) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
   const { userInfo } = useSelector((state) => state.user);
-  const { shippingAddress, orderItems } = useSelector(
-    (state) => state.checkout
-  );
-
-  const addresses = userInfo?.addresses || [];
+  const { orderItems } = useSelector( (state) => state.checkout );
+  console.log("userInfo", userInfo)
+  const addresses = useMemo(
+    () => (Array.isArray(userInfo?.addresses) ? userInfo.addresses : []),
+    [userInfo?.addresses] 
+  );  
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isMounted, setIsMounted] = useState(false);
   const hasRedirected = useRef(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [addrForm, setAddrForm] = useState({
+    country: null,
+    state: null,
+    city: null,
+    street: "",
+    zipCode: "",
+    addressType: "Home",
+  });
 
   useEffect(() => {
     const storedCartItems = JSON.parse(localStorage.getItem("cartItems")) || [];
@@ -43,13 +81,13 @@ const ShippingAddress = ({ categories }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (addresses.length > 0 && !selectedAddress) {
-      const homeAddress =
-        addresses.find((addr) => addr.addressType === "Home") || addresses[0];
-      setSelectedAddress(homeAddress);
-      dispatch(setShippingAddress(homeAddress));
-      localStorage.setItem("shippingAddress", JSON.stringify(homeAddress));
-    }
+     if (addresses.length > 0 && !selectedAddress) {
+       const homeAddress =
+         addresses.find((addr) => addr.addressType === "Home") || addresses[0];
+       setSelectedAddress(homeAddress);
+       dispatch(setShippingAddress(homeAddress));
+       localStorage.setItem("shippingAddress", JSON.stringify(homeAddress));
+     }
   }, [addresses, selectedAddress, dispatch]);
 
   // Redirect when cart becomes empty
@@ -118,6 +156,15 @@ const ShippingAddress = ({ categories }) => {
   const shippingCost = totalItemPrice > 50 ? 0 : 4.99;
   const finalTotal = totalItemPrice + shippingCost;
 
+  const countryOptions = Country.getAllCountries();
+  const stateOptions = addrForm.country
+    ? State.getStatesOfCountry(addrForm.country.isoCode)
+    : [];
+  const cityOptions =
+    addrForm.country && addrForm.state
+      ? City.getCitiesOfState(addrForm.country.isoCode, addrForm.state.isoCode)
+      : [];
+
   if (!isMounted) return null;
 
   return (
@@ -144,14 +191,28 @@ const ShippingAddress = ({ categories }) => {
                 <h3 className="text-2xl font-semibold mb-4">
                   Shipping Address
                 </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-gray-400 text-gray-800 hover:bg-gray-100"
+                  onClick={() => {
+                      if (!userInfo?._id) {
+                        toast.info("Please sign in to add a shipping address.");
+                        router.push(`/user/login?redirect=${encodeURIComponent(router.asPath)}`);
+                        return;
+                      }
+                      setAddOpen(true);
+                    }} 
+                 >
+                  Add New
+                </Button>
                 {addresses.length > 1 && (
                   <div className="mb-4">
                     <Typography className="text-gray-700 font-medium">
                       Select Address
                     </Typography>
-                    <Select
+                    <MSelect
                       fullWidth
-                      variant="outlined"
                       value={selectedAddress?.addressType || ""}
                       onChange={(e) => {
                         const newAddress = addresses.find(
@@ -166,7 +227,7 @@ const ShippingAddress = ({ categories }) => {
                           {addr.addressType} - {addr.street}
                         </MenuItem>
                       ))}
-                    </Select>
+                    </MSelect>
                   </div>
                 )}
                 {selectedAddress ? (
@@ -187,7 +248,7 @@ const ShippingAddress = ({ categories }) => {
                   </div>
                 ) : (
                   <Typography className="text-gray-500">
-                    No saved addresses. Please add one.
+                    No saved addresses. Click <b>Add New</b> to enter one.
                   </Typography>
                 )}
               </CardContent>
@@ -311,6 +372,180 @@ const ShippingAddress = ({ categories }) => {
             </CardContent>
           </Card>
         </div>
+        {/* Add address Modal */}
+        <Dialog
+          open={addOpen}
+          onClose={() => setAddOpen(false)}
+          fullWidth
+          maxWidth="sm"
+        >
+          <DialogTitle>Add New Address</DialogTitle>
+          <DialogContent dividers>
+            {/* Country */}
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Country</InputLabel>
+              <MSelect
+                label="Country"
+                value={addrForm.country?.isoCode || ""}
+                onChange={(e) => {
+                  const country = countryOptions.find(
+                    (c) => c.isoCode === e.target.value
+                  );
+                  setAddrForm({
+                    country,
+                    state: null,
+                    city: null,
+                    street: "",
+                    zipCode: "",
+                    addressType: addrForm.addressType,
+                  });
+                }}
+              >
+                {countryOptions.map((c) => (
+                  <MenuItem key={c.isoCode} value={c.isoCode}>
+                    {c.name}
+                  </MenuItem>
+                ))}
+              </MSelect>
+            </FormControl>
+
+            {/* State */}
+            <FormControl fullWidth margin="normal" disabled={!addrForm.country}>
+              <InputLabel>State/Region</InputLabel>
+              <MSelect
+                label="State/Region"
+                value={addrForm.state?.isoCode || ""}
+                onChange={(e) => {
+                  const state = stateOptions.find(
+                    (s) => s.isoCode === e.target.value
+                  );
+                  setAddrForm((prev) => ({ ...prev, state, city: null }));
+                }}
+              >
+                {stateOptions.map((s) => (
+                  <MenuItem key={s.isoCode} value={s.isoCode}>
+                    {s.name}
+                  </MenuItem>
+                ))}
+              </MSelect>
+            </FormControl>
+
+            {/* City */}
+            <FormControl fullWidth margin="normal" disabled={!addrForm.state}>
+              <InputLabel>City</InputLabel>
+              <MSelect
+                label="City"
+                value={addrForm.city?.name || ""}
+                onChange={(e) => {
+                  const city = cityOptions.find(
+                    (c) => c.name === e.target.value
+                  );
+                  setAddrForm((prev) => ({ ...prev, city }));
+                }}
+              >
+                {cityOptions.map((c) => (
+                  <MenuItem key={c.name} value={c.name}>
+                    {c.name}
+                  </MenuItem>
+                ))}
+              </MSelect>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Street *"
+              value={addrForm.street}
+              onChange={(e) =>
+                setAddrForm((prev) => ({ ...prev, street: e.target.value }))
+              }
+            />
+            <TextField
+              fullWidth
+              margin="normal"
+              label="Zip Code *"
+              value={addrForm.zipCode}
+              onChange={(e) =>
+                setAddrForm((prev) => ({ ...prev, zipCode: e.target.value }))
+              }
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Address Type</InputLabel>
+              <MSelect
+                label="Address Type"
+                value={addrForm.addressType}
+                onChange={(e) =>
+                  setAddrForm((prev) => ({
+                    ...prev,
+                    addressType: e.target.value,
+                  }))
+                }
+              >
+                {["Home", "Work", "Other"].map((t) => (
+                  <MenuItem key={t} value={t}>
+                    {t}
+                  </MenuItem>
+                ))}
+              </MSelect>
+            </FormControl>
+          </DialogContent>
+
+          <DialogActions>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                // basic validation
+                if (
+                  !addrForm.country ||
+                  !addrForm.state ||
+                  !addrForm.city ||
+                  !addrForm.street.trim() ||
+                  !addrForm.zipCode.trim()
+                ) {
+                  toast.error("Please fill all the fields!");
+                  return;
+                }
+
+                // match the payload shape used in Address.js
+                const addressData = {
+                  country: addrForm.country.name,
+                  state: addrForm.state.name,
+                  city: addrForm.city.name,
+                  street: addrForm.street.trim(),
+                  zipCode: addrForm.zipCode.trim(),
+                  addressType: addrForm.addressType,
+                };
+
+                // dispatch thunk
+                const result = await dispatch(addUserAddress(addressData));
+
+                if (result.type === "user/addUserAddress/fulfilled") {
+                  // optimistic select for checkout right away
+                  handleAddressSelection(addressData);
+
+                  // UX niceties
+                  toast.success(result.payload?.message || "Address added");
+                  setAddOpen(false);
+                  setAddrForm({
+                    country: null,
+                    state: null,
+                    city: null,
+                    street: "",
+                    zipCode: "",
+                    addressType: "Home",
+                  });
+                } else {
+                  toast.error(result.payload || "Failed to add address");
+                }
+              }}
+            >
+              Add Address
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
 
       <Footer />

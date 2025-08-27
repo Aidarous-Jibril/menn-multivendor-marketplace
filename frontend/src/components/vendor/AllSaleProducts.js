@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AiOutlineDelete,
@@ -30,6 +30,7 @@ import EditProductModal from "../common/ProductEditModal";
 import FilterProducts from "../common/FilterProducts";
 import SearchProducts from "../common/SearchProducts";
 import ConfirmationModal from "../common/ConfirmationModal";
+import Image from "next/image";
 
 const AllSaleProducts = () => {
   const dispatch = useDispatch();
@@ -39,7 +40,6 @@ const AllSaleProducts = () => {
   const { brands } = useSelector((state) => state.brands);
   const { categories, subcategories, subSubcategories } = useSelector((state) => state.categories);
 
-  const [filteredSales, setFilteredSales] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [mainCategory, setMainCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
@@ -65,45 +65,43 @@ const AllSaleProducts = () => {
     stock: "",
   });
 
+// ✅ stabilize dep by extracting primitive
+  const vendorId = vendorInfo?._id;
+
   useEffect(() => {
-    if (vendorInfo?._id) {
-      dispatch(vendorGetAllSales(vendorInfo._id));
+    if (vendorId) {
+      dispatch(vendorGetAllSales(vendorId));
     }
     dispatch(fetchCategories());
     dispatch(fetchAllBrands());
-  }, [dispatch, vendorInfo]);
+  }, [dispatch, vendorId]);
 
   useEffect(() => {
-    if (mainCategory) {
-      dispatch(fetchSubcategories(mainCategory));
-    }
+    if (mainCategory) dispatch(fetchSubcategories(mainCategory));
   }, [dispatch, mainCategory]);
 
   useEffect(() => {
-    if (subCategory) {
-      dispatch(fetchSubSubcategories(subCategory));
-    }
+    if (subCategory) dispatch(fetchSubSubcategories(subCategory));
   }, [dispatch, subCategory]);
 
-  const filterSales = () => {
-    let filtered = [...sales];
-    if (mainCategory) filtered = filtered.filter((s) => s.mainCategory === mainCategory);
-    if (subCategory) filtered = filtered.filter((s) => s.subCategory === subCategory);
-    if (subSubCategory) filtered = filtered.filter((s) => s.subSubCategory === subSubCategory);
-    if (selectedBrand) filtered = filtered.filter((s) => s.brand === selectedBrand);
+  // ✅ derive filtered sales instead of storing them
+  const filteredSales = useMemo(() => {
+    let list = Array.isArray(sales) ? [...sales] : [];
+
+    if (mainCategory)   list = list.filter(s => s.mainCategory === mainCategory);
+    if (subCategory)    list = list.filter(s => s.subCategory === subCategory);
+    if (subSubCategory) list = list.filter(s => s.subSubCategory === subSubCategory);
+    if (selectedBrand)  list = list.filter(s => s.brand === selectedBrand);
+
     if (searchQuery) {
-      filtered = filtered.filter(
-        (s) =>
-          s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s._id.toLowerCase().includes(searchQuery.toLowerCase())
+      const q = searchQuery.toLowerCase();
+      list = list.filter(s =>
+        (s.name || "").toLowerCase().includes(q) ||
+        (s._id  || "").toLowerCase().includes(q)
       );
     }
-    return filtered;
-  };
-
-  useEffect(() => {
-    setFilteredSales(filterSales());
-  }, [mainCategory, subCategory, subSubCategory, selectedBrand, sales, searchQuery]);
+    return list;
+  }, [sales, mainCategory, subCategory, subSubCategory, selectedBrand, searchQuery]);
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
   const handleFilterReset = () => {
@@ -148,7 +146,7 @@ const AllSaleProducts = () => {
       toast.error("Failed to update sale product");
     }
   };
-  
+
 
   const openDeleteModalHandler = (id) => {
     setSaleToDelete(id);
@@ -167,13 +165,13 @@ const AllSaleProducts = () => {
     setOpenDeleteModal(false);
   };
   
-
   const handleViewSale = async (id) => {
     await dispatch(fetchSingleSaleByVendor(id));
     setOpenViewModal(true);
   };
 
   const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
   const columns = [
     {
       field: "id",
@@ -385,15 +383,17 @@ const AllSaleProducts = () => {
                       <Typography variant="body2">
                         <strong>Vendor Address:</strong> {singleSale.vendor?.address}
                       </Typography>
-                      {singleSale.vendor?.avatar?.url && (
-                        <img
+
+                      {singleSale?.vendor?.avatar?.url ? (
+                        <Image
                           src={singleSale.vendor.avatar.url}
-                          alt="Vendor Avatar"
-                          width="50"
-                          height="50"
-                          style={{ borderRadius: "50%" }}
+                          alt={`${singleSale.vendor?.name ?? "Vendor"} Avatar`}
+                          width={50}
+                          height={50}
+                          className="rounded-full"
+                          sizes="50px"
                         />
-                      )}
+                      ) : null}
                     </CardContent>
                   </Card>
 
@@ -420,16 +420,18 @@ const AllSaleProducts = () => {
                       <Typography variant="h6">Sale Images</Typography>
                       <Divider style={{ margin: "10px 0" }} />
                       <div style={{ display: "flex", gap: "10px" }}>
-                        {singleSale.images?.map((img, index) => (
-                          <img
-                            key={index}
-                            src={img.url}
-                            alt={`Sale Image ${index + 1}`}
-                            width="100"
-                            height="100"
-                            style={{ borderRadius: "5px" }}
-                          />
-                        ))}
+                        {Array.isArray(singleSale.images) &&
+                          singleSale.images.map((img, index) => (
+                            <Image
+                              key={img?._id ?? index}
+                              src={img?.url || "/images/placeholder.png"}
+                              alt={`Sale Image ${index + 1}`}
+                              width={100}
+                              height={100}
+                              className="rounded-md"
+                              sizes="100px"
+                            />
+                          ))}
                       </div>
                     </CardContent>
                   </Card>

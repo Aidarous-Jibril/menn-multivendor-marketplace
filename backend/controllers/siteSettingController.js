@@ -1,10 +1,9 @@
-const asyncHandler = require("express-async-handler");
+const expressAsyncHandler = require("express-async-handler");
 const SiteSettings = require("../models/siteSettingModel");
 const cloudinary = require("../utils/cloudinary");
 
 // Get Site Settings
-const getSiteSettings = asyncHandler(async (req, res) => {
-    console.log("getSiteSettings is been called")
+const getSiteSettings = expressAsyncHandler(async (req, res) => {
   let settings = await SiteSettings.findOne();
   if (!settings) {
     settings = await SiteSettings.create({});
@@ -13,8 +12,7 @@ const getSiteSettings = asyncHandler(async (req, res) => {
 });
 
 // Update Site Settings
-const updateSiteSettings = asyncHandler(async (req, res) => {
-  console.log("BODY BEFORE PARSE:", req.body);
+const updateSiteSettings = expressAsyncHandler(async (req, res) => {
   let settings = await SiteSettings.findOne();
   if (!settings) {
     settings = await SiteSettings.create({});
@@ -56,7 +54,6 @@ const updateSiteSettings = asyncHandler(async (req, res) => {
       // Parse maintenanceEndTime safely
       if (parsed.maintenanceEndTime) {
         parsed.maintenanceEndTime = new Date(parsed.maintenanceEndTime);
-        console.log("Parsed maintenanceEndTime:", parsed.maintenanceEndTime);
       }
       
       settings.advanced = {

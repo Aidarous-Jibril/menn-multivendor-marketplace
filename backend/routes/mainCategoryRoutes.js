@@ -8,7 +8,6 @@ const {
     deleteCategory
 } = require('../controllers/mainCategoryController')
 
-// Define routes for main category-related operations
 router.post('/create-category', createCategory);
 router.get('/', getCategories);
 router.get('/:id', getCategoryById);

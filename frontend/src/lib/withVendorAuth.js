@@ -2,33 +2,47 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
+import axios from "@/utils/axiosInstance";
 
-const withVendorAuth = (WrappedComponent) => {
-  return (props) => {
+const withVendorAuth = (Wrapped) => {
+  const WrappedName = Wrapped.displayName || Wrapped.name || "Component";
+
+  const WithVendorAuth = (props) => {
     const router = useRouter();
     const { vendorInfo } = useSelector((state) => state.vendors);
-    const [isClient, setIsClient] = useState(false);
+    const [checking, setChecking] = useState(true);
 
     useEffect(() => {
-      setIsClient(true);
-    }, []);
+      let alive = true;
 
-    useEffect(() => {
-      if (!vendorInfo || !vendorInfo.email) {
-        router.push("/vendor/login");
-      } else if (vendorInfo.isBlocked) {
-        toast.error("Your vendor account is deactivated.");
-        router.push("/vendor/login");
+      // 1) No client cache? go login
+      if (!vendorInfo?.email) {
+        router.replace("/vendor/login?reason=required");
+        setChecking(false);
+        return;
       }
-    }, [vendorInfo, router]);
 
-    if (!isClient) return null;
+      // 2) Soft-verify the cookie with the server (once)
+      (async () => {
+        try {
+          await axios.get("/api/vendors/profile", { withCredentials: true });
+          if (alive) setChecking(false);
+        } catch {
+          // cookie expired → interceptor will redirect; we just stop rendering
+          if (alive) setChecking(false);
+        }
+      })();
 
-    return vendorInfo && vendorInfo.email && !vendorInfo.isBlocked ? (
-      <WrappedComponent {...props} />
-    ) : null;
+      return () => { alive = false; };
+    }, [vendorInfo?.email, router]);
+
+    if (checking) return null;                  // or a tiny loader
+    if (!vendorInfo?.email) return null;        // guarded above
+    return <Wrapped {...props} />;
   };
+
+  WithVendorAuth.displayName = `withVendorAuth(${WrappedName})`;
+  return WithVendorAuth;
 };
 
 export default withVendorAuth;
