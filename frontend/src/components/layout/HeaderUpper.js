@@ -111,7 +111,7 @@ const HeaderUpper = ({ handleSearchChange, searchData }) => {
               {userInfo?.avatar?.url ? (
                 <Link href="/user/profile" legacyBehavior>
                   <Image
-                    src={userInfo.avatar.url}
+                    src={userInfo?.avatar?.url || "/images/user.svg"}
                     alt="User Avatar"
                     width={35}
                     height={35}
