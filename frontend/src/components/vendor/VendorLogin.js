@@ -42,7 +42,7 @@ const VendorLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+  <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-4 sm:px-8 lg:px-8">
     <div className="sm:mx-auto sm:w-full sm:max-w-md">
       <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
         Login Your Store
@@ -119,12 +119,7 @@ const VendorLogin = () => {
                 Remember me
               </label>
             </div>
-            <a
-              href="/vendor/forgot-password"
-              className="text-blue-700 transition duration-150 ease-in-out hover:text-primary-600 focus:text-primary-600 active:text-primary-700 dark:text-primary-400 dark:hover:text-primary-500 dark:focus:text-primary-500 dark:active:text-primary-600"
-            >
-              Forgot password?
-            </a>
+            <Link href="/vendor/forgot-password/" className="text-sm ...">Forgot password?</Link>
           </div>
           <div>
             <button className="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-500 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
@@ -134,13 +129,20 @@ const VendorLogin = () => {
         </form>
         <p className="mt-12 text-s font-light text-center text-gray-700">
           {" "}
-          Don't have a store yet?{" "}
+          Don&apos;t have a store yet?{" "}
           <Link href="/vendor/register" className="font-medium text-blue-600 dark:text-gray-200 hover:underline">
             Register new store
           </Link>
         </p>
       </div>
     </div>
+
+    <div className="mt-4 text-center">
+      <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 underline">
+        ← Back to Home
+      </Link>
+    </div>
+
   </div>
 );
 };

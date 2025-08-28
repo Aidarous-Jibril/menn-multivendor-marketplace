@@ -1,8 +1,9 @@
-//controllers/couponCodeController.js
 const CouponCode = require("../models/couponCodeModel");
+const expressAsyncHandler = require("express-async-handler");
+
 
 // Create a new coupon code
-const createCouponCode = async (req, res) => {
+const createCouponCode = expressAsyncHandler(async (req, res) => {
   try {
     const { name, value, type, validityStart, validityEnd, status, selectedProducts, vendorId } = req.body;
 
@@ -51,10 +52,10 @@ const createCouponCode = async (req, res) => {
     console.error("Error creating coupon:", error);
     res.status(500).json({ message: "Internal Server Error", error });
   }
-};
+});
 
 // Update a coupon code
-const updateCouponCode = async (req, res) => {
+const updateCouponCode = expressAsyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
     const { name, value, type, validityStart, validityEnd, status, selectedProducts, vendorId } = req.body;
@@ -104,10 +105,10 @@ const updateCouponCode = async (req, res) => {
     console.error("Error updating coupon:", error);
     res.status(500).json({ message: "Internal Server Error", error });
   }
-};
+});
 
 // Get all coupon codes of a store
-const getAllCouponCodes = async (req, res) => {
+const getAllCouponCodes = expressAsyncHandler(async (req, res) => {
   try {
     const coupons = await CouponCode.find({ vendorId: req.params.vendorId });
     if (!coupons.length) {
@@ -120,10 +121,10 @@ const getAllCouponCodes = async (req, res) => {
   } catch (error) {
     return res.status(400).json(error);
   }
-};
+});
 
 // Delete a coupon code
-const deleteCouponCode = async (req, res) => {
+const deleteCouponCode = expressAsyncHandler(async (req, res) => {
   try {
     const coupon = await CouponCode.findByIdAndDelete(req.params.id); // Directly deletes the coupon
     if (coupon) {
@@ -139,10 +140,10 @@ const deleteCouponCode = async (req, res) => {
     console.error("Error deleting coupon:", error); // Log the error for debugging
     res.status(500).json({ message: "Internal Server Error" });
   }
-};
+});
 
 // Get coupon code value by name
-const getCouponCodeValue = async (req, res) => {
+const getCouponCodeValue = expressAsyncHandler(async (req, res) => {
   try {
     const couponCode = await CouponCode.findOne({ name: req.params.name });
     if (couponCode) {
@@ -157,7 +158,7 @@ const getCouponCodeValue = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
   }
-};
+});
 
 
 module.exports = {

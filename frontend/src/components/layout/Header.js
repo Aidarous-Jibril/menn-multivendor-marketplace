@@ -37,7 +37,7 @@ const Header = ({ products, categories }) => {
     setSearchTerm(e.target.value);
 
     if (e.target.value === "") {
-      setSearchData(null); // Clear search results when input is empty
+      setSearchData(null); 
     }
   };
 

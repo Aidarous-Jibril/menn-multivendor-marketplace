@@ -1,4 +1,3 @@
-//paymentRoutes.js
 const express = require("express");
 const { processStripe, loadStripe, processPayPal, capturePayPalPayment } = require("../controllers/paymentController");
 

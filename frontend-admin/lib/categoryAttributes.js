@@ -1,4 +1,3 @@
-//utils/categoryAttributes.js
 export const categoryAttributes = {
     clothing: ["size", "color", "material", "gender"],
     vehicles: ["model", "make", "year", "mileage", "fuelType"],

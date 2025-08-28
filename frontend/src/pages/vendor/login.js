@@ -10,13 +10,18 @@ const VendorLoginPage = () => {
 
   const { vendorInfo } = useSelector((state) => state.vendors);
 
-  useEffect(() => {
-    if (vendorInfo && vendorInfo._id) {
-      router.replace("/vendor/dashboard");
+useEffect(() => {
+  if (vendorInfo && vendorInfo._id) {
+    router.replace("/vendor/dashboard");
+  } else {
+    // If there's no previous page to go back to (e.g., user refreshed or landed here directly)
+    if (typeof window !== "undefined" && window.history.length <= 1) {
+      router.replace("/"); // Send them to homepage instead of trapping
     } else {
-      setLoading(false);
+      setLoading(false); // Show login
     }
-  }, [vendorInfo, router]);
+  }
+}, [vendorInfo, router]);
 
   if (loading) {
     return <Loader />; 

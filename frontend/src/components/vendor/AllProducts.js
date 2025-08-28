@@ -1,6 +1,7 @@
 // Third-Party Imports
 import React, { useEffect, useState } from "react"; 
 import { toast } from "react-toastify"; 
+import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux"; 
 import { AiOutlineDelete, AiOutlineEye, AiOutlineEdit } from "react-icons/ai"; 
 import { Button, Card, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, Typography } from "@mui/material"; 
@@ -208,7 +209,7 @@ const AllProducts = () => {
     if (!openEditModal) {
       setFilteredProducts(filtered);
     }
-  }, [mainCategory, subCategory, subSubCategory, selectedBrand, vendorProducts, searchQuery]);
+  }, [mainCategory, subCategory, subSubCategory, selectedBrand, vendorProducts, searchQuery, openEditModal]);
 
   /* ======= Handlers – Viewing Product Detailsn ======== */    
   const handleViewProduct = async (productId) => {
@@ -368,20 +369,30 @@ const AllProducts = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Vendor Information */}
-                  <Card style={{ marginBottom: "20px" }}>
-                    <CardContent>
-                      <Typography variant="h6">Vendor Information</Typography>
-                      <Divider style={{ margin: "10px 0" }} />
-                      <Typography variant="body2">
-                        <strong>Vendor Name:</strong> {product?.vendor?.name}
-                      </Typography>
-                      <Typography variant="body2">
-                        <strong>Vendor Address:</strong> {product?.vendor?.address}
-                      </Typography>
-                      <img src={product?.vendor?.avatar.url} alt="Vendor Avatar" width="50" height="50" style={{ borderRadius: "50%" }} />
-                    </CardContent>
-                  </Card>
+                {/* Vendor Information */}
+                <Card style={{ marginBottom: "20px" }}>
+                  <CardContent>
+                    <Typography variant="h6">Vendor Information</Typography>
+                    <Divider style={{ margin: "10px 0" }} />
+                    <Typography variant="body2">
+                      <strong>Vendor Name:</strong> {product?.vendor?.name}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Vendor Address:</strong> {product?.vendor?.address}
+                    </Typography>
+
+                    {product?.vendor?.avatar?.url && (
+                      <Image
+                        src={product.vendor.avatar.url}
+                        alt={`${product?.vendor?.name || "Vendor"} Avatar`}
+                        width={50}
+                        height={50}
+                        className="rounded-full"
+                        sizes="50px"
+                      />
+                    )}
+                  </CardContent>
+                </Card>
 
                   {/* Product Pricing and Stock */}
                   <Card style={{ marginBottom: "20px" }}>
@@ -399,20 +410,29 @@ const AllProducts = () => {
                       </Typography>
                     </CardContent>
                   </Card>
-
                   {/* Product Images */}
                   <Card style={{ marginBottom: "20px" }}>
                     <CardContent>
                       <Typography variant="h6">Product Images</Typography>
                       <Divider style={{ margin: "10px 0" }} />
-                      <div style={{ display: "flex", gap: "10px" }}>
-                        {product.images.map((img, index) => (
-                          <img key={index} src={img.url} alt={`Product Image ${index + 1}`} width="100" height="100" style={{ borderRadius: "5px" }} />
-                        ))}
+                      <div style={{ display: "flex", gap: 10 }}>
+                        {Array.isArray(product?.images) &&
+                          product.images.map((img, index) =>
+                            img?.url ? (
+                              <Image
+                                key={img._id ?? index}
+                                src={img.url}
+                                alt={`Product Image ${index + 1}`}
+                                width={100}
+                                height={100}
+                                className="rounded"
+                                sizes="100px"
+                              />
+                            ) : null
+                          )}
                       </div>
                     </CardContent>
                   </Card>
-
                   {/* Product Reviews */}
                   <Card>
                     <CardContent>

@@ -13,36 +13,39 @@ const getCartItemsFromStorage = () => {
   return [];
 };
 
-// Async thunk to fetch cart items from the server
+// fetch cart items 
 export const fetchCartItems = createAsyncThunk(
   "cart/fetchCartItems",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch("/api/cart");
-      if (!response.ok) throw new Error("Failed to fetch cart items");
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
+      const { data } = await axios.get("/api/cart");
+      // Adjust if your API wraps the items differently
+      return  data?.cartItems ?? res.data ?? [];
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to fetch cart items";
+      return rejectWithValue(msg);
     }
   }
 );
-
 // Async thunk to save cart items to the server
 export const saveCartItems = createAsyncThunk(
   "cart/saveCartItems",
   async (cartItems, { rejectWithValue }) => {
-    try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
+try {
+      // If your API expects { items: [...] }, change to: { items: cartItems }
+      const {data} = await axios.post("/api/cart", cartItems, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cartItems),
       });
-      if (!response.ok) throw new Error("Failed to save cart items");
-      const data = await response.json();
       return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to save cart items";
+      return rejectWithValue(msg);
     }
   }
 );

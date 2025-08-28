@@ -1,4 +1,5 @@
 import { ChevronRightIcon } from "@heroicons/react/solid";
+import Image from "next/image";
 
 const Brands = ({ brands = [] }) => {
   if (!brands.length) return null;
@@ -16,11 +17,13 @@ const Brands = ({ brands = [] }) => {
       <div className="flex space-x-4 overflow-x-auto">
         {brands.map((brand) => (
           <div key={brand._id} className="flex-shrink-0 w-16 h-16 rounded-full border border-gray-200 flex items-center justify-center p-2">
-            <img
-              src={brand.logo}
-              alt={brand.name}
+            <Image
+              src={brand.logo || "/images/brand-placeholder.png"}
+              alt={brand.name || "Brand"}
+              width={40}
+              height={40}
               className="h-10 w-10 object-contain"
-              loading="lazy"
+              sizes="40px"
             />
           </div>
         ))}

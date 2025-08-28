@@ -1,4 +1,3 @@
-// CreateItemModal.js
 import React from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, MenuItem} from "@mui/material";
 import { categoryAttributes } from "@/lib/categoryAttributes";
@@ -8,7 +7,7 @@ const CreateItemModal = ({
   onClose,
   newItem,              
   onInputChange,
-  onAttributeChange,     // for attribute changes
+  onAttributeChange,   
   onSave,
   selectedBrand,
   categories = [],

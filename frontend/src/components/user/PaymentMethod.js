@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineDelete } from "react-icons/ai";
 import { Box, Typography, Button, TextField, IconButton, Card, CardContent, Grid, Collapse} from "@mui/material";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 // Local imports
 import { addPaymentMethod, deletePaymentMethod } from "@/redux/slices/userSlice";
@@ -137,11 +138,13 @@ const PaymentMethod = () => {
           >
             {/* Left: Card brand + holder name */}
             <Box display="flex" alignItems="center">
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
-                alt="visa"
+            <Image
+                src="/images/visa.png"   
+                alt="Visa"
                 width={40}
                 height={40}
+                priority={false}        
+                style={{ display: "block" }}
               />
               <Typography variant="body1" fontWeight="medium" ml={2}>
                 {userInfo.paymentMethod.cardHolderName}

@@ -13,13 +13,13 @@ const Loader = () => {
   }, []);
 
   if (!isClient) {
-    return null; // Render nothing on the server
+    return null; 
   }
 
   const defaultOptions = {
     loop: true,
     autoplay: true,
-    animationData: require('../../../public/animations/1700172454721.json'), // Adjust path as needed
+    animationData: require('../../../public/animations/1700172454721.json'), 
     rendererSettings: {
       preserveAspectRatio: "xMidYMid slice",
     },

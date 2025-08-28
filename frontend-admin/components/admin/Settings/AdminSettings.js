@@ -39,7 +39,6 @@ const AdminSettings = () => {
       <TabPanel value={tabIndex} index={5}>
         <AdvancedSettings />
       </TabPanel>
-      {/* Other tab panels... */}
     </Box>
   );
 };

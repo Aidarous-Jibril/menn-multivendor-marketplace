@@ -1,4 +1,3 @@
-//saleRoutes.js
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
@@ -18,7 +17,7 @@ const upload = multer({ storage: storage, limits: { fieldSize: 25 * 1024 * 1024 
 router.post('/create-sale', isVendor, upload.array("images"), createSale);
 router.get('/vendor/:id', isVendor, getAllVendorSales); 
 router.get('/', getAllSales);
-router.get('/:id', getSingleSale); // Fetch single Sale by ID for user
+router.get('/:id', getSingleSale); 
 router.delete('/sale/:id', isVendor, deleteSale); 
 router.put('/sale/:id', isVendor, updateSale);
 router.get('/vendor-sale/:id', isVendor, getSingleSaleByVendor); 

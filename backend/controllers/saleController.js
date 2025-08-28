@@ -10,14 +10,11 @@ const MainCategory = require("../models/mainCategory");
 
 // Create product
 const createSale = expressAsyncHandler(async (req, res, next) => {
-  console.log("BODY_DATA", req.body);
-  console.log("Attributes Received:", req.body.attributes);
 
   const { mainCategory, subCategory, subSubCategory, vendorId } = req.body;
 
   try {
     const vendor = await Vendor.findById(vendorId);
-    // console.log('VENDOR_FOUND', vendor);
 
     // Check if vendor exists
     if (!vendor) {
@@ -172,7 +169,6 @@ const getSingleSale = expressAsyncHandler(async (req, res) => {
 const deleteSale = expressAsyncHandler(async (req, res) => {
   try {
     const sale = await Sale.findByIdAndDelete(req.params.id);
-    // console.log("PRODUCT:", Sale);
 
     if (!sale) {
       return res.status(404).json({
@@ -192,7 +188,6 @@ const deleteSale = expressAsyncHandler(async (req, res) => {
 
   // Update Sale
   const updateSale = expressAsyncHandler(async (req, res) => {
-    console.log("ID", req.params.id)
     const sale = await Sale.findById(req.params.id);
     if (!sale) return res.status(404).json({ message: "Sale not found" });
   

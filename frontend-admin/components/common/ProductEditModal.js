@@ -23,8 +23,8 @@ const EditProductModal = ({
   subcategories,
   subSubcategories,
   brands,
-  handleCategoryChange,  // Pass the selected category ID to the parent
-  handleSubCategoryChange,  // Pass the selected sub category ID to the parent
+  handleCategoryChange,  
+  handleSubCategoryChange,  
   handleSubSubCategoryChange,
   handleBrandChange,
 
@@ -50,10 +50,8 @@ const EditProductModal = ({
           : isCouponEdit
           ? "Edit Coupon"
           : "Edit Product"}{" "}
-        {/* Dynamically set title */}
       </DialogTitle>
       <DialogContent>
-        {/* Customer-specific fields */}
         {isCustomerEdit && (
           <>
             <TextField
@@ -87,7 +85,7 @@ const EditProductModal = ({
                 select
                 label="Select Address"
                 name="selectedAddress"
-                value={data.selectedAddress || data.addresses[0]._id} // Set default to the first address
+                value={data.selectedAddress || data.addresses[0]._id} 
                 onChange={onInputChange}
                 fullWidth
                 margin="normal"
@@ -101,7 +99,6 @@ const EditProductModal = ({
               </TextField>
             )}
 
-            {/* Show selected address details below the dropdown */}
             {data.selectedAddress && (
               <div>
                 {/* Find the selected address */}
@@ -110,7 +107,7 @@ const EditProductModal = ({
                     <div key={address._id}>
                       <TextField
                         label="Address Type"
-                        name={`addressType_${index}`} // Name for address type input field
+                        name={`addressType_${index}`} 
                         value={address.addressType || ""}
                         onChange={onInputChange}
                         fullWidth
@@ -118,7 +115,7 @@ const EditProductModal = ({
                       />
                       <TextField
                         label="Street"
-                        name={`street_${index}`} // Name for street input field
+                        name={`street_${index}`} 
                         value={address.street || ""}
                         onChange={onInputChange}
                         fullWidth
@@ -126,7 +123,7 @@ const EditProductModal = ({
                       />
                       <TextField
                         label="City"
-                        name={`city_${index}`} // Name for city input field
+                        name={`city_${index}`} 
                         value={address.city || ""}
                         onChange={onInputChange}
                         fullWidth
@@ -134,7 +131,7 @@ const EditProductModal = ({
                       />
                       <TextField
                         label="Postal Code"
-                        name={`postalCode_${index}`} // Name for postalCode input field
+                        name={`postalCode_${index}`} 
                         value={address.zipCode || ""}
                         onChange={onInputChange}
                         fullWidth
@@ -142,7 +139,7 @@ const EditProductModal = ({
                       />
                       <TextField
                         label="Country"
-                        name={`country_${index}`} // Name for country input field
+                        name={`country_${index}`} 
                         value={address.country || ""}
                         onChange={onInputChange}
                         fullWidth

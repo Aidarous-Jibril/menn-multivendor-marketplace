@@ -1,5 +1,3 @@
-// components/common/SearchProducts.js
-
 import React from "react";
 
 const SearchProducts = ({ searchQuery, handleSearchChange }) => (

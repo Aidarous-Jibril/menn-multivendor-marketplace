@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 
 // Async Thunk: Fetch exchange rates from USD
 export const fetchExchangeRates = createAsyncThunk(
   "currency/fetchExchangeRates",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("https://open.er-api.com/v6/latest/USD");
+      const { data } = await axiosInstance.get("https://open.er-api.com/v6/latest/USD");
       return data.rates;
     } catch (error) {
       return rejectWithValue("Failed to fetch exchange rates");
@@ -19,7 +19,7 @@ export const getExchangeRates = createAsyncThunk(
   "currency/getExchangeRates",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("https://api.exchangerate-api.com/v4/latest/USD");
+      const { data } = await axiosInstance.get("https://api.exchangerate-api.com/v4/latest/USD");
       console.log("data:", data)
       return data.rates;
     } catch (error) {

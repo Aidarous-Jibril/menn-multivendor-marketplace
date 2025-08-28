@@ -1,8 +1,9 @@
 const Conversation = require("../models/conversationModel");
-const asyncHandler = require("express-async-handler");
+const expressAsyncHandler = require("express-async-handler");
+
 
 // Create a new conversation
-const createNewConversation = asyncHandler(async (req, res, next) => {
+const createNewConversation = expressAsyncHandler(async (req, res, next) => {
     try {
       const { groupTitle, userId, sellerId } = req.body;
   
@@ -29,7 +30,7 @@ const createNewConversation = asyncHandler(async (req, res, next) => {
   });
   
 // Get all conversations for a store/seller
-const getAllStoreAllConversations = asyncHandler(async (req, res, next) => {
+const getAllStoreAllConversations = expressAsyncHandler(async (req, res, next) => {
     try {
       const conversations = await Conversation.find({
         members: { $in: [req.params.id] },
@@ -45,7 +46,7 @@ const getAllStoreAllConversations = asyncHandler(async (req, res, next) => {
   });
   
 // Get all conversations for a user
-const getAllUserConversations = asyncHandler(async (req, res, next) => {
+const getAllUserConversations = expressAsyncHandler(async (req, res, next) => {
     try {
       const conversations = await Conversation.find({
         members: { $in: [req.params.id] },
@@ -61,7 +62,7 @@ const getAllUserConversations = asyncHandler(async (req, res, next) => {
   });
 
 // Update the last message in a conversation
-const updateLastMessage = asyncHandler(async (req, res, next) => {
+const updateLastMessage = expressAsyncHandler(async (req, res, next) => {
   try {
     const { lastMessage, lastMessageId } = req.body;
 

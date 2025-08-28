@@ -15,7 +15,6 @@ const siteSettingSchema = new mongoose.Schema(
     contactEmail: { type: String, default: "support@example.com" },
     supportPhone: { type: String, default: "+46720040449" },
 
-    // ✅ Added notifications field
     notifications: {
       newUserRegistered: { type: Boolean, default: true },
       newVendorRegistered: { type: Boolean, default: true },

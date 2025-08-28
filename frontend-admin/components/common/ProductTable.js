@@ -12,7 +12,7 @@ const ProductTable = ({ rows, columns }) => {
         pageSizeOptions={[5, 10, 20, 100]}
         rowsPerPageOptions={[5, 10, 20]}
         className="data-grid"
-        style={{ overflowX: "auto" }} // Enable horizontal scrolling if needed
+        style={{ overflowX: "auto" }} 
         sx={{
           "& .MuiDataGrid-columnHeaders": {
             backgroundColor: "#ADD8E6", 

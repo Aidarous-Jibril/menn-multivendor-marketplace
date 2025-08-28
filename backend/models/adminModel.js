@@ -16,7 +16,7 @@ const adminSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: false, // Optional for OAuth-based admins
+      required: false, 
       validate: {
         validator: function (value) {
           return !value || value.length >= 6;

@@ -63,7 +63,6 @@ const AllOrdersTable = () => {
     paymentInfo: { method: "", status: "" },
   });
 
-  /* ======Effects ======== */
   // Fetch orders on mount
   useEffect(() => {
     dispatch(fetchOrders());
@@ -138,7 +137,6 @@ const AllOrdersTable = () => {
     // Check if the name is nested (contains a dot)
     if (name.includes(".")) {
       const keys = name.split(".");
-      // For example, if name is "shippingAddress.fullName":
       // keys[0] = "shippingAddress", keys[1] = "fullName"
       setUpdatedOrder((prev) => ({
         ...prev,
@@ -182,7 +180,7 @@ const AllOrdersTable = () => {
           updatedOrder,
         })
       );
-      console.log("selectedOrderId:", selectedOrderId); //Logs null
+      console.log("selectedOrderId:", selectedOrderId); 
       if (result.type === "admin/updateOrder/fulfilled") {
         toast.success("Order updated successfully!");
         dispatch(fetchOrders());

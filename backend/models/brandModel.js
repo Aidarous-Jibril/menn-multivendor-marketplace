@@ -15,7 +15,6 @@ const brandSchema = new mongoose.Schema(
     logo: {
       type: String,
       require: false
-    //   required: [true, 'Please provide a brand logo URL'],
     },
     createdAt: {
       type: Date,

@@ -9,24 +9,21 @@ const ProfileSettings = () => {
   const dispatch = useDispatch();
   const { adminInfo, isLoading, error, successMessage } = useSelector((state) => state.admin);
 
-  // Local state to hold the admin profile data
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     phoneNumber: "",
-    avatar: "", // we'll store a Base64 URL here for updating
+    avatar: "", 
     password: "",
   });
 
   // Separate state for showing avatar preview
   const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // Fetch admin profile when the component mounts
   useEffect(() => {
     dispatch(fetchAdminProfile());
   }, [dispatch]);
 
-  // When adminInfo is available, prefill the form fields
   useEffect(() => {
     if (adminInfo) {
       setProfile({
@@ -34,13 +31,12 @@ const ProfileSettings = () => {
         email: adminInfo.email || "",
         phoneNumber: adminInfo.phoneNumber || "",
         avatar: adminInfo.avatar?.url || "",
-        password: "", // keep password field empty to indicate "no change"
+        password: "", 
       });
       setAvatarPreview(adminInfo.avatar?.url || null);
     }
   }, [adminInfo]);
 
-  // Show success or error messages
   useEffect(() => {
     if (successMessage) {
       toast.success(successMessage);
@@ -50,7 +46,6 @@ const ProfileSettings = () => {
     }
   }, [successMessage, error]);
 
-  // Handle change for text fields
   const handleChange = (e) => {
     setProfile({ ...profile, [e.target.name]: e.target.value });
   };
@@ -73,8 +68,6 @@ const ProfileSettings = () => {
 
   // When the admin clicks "Update Profile"
   const handleUpdate = () => {
-    // Prepare data for updating.
-    // If the password field is empty, we remove it so the backend doesn't update it.
     const updatedProfile = { ...profile };
     if (!updatedProfile.password) {
       delete updatedProfile.password;

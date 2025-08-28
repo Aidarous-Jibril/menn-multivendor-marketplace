@@ -8,6 +8,7 @@ import { AiOutlineCamera } from 'react-icons/ai';
 import { updateVendorAvatar, updateVendorInformation } from '@/redux/slices/vendorSlice';
 import Loader from './layout/Loader';
 import ClientOnly from '../common/ClientOnly';
+import Image from 'next/image';
 
 
 const VendorSettings = () => {
@@ -79,26 +80,31 @@ const VendorSettings = () => {
       }
   };
   
-
+  const avatarSrc = avatar || "/images/store-backup.png";
   return (
     <ClientOnly>
       <div className="w-full h-full bg-gray-100 px-2 sm:px-4 md:px-6 lg:px-8 xl:px-12 rounded-md flex flex-col">
 
-        <div className="flex justify-center w-full mb-6">
-          <div className="relative">
-            <img
-              src={avatar || "https://logowik.com/content/uploads/images/shop-app6999.jpg"}
-              className="w-[150px] h-[150px] rounded-full object-cover border-[3px] border-[#3ad132]"
-              alt="Vendor Avatar"
-            />
-            <div className="w-[30px] h-[30px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px]">
-              <input type="file" id="image" className="hidden" onChange={handleImage} />
-              <label htmlFor="image">
-                <AiOutlineCamera className="text-[#3ad132]" />
-              </label>
-            </div>
+      <div className="flex justify-center w-full mb-6">
+        <div className="relative w-[150px] h-[150px] rounded-full border-[3px] border-[#3ad132] overflow-hidden">
+          <Image
+            src={avatarSrc}
+            alt="Vendor Avatar"
+            fill
+            className="object-cover"
+            sizes="150px"
+            priority
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTUwJyBoZWlnaHQ9JzE1MCcgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJz48cmVjdCBmaWxsPSIjZWVlIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIi8+PC9zdmc+"
+          />
+          <div className="w-[30px] h-[30px] bg-[#E3E9EE] rounded-full flex items-center justify-center cursor-pointer absolute bottom-[5px] right-[5px]">
+            <input type="file" id="image" className="hidden" onChange={handleImage} />
+            <label htmlFor="image">
+              <AiOutlineCamera className="text-[#3ad132]" />
+            </label>
           </div>
         </div>
+      </div>
 
         <form onSubmit={updateVendorHandler}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">

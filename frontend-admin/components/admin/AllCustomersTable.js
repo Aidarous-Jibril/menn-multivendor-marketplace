@@ -31,12 +31,6 @@ const AllCustomersTable = () => {
     }
   }, [dispatch, adminInfo]);
 
-  if (error) return <p className="text-red-500">{error}</p>;
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
   useEffect(() => {
     const lowerCaseQuery = searchQuery.toLowerCase();
     const filtered = users.filter((user) => 
@@ -46,6 +40,12 @@ const AllCustomersTable = () => {
     );
     setFilteredUsers(filtered);
   }, [searchQuery, users]);
+
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   
 
   const handleEditModalOpen = (user) => {
@@ -191,6 +191,7 @@ const AllCustomersTable = () => {
 
   return (
     <div className="w-full min-h-screen overflow-hidden">
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       {isLoading ? (
         <Loader />
       ) : (

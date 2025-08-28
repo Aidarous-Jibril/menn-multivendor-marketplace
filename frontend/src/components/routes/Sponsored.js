@@ -1,5 +1,3 @@
-// components/routes/Sponsored.js
-
 import React from 'react';
 import { FaTruck, FaRegCreditCard, FaAward } from 'react-icons/fa';
 import { GiReturnArrow } from 'react-icons/gi';

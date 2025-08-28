@@ -7,6 +7,7 @@ import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import EditProductModal from '../common/ProductEditModal';
 import ProductTable from '../common/ProductTable';
 import SearchProducts from '../common/SearchProducts';
+import Image from 'next/image';
 
 const CategoryTable = () => {
   const dispatch = useDispatch();
@@ -21,20 +22,17 @@ const CategoryTable = () => {
 
   const [categoryData, setCategoryData] = useState({ name: '', slug: '', imageUrl: '' });
 
-  // Fetch categories when component mounts
   useEffect(() => {
     dispatch(fetchCategories());
   }, [dispatch]);
 
   useEffect(() => {
-    // Filter categories based on search query
     const filtered = categories.filter((cat) =>
       cat.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
     setFilteredCategories(filtered);
   }, [categories, searchQuery]);
 
-  // Open the form modal for creating or editing a category
   const handleOpenForm = (category = null) => {
     if (category) {
       setIsEditMode(true);
@@ -58,7 +56,6 @@ const CategoryTable = () => {
     setCategoryData({ name: '', slug: '', imageUrl: '' });
   };
 
-  // Handle form submission (create or update category)
   const handleFormSubmit = async () => {
     const action = isEditMode
       ? updateMainCategory({ categoryId: selectedCategoryId, categoryData })
@@ -95,7 +92,14 @@ const CategoryTable = () => {
       flex: 1,
       renderCell: (params) => (
         params.value ? (
-          <img src={params.value} alt="category" width="50" height="50" />
+          <Image
+            src={params.value}
+            alt="Category"
+            width={50}
+            height={50}
+            style={{ borderRadius: 4, objectFit: "cover" }}
+            sizes="50px"
+          />
         ) : (
           'No Image'
         )
@@ -175,7 +179,7 @@ const CategoryTable = () => {
           setCategoryData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
         }
         onSave={handleFormSubmit}
-        isCategoryEdit={true} // Flag for category edit
+        isCategoryEdit={true} 
       />
 
       {/* Delete Confirmation */}

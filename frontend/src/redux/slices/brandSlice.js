@@ -1,13 +1,14 @@
 // redux/slices/brandSlice.js
+import axiosInstance from '@/utils/axiosInstance';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+
 
 // Thunk to fetch all brands
 export const fetchAllBrands = createAsyncThunk(
   'brands/fetchAllBrands',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get('/api/brands');
+      const response = await axiosInstance.get('/api/brands');
       return response.data.brands;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -20,7 +21,7 @@ export const fetchBrandById = createAsyncThunk(
   'brands/fetchBrandById',
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`/api/brands/${id}`);
+      const response = await axiosInstance.get(`/api/brands/${id}`);
       return response.data.brand;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -33,7 +34,7 @@ export const createBrand = createAsyncThunk(
   'brands/createBrand',
   async (brandData, { rejectWithValue }) => {
     try {
-      const response = await axios.post('/api/brands', brandData);
+      const response = await axiosInstance.post('/api/brands', brandData);
       return response.data.brand;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -46,7 +47,7 @@ export const updateBrand = createAsyncThunk(
   'brands/updateBrand',
   async ({ id, brandData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`/api/brands/${id}`, brandData);
+      const response = await axiosInstance.put(`/api/brands/${id}`, brandData);
       return response.data.brand;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -59,7 +60,7 @@ export const deleteBrand = createAsyncThunk(
   'brands/deleteBrand',
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/brands/${id}`);
+      await axiosInstance.delete(`/api/brands/${id}`);
       return id; // Return the ID of the deleted brand
     } catch (error) {
       return rejectWithValue(error.response.data.message);

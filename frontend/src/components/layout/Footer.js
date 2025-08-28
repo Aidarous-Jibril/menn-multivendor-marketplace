@@ -25,7 +25,7 @@ const Footer = () => {
         <div>
           <h3 className="text-lg font-bold mb-4">Special</h3>
          <ul>
-          <li><Link href="/sale">Flash Deals</Link></li>
+          <li><Link href="/dealsw">Flash Deals</Link></li>
           <li><Link href="/products?filter=latest">Latest Products</Link></li>
           <li><Link href="/best-sellers">Best Selling Products</Link></li> 
           <li><Link href="/support">Support</Link></li> 

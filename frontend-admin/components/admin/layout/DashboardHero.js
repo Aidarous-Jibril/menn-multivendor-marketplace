@@ -9,15 +9,16 @@ import Loader from './Loader';
 const DashboardHero = () => {
   const dispatch = useDispatch();
   const { dashboardStats, weeklyTrends, isLoading } = useSelector((state) => state.admin);
+  const { adminInfo } = useSelector((state) => state.admin);
 
   useEffect(() => {
+    if (!adminInfo) return;
     dispatch(fetchAdminDashboardStats());
     dispatch(fetchWeeklyTrends());
-  }, [dispatch]);
+  }, [dispatch, adminInfo]);
+
 
   if (isLoading || !dashboardStats) return <Loader />;
-// console.log("isLoading:", isLoading)
-// console.log("dashboardStats:", dashboardStats)
   return (
     <div className="w-full p-4 md:p-8 rounded-md bg-gray-100">
       {/* Header */}

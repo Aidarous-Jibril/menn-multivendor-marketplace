@@ -1,5 +1,4 @@
-// AllSaleProductsTable.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineDelete, AiOutlineEye, AiOutlineEdit,} from "react-icons/ai";
 import { Button, Card, CardContent, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Tooltip, Typography,} from "@mui/material";
@@ -18,6 +17,7 @@ import SearchProducts from "../common/SearchProducts";
 import Loader from "../admin/layout/Loader";
 import ConfirmationModal from "../common/ConfirmationModal";
 import CreateItemModal from "../common/CreateItemModal"; 
+import Image from "next/image";
 
 const AllSaleProductsTable = () => {
   const dispatch = useDispatch();
@@ -28,7 +28,6 @@ const AllSaleProductsTable = () => {
   const { categories, subcategories, subSubcategories } = useSelector((state) => state.categories );
 
   // Local state for filtering and search
-  const [filteredSales, setFilteredSales] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [mainCategory, setMainCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
@@ -58,7 +57,6 @@ const AllSaleProductsTable = () => {
     stock: "",
   });
 
-  // State for creating a new sale product (include extra fields such as saleStart and saleEnd)
   const [newSale, setNewSale] = useState({
     name: "",
     description: "",
@@ -69,7 +67,7 @@ const AllSaleProductsTable = () => {
     originalPrice: 0,
     discountPrice: 0,
     stock: 0,
-    vendorId: "", // Admin selects vendor from a dropdown
+    vendorId: "", 
     isFeatured: false,
     images: [],
     attributes: {},
@@ -77,7 +75,6 @@ const AllSaleProductsTable = () => {
     saleEnd: "",
   });
 
-  // Effects: fetch sales, categories, brands on mount
   useEffect(() => {
     dispatch(fetchAllSales());
     dispatch(fetchCategories());
@@ -92,47 +89,38 @@ const AllSaleProductsTable = () => {
     }
   }, [dispatch, mainCategory]);
 
-  // When subCategory changes, fetch sub-subcategories
   useEffect(() => {
     if (subCategory) {
       dispatch(fetchSubSubcategories(subCategory));
     }
   }, [dispatch, subCategory]);
 
-  // Filter sales based on selected filters and search query
-  const filterSales = () => {
-    let filtered = [...sales];
-      // ... do filtering ...
-  console.log("Filtered array:", filtered);
-    if (mainCategory) {
-      filtered = filtered.filter((sale) => sale.mainCategory === mainCategory);
-    }
-    if (subCategory) {
-      filtered = filtered.filter((sale) => sale.subCategory === subCategory);
-    }
-    if (subSubCategory) {
-      filtered = filtered.filter(
-        (sale) => sale.subSubCategory === subSubCategory
-      );
-    }
-    if (selectedBrand) {
-      filtered = filtered.filter((sale) => sale.brand === selectedBrand);
-    }
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (sale) =>
-          sale.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (sale.brand &&
-            sale.brand.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          sale._id.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    return filtered;
-  };
+const filteredSales = useMemo(() => {
+  const list = Array.isArray(sales) ? sales : [];
+  let filtered = [...list];
 
-  useEffect(() => {
-    setFilteredSales(filterSales());
-  }, [mainCategory, subCategory, subSubCategory, selectedBrand, sales, searchQuery]);
+  if (mainCategory) {
+    filtered = filtered.filter(s => s.mainCategory === mainCategory);
+  }
+  if (subCategory) {
+    filtered = filtered.filter(s => s.subCategory === subCategory);
+  }
+  if (subSubCategory) {
+    filtered = filtered.filter(s => s.subSubCategory === subSubCategory);
+  }
+  if (selectedBrand) {
+    filtered = filtered.filter(s => s.brand === selectedBrand);
+  }
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    filtered = filtered.filter(s =>
+      (s.name || "").toLowerCase().includes(q) ||
+      (s.brand || "").toLowerCase().includes(q) ||
+      (s._id || "").toLowerCase().includes(q)
+    );
+  }
+  return filtered;
+}, [sales, mainCategory, subCategory, subSubCategory, selectedBrand, searchQuery]);
 
   // Handlers for filters and search
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
@@ -528,13 +516,13 @@ const AllSaleProductsTable = () => {
             subcategories={subcategories}
             subSubcategories={subSubcategories}
             brands={brands}
-            vendors={vendors} // Pass vendors array here
+            vendors={vendors} 
             handleCategoryChange={handleCategoryChange}
             handleSubCategoryChange={handleSubCategoryChange}
             handleSubSubCategoryChange={handleSubSubCategoryChange}
             handleBrandChange={handleBrandChange}
             handleFileChange={handleFileChange}
-            isSale={true} // Flag indicating this is for sale product creation
+            isSale={true} 
           />
 
           {/* View Sale Modal */}
@@ -579,12 +567,15 @@ const AllSaleProductsTable = () => {
                         <strong>Vendor Address:</strong> {singleSale.vendor?.address}
                       </Typography>
                       {singleSale.vendor?.avatar?.url && (
-                        <img
-                          src={singleSale.vendor.avatar.url}
-                          alt="Vendor Avatar"
-                          width="50"
-                          height="50"
-                          style={{ borderRadius: "50%" }}
+                        <Image
+                          key={img?._id || index}
+                          src={img?.url || "/images/fallbackImage.jpg"}
+                          alt={`Sale Image ${index + 1}`}
+                          width={100}
+                          height={100}
+                          sizes="(max-width: 768px) 80px, 100px"
+                          style={{ borderRadius: 5, objectFit: "cover" }}
+                          priority={index === 0} // only if these are above the fold
                         />
                       )}
                     </CardContent>
@@ -613,14 +604,16 @@ const AllSaleProductsTable = () => {
                       <Typography variant="h6">Sale Images</Typography>
                       <Divider style={{ margin: "10px 0" }} />
                       <div style={{ display: "flex", gap: "10px" }}>
-                        {singleSale.images?.map((img, index) => (
-                          <img
-                            key={index}
-                            src={img.url}
+                        {singleSale?.images?.map((img, index) => (
+                          <Image
+                            key={img?._id || index}
+                            src={img?.url || "/images/fallbackImage.jpg"}
                             alt={`Sale Image ${index + 1}`}
-                            width="100"
-                            height="100"
-                            style={{ borderRadius: "5px" }}
+                            width={100}
+                            height={100}
+                            sizes="(max-width: 768px) 80px, 100px"
+                            style={{ borderRadius: 5, objectFit: "cover" }}
+                            priority={index === 0} 
                           />
                         ))}
                       </div>

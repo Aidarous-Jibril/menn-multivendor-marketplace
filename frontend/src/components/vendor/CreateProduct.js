@@ -1,21 +1,24 @@
 // Third-party library imports
 import "quill/dist/quill.snow.css";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
 import DOMPurify from "dompurify";
+import { AiOutlinePlus } from "react-icons/ai";
 
 // Local imports (Redux slices)
 import { createProduct } from "@/redux/slices/productSlice";
 import { fetchCategories } from "@/redux/slices/categorySlice";
 import { fetchAllBrands } from "@/redux/slices/brandSlice";
+import RichTextEditor from "../common/RichTextEditor";
 
 // Category-specific attributes
 const categoryAttributes = {
   clothing: ["size", "color", "material", "gender"],
   vehicles: ["model", "make", "year", "mileage", "fuelType"],
-  electronics: [ "model", "warranty", "condition", "processor", "memory", "storage", "display"],
+  electronics: ["model", "warranty", "condition", "processor", "memory", "storage", "display"],
   shoes: ["size", "color", "material", "gender"],
   property: ["propertyType", "location", "bedrooms", "bathrooms", "area"],
   content: ["author", "publisher", "genre", "format", "language"],
@@ -23,7 +26,6 @@ const categoryAttributes = {
   wellness: ["type", "expiryDate", "ingredients", "gender"],
   jobs: ["jobType", "location", "salary", "experienceLevel", "industry"],
 };
-
 
 const CreateProduct = () => {
   const dispatch = useDispatch();
@@ -47,88 +49,62 @@ const CreateProduct = () => {
     attributes: {},
   });
 
-  const [subcategories, setSubcategories] = useState([]);
-  const [subSubcategories, setSubSubcategories] = useState([]);
-
+  // bootstrap data
   useEffect(() => {
     dispatch(fetchCategories());
     dispatch(fetchAllBrands());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (productData.mainCategory) {
-      const mainCategoryObj = categories.find(
-        (cat) => cat.slug === productData.mainCategory
-      );
-      setSubcategories(mainCategoryObj?.subcategories || []);
-      setProductData({
-        ...productData,
-        subCategory: "",
-        subSubCategory: "",
-        attributes: {},
-      });
-    }
-  }, [productData.mainCategory, categories]);
+  // derived subcategories
+  const subcategories = useMemo(() => {
+    if (!productData.mainCategory) return [];
+    const main = categories?.find((c) => c.slug === productData.mainCategory);
+    return main?.subcategories || [];
+  }, [categories, productData.mainCategory]);
 
-  useEffect(() => {
-    if (productData.subCategory) {
-      const subCategoryObj = subcategories.find(
-        (subcat) => subcat.slug === productData.subCategory
-      );
-      console.log("subCategoryObj:", subCategoryObj); 
-      setSubSubcategories(subCategoryObj?.subsubcategories || []);
-    } else {
-      setSubSubcategories([]);
-    }
-  }, [productData.subCategory, subcategories]);
+  // derived sub-subcategories
+  const subSubcategories = useMemo(() => {
+    if (!productData.subCategory) return [];
+    const sub = subcategories.find((s) => s.slug === productData.subCategory);
+    return sub?.subsubcategories || [];
+  }, [subcategories, productData.subCategory]);
 
   const handleCategoryChange = (e) => {
     const { value } = e.target;
-    setProductData({
-      ...productData,
+    setProductData((prev) => ({
+      ...prev,
       mainCategory: value,
       subCategory: "",
       subSubCategory: "",
       attributes: {},
-    });
-  };
-
-  const handleDescriptionChange = (content) => {
-    // Remove all HTML tags and store as plain text
-    const cleanContent = DOMPurify.sanitize(content, { ALLOWED_TAGS: [] }).trim();
-  
-    setProductData((prevData) => ({
-      ...prevData,
-      description: cleanContent,
     }));
   };
-  
 
+  const handleDescriptionChange = (text) => {
+    // text is already plain; sanitize on submit if you like
+    setProductData((prev) => ({ ...prev, description: text }));
+  };
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setProductData({
-      ...productData,
-      [name]: value,
-    });
+    setProductData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAttributeChange = (e) => {
     const { name, value } = e.target;
-    setProductData({
-      ...productData,
-      attributes: { ...productData.attributes, [name]: value },
-    });
+    setProductData((prev) => ({
+      ...prev,
+      attributes: { ...prev.attributes, [name]: value },
+    }));
   };
 
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     setImages([]);
-
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.readyState === 2) {
-          setImages((old) => [...old, reader.result]);
+          setImages((old) => [...old, reader.result]); // data URL
         }
       };
       reader.readAsDataURL(file);
@@ -136,55 +112,41 @@ const CreateProduct = () => {
   };
 
   const handleIsFeaturedChange = (e) => {
-    setProductData({
-      ...productData,
-      isFeatured: e.target.checked,
-    });
+    setProductData((prev) => ({ ...prev, isFeatured: e.target.checked }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !productData.mainCategory ||
-      !productData.subCategory ||
-      !productData.brand
-    ) {
+    if (!productData.mainCategory || !productData.subCategory || !productData.brand) {
       toast.error("Please select all required fields.");
       return;
     }
-
     if (images.length === 0) {
       toast.error("Please upload at least one image.");
       return;
     }
 
-    const newForm = new FormData();
-    Object.keys(productData).forEach((key) => {
-      if (key !== "attributes") {
-        newForm.append(key, productData[key]);
-      }
+    const form = new FormData();
+    Object.entries(productData).forEach(([key, val]) => {
+      if (key !== "attributes") form.append(key, val);
     });
-    newForm.append("vendorId", vendorInfo._id);
+    form.append("vendorId", vendorInfo._id);
+    Object.entries(productData.attributes).forEach(([k, v]) => {
+      form.append(`attributes[${k}]`, v);
+    });
+    images.forEach((dataUrl) => form.append("images", dataUrl)); // if API expects File, switch to File objects
 
-    Object.keys(productData.attributes).forEach((key) => {
-      newForm.append(`attributes[${key}]`, productData.attributes[key]);
-    });
-
-    images.forEach((url) => {
-      newForm.append("images", url);
-    });
     try {
-      const result = await dispatch(createProduct(newForm));
-
+      const result = await dispatch(createProduct(form));
       if (result.type === "products/createProduct/fulfilled") {
         toast.success("Product created successfully!");
         router.push("/vendor/dashboard");
-      } else if (result.type === "products/createProduct/rejected") {
-        const errorMessage = result.payload?.message || "An error occurred while creating the product.";
-        toast.error(errorMessage);
+      } else {
+        const msg = result.payload?.message || "An error occurred while creating the product.";
+        toast.error(msg);
       }
-    } catch (err) {
+    } catch {
       toast.error("An unexpected error occurred.");
     }
   };
@@ -203,9 +165,7 @@ const CreateProduct = () => {
           <h2 className="text-xl font-semibold mb-4">Product Information</h2>
 
           <div className="flex items-center mb-4">
-            <label className="w-[180px] text-[16px] font-medium">
-              Product Name:
-            </label>
+            <label className="w-[180px] text-[16px] font-medium">Product Name:</label>
             <input
               type="text"
               name="name"
@@ -218,14 +178,8 @@ const CreateProduct = () => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-[16px] font-medium mb-2">
-              Description:
-            </label>
-            <RichTextEditor
-              value={productData.description}
-              onChange={handleDescriptionChange}
-              className="w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="block text-[16px] font-medium mb-2">Description:</label>
+            <RichTextEditor as="text" value={productData.description} onChange={handleDescriptionChange} />
           </div>
         </div>
 
@@ -253,9 +207,7 @@ const CreateProduct = () => {
             <label className="block mb-2 text-[16px]">Subcategory:</label>
             <select
               value={productData.subCategory}
-              onChange={(e) =>
-                setProductData({ ...productData, subCategory: e.target.value })
-              }
+              onChange={(e) => setProductData((prev) => ({ ...prev, subCategory: e.target.value }))}
               className="w-full p-2 border border-gray-300 rounded-md"
               required
             >
@@ -274,33 +226,26 @@ const CreateProduct = () => {
             <select
               value={productData.subSubCategory}
               onChange={(e) =>
-                setProductData({
-                  ...productData,
-                  subSubCategory: e.target.value,
-                })
+                setProductData((prev) => ({ ...prev, subSubCategory: e.target.value }))
               }
               className="w-full p-2 border border-gray-300 rounded-md"
               required
             >
               <option value="">Choose a sub-subcategory</option>
-              {subSubcategories.map((subSubcategory) => (
-                <option key={subSubcategory.slug} value={subSubcategory.slug}>
-                  {subSubcategory.name}
+              {subSubcategories.map((ssc) => (
+                <option key={ssc.slug} value={ssc.slug}>
+                  {ssc.name}
                 </option>
               ))}
             </select>
           </div>
+
           {/* Brand Selection */}
           <div>
             <label className="block mb-2 text-[16px]">Brand:</label>
             <select
               value={productData.brand}
-              onChange={(e) =>
-                setProductData({
-                  ...productData,
-                  brand: e.target.value,
-                })
-              }
+              onChange={(e) => setProductData((prev) => ({ ...prev, brand: e.target.value }))}
               className="w-full p-2 border border-gray-300 rounded-md"
               required
             >
@@ -319,9 +264,7 @@ const CreateProduct = () => {
           <h2 className="text-xl font-semibold mb-4">Price & Stock</h2>
 
           <div className="flex items-center mb-4">
-            <label className="w-[180px] text-[16px] font-medium">
-              Original Price:
-            </label>
+            <label className="w-[180px] text-[16px] font-medium">Original Price:</label>
             <input
               type="number"
               name="originalPrice"
@@ -334,9 +277,7 @@ const CreateProduct = () => {
           </div>
 
           <div className="flex items-center mb-4">
-            <label className="w-[180px] text-[16px] font-medium">
-              Discount Price:
-            </label>
+            <label className="w-[180px] text-[16px] font-medium">Discount Price:</label>
             <input
               type="number"
               name="discountPrice"
@@ -390,12 +331,15 @@ const CreateProduct = () => {
             className="mb-4 border border-gray-300 rounded-md"
           />
           <div className="flex space-x-2">
-            {images.map((image, index) => (
+            {images.map((src, index) => (
               <div key={index} className="relative">
-                <img
-                  src={image}
+                <Image
+                  src={src}           // data URL
                   alt={`preview ${index}`}
-                  className="w-20 h-20 object-cover rounded-md"
+                  width={80}
+                  height={80}
+                  className="rounded-md object-cover"
+                  sizes="80px"
                 />
               </div>
             ))}
@@ -428,51 +372,5 @@ const CreateProduct = () => {
   );
 };
 
-import "quill/dist/quill.snow.css"; // Import Quill CSS
-import { AiOutlinePlus } from "react-icons/ai";
-
-let Quill;
-
-const RichTextEditor = ({ value, onChange }) => {
-  const editorRef = useRef(null);
-  const quillRef = useRef(null);
-
-  const loadQuill = async () => {
-    if (typeof window !== "undefined") {
-      const QuillImport = await import("quill");
-      Quill = QuillImport.default;
-    }
-  };
-
-  useEffect(() => {
-    loadQuill().then(() => {
-      if (Quill && quillRef.current && !editorRef.current) {
-        editorRef.current = new Quill(quillRef.current, {
-          theme: "snow",
-          modules: {
-            toolbar: [
-              [{ header: "1" }, { header: "2" }, { font: [] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              ["bold", "italic", "underline"],
-              ["link", "image"],
-            ],
-          },
-        });
-
-        // Set the initial content and listen for changes
-        editorRef.current.root.innerHTML = value;
-        editorRef.current.on("text-change", () => {
-          onChange(editorRef.current.root.innerHTML);
-        });
-      }
-    });
-  }, []);
-
-  return (
-    <div style={{ border: "1px solid #ccc", minHeight: "150px" }}>
-      <div ref={quillRef} />
-    </div>
-  );
-};
 
 export default CreateProduct;

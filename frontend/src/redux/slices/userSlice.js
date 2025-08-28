@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import axiosInstance from "@/utils/axiosInstance";
 import { signOut } from "next-auth/react";
 
 // Helper function to check if we are in the browser environment
@@ -19,7 +19,7 @@ export const loginUser = createAsyncThunk(
   "user/loginUser",
   async (userData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post("http://localhost:8000/api/users/login", userData, { withCredentials: true, });
+      const { data } = await axiosInstance.post("http://localhost:8000/api/users/login", userData, { withCredentials: true, });
       if (isBrowser()) {
         localStorage.setItem("userInfo", JSON.stringify(data.user));
       }
@@ -37,7 +37,7 @@ export const resetUserPassword = createAsyncThunk(
     console.log("token", token)
     console.log("password", password)
     try {
-      const { data } = await axios.post(
+      const { data } = await axiosInstance.post(
         `http://localhost:8000/api/users/reset-password/${token}`,
         { password }
       );
@@ -53,7 +53,7 @@ export const logoutUser = createAsyncThunk(
   "user/logoutUser",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.get("/api/users/logout", {
+      const { data } = await axiosInstance.get("/api/users/logout", {
         withCredentials: true,
       });
       if (isBrowser()) {
@@ -74,7 +74,7 @@ export const registerUser = createAsyncThunk(
   "user/registerUser",
   async (userData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post("/api/users/register", userData);
+      const { data } = await axiosInstance.post("/api/users/register", userData);
       if (isBrowser()) {
         localStorage.setItem("userInfo", JSON.stringify(data.user));
       }
@@ -90,7 +90,7 @@ export const updateUserInformation = createAsyncThunk(
   "user/updateUserInformation",
   async ({ name, email, phoneNumber, password, id }, { rejectWithValue }) => {
     try {
-      const { data } = await axios.put(
+      const { data } = await axiosInstance.put(
         "/api/users/update-user-info", 
         { name, email, phoneNumber, password, id },
         { withCredentials: true } 
@@ -111,7 +111,7 @@ export const changePassword = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `/api/users/update-user-password`,
         { oldPassword, newPassword, confirmPassword },
         { withCredentials: true }
@@ -132,7 +132,7 @@ export const updateUserAvatar = createAsyncThunk(
       const formData = new FormData();
       formData.append("avatar", avatar); // Attach the file
 
-      const response = await axios.put(
+      const response = await axiosInstance.put(
         `/api/users/update-avatar/${id}`,
         formData,
         {
@@ -154,7 +154,7 @@ export const addUserAddress = createAsyncThunk(
   "user/addUserAddress",
   async (addressData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(
+      const { data } = await axiosInstance.post(
         "/api/users/add-address",
         addressData,
         {
@@ -163,9 +163,12 @@ export const addUserAddress = createAsyncThunk(
         }
       );
       localStorage.setItem("userInfo", JSON.stringify(data.user));
-      return data;
+      return data; // { success, user, message }
     } catch (error) {
-      return rejectWithValue(error.response.data.error);
+      const status = error?.response?.status;
+      const data = error?.response?.data || {};
+      const message = data.error || data.message || "Unable to add address.";
+      return rejectWithValue({ status, message });
     }
   }
 );
@@ -175,7 +178,7 @@ export const deleteUserAddress = createAsyncThunk(
   "user/deleteUserAddress",
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axios.delete(
+      const { data } = await axiosInstance.delete(
         `/api/users/delete-user-address/${id}`,
         { withCredentials: true }
       );
@@ -193,7 +196,7 @@ export const addPaymentMethod = createAsyncThunk(
   "user/addPaymentMethod",
   async (paymentData, { rejectWithValue }) => {
     try {
-      const { data } = await axios.post(
+      const { data } = await axiosInstance.post(
         "/api/users/add-payment-method",
         paymentData,
         {
@@ -216,7 +219,7 @@ export const deletePaymentMethod = createAsyncThunk(
   "user/deletePaymentMethod",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axios.delete("/api/users/delete-payment-method", {
+      const { data } = await axiosInstance.delete("/api/users/delete-payment-method", {
         withCredentials: true,
       });
       if (isBrowser()) {
@@ -344,12 +347,12 @@ const userSlice = createSlice({
       })
       .addCase(addUserAddress.fulfilled, (state, action) => {
         state.addressLoading = false;
-        state.successMessage = action.payload.msg;
+        state.successMessage = action.payload.message;
         state.userInfo = action.payload.user;
       })
       .addCase(addUserAddress.rejected, (state, action) => {
         state.addressLoading = false;
-        state.error = action.payload;
+        state.error = action.payload?.message || "Unable to add address.";
       })
       // Delete User Address
       .addCase(deleteUserAddress.pending, (state) => {

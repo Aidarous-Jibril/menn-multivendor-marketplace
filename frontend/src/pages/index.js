@@ -1,4 +1,3 @@
-// pages/index.js
 import 'tailwindcss/tailwind.css';
 import React from 'react';
 import axios from 'axios';
@@ -11,7 +10,6 @@ const HeroPage = dynamic(() => import('@/components/routes/HeroPage'), { ssr: fa
 const Categories = dynamic(() => import('@/components/routes/Categories'));
 const TopSellers = dynamic(() => import('@/components/routes/Sellers'), { ssr: false });
 const Sponsored = dynamic(() => import('@/components/routes/Sponsored'));
-const Brands = dynamic(() => import('@/components/routes/Brands'), { ssr: false });
 const Footer = dynamic(() => import('@/components/layout/Footer'));
 
 
@@ -23,7 +21,6 @@ const HomePage = ({ products, categories, vendors, sales, brands }) => {
       <HeroPage /> 
       <Categories categories={categories} />
       <TopSellers vendors={vendors} />
-      <Brands brands={brands} />
       <Sponsored />
       <Footer />  
     </div>
@@ -39,7 +36,6 @@ export async function getServerSideProps() {
       axios.get(`${baseURL}/api/categories`).catch(err => { console.error("Categories Error:", err); return null; }),
       axios.get(`${baseURL}/api/vendors`).catch(err => { console.error("Vendors Error:", err); return null; }),
       axios.get(`${baseURL}/api/sales`).catch(err => { console.error("Sales Error:", err); return null; }),
-      axios.get(`${baseURL}/api/brands`).catch(err => { console.error("Brands Error:", err); return null; }),
     ]);
 
     return {

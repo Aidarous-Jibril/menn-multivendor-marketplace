@@ -3,6 +3,7 @@ import { Box, TextField, Button, Typography, CircularProgress,} from "@mui/mater
 import { useDispatch, useSelector } from "react-redux";
 import { fetchSiteSettings, updateSiteSettings } from "@/redux/siteSettingsSlice";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 const AdminGeneralSettings = () => {
   const dispatch = useDispatch();
@@ -29,7 +30,7 @@ const AdminGeneralSettings = () => {
         siteDescription: siteSettings.siteDescription || "",
         contactEmail: siteSettings.contactEmail || "",
         supportPhone: siteSettings.supportPhone || "",
-        logo: null, // We don't prefill file object
+        logo: null, 
       });
       if (siteSettings.logo?.url) {
         setLogoPreview(siteSettings.logo.url);
@@ -112,11 +113,15 @@ const AdminGeneralSettings = () => {
           <Box sx={{ my: 2 }}>
             <Typography>Site Logo</Typography>
             {logoPreview && (
-              <Box sx={{ my: 1 }}>
-                <img
-                  src={logoPreview}
+              <Box sx={{ my: 1, position: "relative", width: 120, height: 60 }}>
+                <Image
+                  src={logoPreview}              
                   alt="Site Logo Preview"
-                  style={{ width: "120px", height: "auto" }}
+                  fill                          
+                  sizes="120px"
+                  style={{ objectFit: "contain" }}
+                  unoptimized                    
+                  priority
                 />
               </Box>
             )}

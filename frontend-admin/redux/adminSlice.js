@@ -36,9 +36,7 @@ export const registerAdmin = createAsyncThunk(
 export const loginAdmin = createAsyncThunk(
   "admin/loginAdmin",
   async (adminData, { rejectWithValue }) => {
-    console.log("ADMIN DATA:", adminData)
     try {
-      // const { data } = await axiosInstance.post("/api/admin/login", adminData, {
         const { data } = await axiosInstance.post(`/api/admin/login`, adminData, {
 
         withCredentials: true,
@@ -219,6 +217,25 @@ export const updateVendor = createAsyncThunk(
     }
   }
 );
+
+// Delete Vendor
+export const deleteVendor = createAsyncThunk(
+  "admin/deleteVendor",
+  async (vendorId, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.delete(
+        `/api/admin/vendors/${vendorId}`,
+        { withCredentials: true }
+      );
+      return { vendorId, message: data?.message || "Vendor deleted" };
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to delete vendor"
+      );
+    }
+  }
+);
+
 // Block Vendor
 export const blockVendor = createAsyncThunk(
   "admin/blockVendor",
@@ -1072,6 +1089,21 @@ const adminSlice = createSlice({
         state.message = "Vendor updated successfully!";
       })
       .addCase(updateVendor.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      // Delete Vendor
+      .addCase(deleteVendor.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteVendor.fulfilled, (state, action) => {
+        state.isLoading = false;
+        const id = action.payload.vendorId;
+        state.vendors = state.vendors.filter((v) => v._id !== id);
+        state.message = action.payload.message;
+      })
+      .addCase(deleteVendor.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

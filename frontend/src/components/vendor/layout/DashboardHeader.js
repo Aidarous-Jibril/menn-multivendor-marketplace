@@ -3,13 +3,19 @@ import { AiOutlineGift } from "react-icons/ai";
 import { MdOutlineDashboard } from "react-icons/md";
 import { FiPackage, FiShoppingBag, FiTrash } from "react-icons/fi";
 import { BiMessageSquareDetail } from "react-icons/bi";
-import Link from 'next/link';
+import Link from "next/link";
 import { CiBank, CiMoneyBill, CiSettings } from "react-icons/ci";
 import { HiOutlineReceiptRefund } from "react-icons/hi";
 import { LuLogOut } from "react-icons/lu";
 import { BsAlexa } from "react-icons/bs";
 import { IoIosAddCircle, IoMdAdd } from "react-icons/io";
-import { deleteVendorNotification, fetchVendorNotificationCount, fetchVendorNotifications, logoutVendor, markVendorNotificationAsRead } from "@/redux/slices/vendorSlice";
+import {
+  deleteVendorNotification,
+  fetchVendorNotificationCount,
+  fetchVendorNotifications,
+  logoutVendor,
+  markVendorNotificationAsRead,
+} from "@/redux/slices/vendorSlice";
 import { toast } from "react-toastify";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/router";
@@ -21,7 +27,9 @@ const DashboardHeader = () => {
   const router = useRouter();
   const currentPath = router.pathname;
 
-  const { vendorInfo, notificationCount, notifications } = useSelector((state) => state.vendors);
+  const { vendorInfo, notificationCount, notifications } = useSelector(
+    (state) => state.vendors
+  );
   const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
@@ -46,11 +54,11 @@ const DashboardHeader = () => {
 
   const handleVendorLogout = async () => {
     try {
-      const result = await dispatch(logoutVendor()); 
-  
+      const result = await dispatch(logoutVendor());
+
       if (result.type === "vendor/logoutVendor/fulfilled") {
         toast.success("You have logged out successfully!");
-        router.push("/vendor/login");  
+        router.push("/vendor/login");
       } else {
         toast.error("Failed to log out. Please try again.");
       }
@@ -59,58 +67,106 @@ const DashboardHeader = () => {
       toast.error("An unexpected error occurred during logout.");
     }
   };
-  
-  //helper func for the active link
-  const isActive = (path) => currentPath === path ? "crimson" : "#555";
+
+  const isActive = (path) => (currentPath === path ? "crimson" : "#555");
 
   return (
     <div className="w-full h-[80px] bg-white shadow sticky top-0 left-0 z-30 flex items-center justify-between px-4">
       {/* Logo */}
       <Image
-        src="/logo.svg"
+        src="/sahanso.svg"
         alt="Store Logo"
         width={140}
         height={80}
         priority
         className="cursor-pointer"
       />
+
       <div className="flex items-center">
         <div className="flex items-center mr-4">
           <Link href="/vendor/dashboard">
-            <MdOutlineDashboard size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/dashboard")} />
+            <MdOutlineDashboard
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/dashboard")}
+            />
           </Link>
           <Link href="/vendor/orders">
-            <FiShoppingBag size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/orders")} />
+            <FiShoppingBag
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/orders")}
+            />
           </Link>
           <Link href="/vendor/products">
-            <FiPackage size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/products")} />
+            <FiPackage
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/products")}
+            />
           </Link>
           <Link href="/vendor/create-product">
-            <IoMdAdd size={28} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/create-product")} />
+            <IoMdAdd
+              size={28}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/create-product")}
+            />
           </Link>
           <Link href="/vendor/sales">
-            <BsAlexa size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/sales")} />
+            <BsAlexa
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/sales")}
+            />
           </Link>
           <Link href="/vendor/create-flash-sale">
-            <IoIosAddCircle size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/create-flash-sale")} />
+            <IoIosAddCircle
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/create-flash-sale")}
+            />
           </Link>
           <Link href="/vendor/withdraw">
-            <CiMoneyBill size={28} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/withdraw")} />
+            <CiMoneyBill
+              size={28}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/withdraw")}
+            />
           </Link>
           <Link href="/vendor/bank-info">
-            <CiBank size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/bank-info")} />
+            <CiBank
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/bank-info")}
+            />
           </Link>
           <Link href="/vendor/inbox">
-            <BiMessageSquareDetail size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/inbox")} />
+            <BiMessageSquareDetail
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/inbox")}
+            />
           </Link>
           <Link href="/vendor/coupons">
-            <AiOutlineGift size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/coupons")} />
+            <AiOutlineGift
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/coupons")}
+            />
           </Link>
           <Link href="/vendor/refunds">
-            <HiOutlineReceiptRefund size={25} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/refunds")} />
+            <HiOutlineReceiptRefund
+              size={25}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/refunds")}
+            />
           </Link>
           <Link href="/vendor/settings">
-            <CiSettings size={26} className="mx-5 cursor-pointer hidden lg:block" color={isActive("/vendor/settings")} />
+            <CiSettings
+              size={26}
+              className="mx-5 cursor-pointer hidden lg:block"
+              color={isActive("/vendor/settings")}
+            />
           </Link>
 
           {/* 🔔 Notification Bell */}
@@ -125,7 +181,6 @@ const DashboardHeader = () => {
               </span>
             )}
 
-            {/* Dropdown modal */}
             {showDropdown && (
               <div className="absolute right-0 mt-2 w-[260px] bg-white shadow-lg rounded-md border border-gray-200 z-50">
                 <div className="px-4 py-2 font-semibold border-b">Notifications</div>
@@ -152,20 +207,21 @@ const DashboardHeader = () => {
             )}
           </div>
 
-          {/* 🔓 Logout */}
           <button
             onClick={handleVendorLogout}
             className="mx-5 cursor-pointer hidden lg:block bg-transparent border-none"
           >
             <LuLogOut size={25} color="#555" />
           </button>
-          
-          <Link href={`/vendor/${vendorInfo?._id}`}>
-            <img
-              src={vendorInfo?.avatar?.url  }
-            //   src={vendorInfo?.avatar?.url || "https://images.assetsdelivery.com/compings_v2/marsono/marsono1804/marsono180400465.jpg"}
+
+          <Link href={`/vendor/settings`}>
+            <Image
+              src={vendorInfo?.avatar?.url || "/images/store-backup.png"}
               alt="Store Avatar"
-              className="w-[50px] h-[50px] rounded-full object-cover"
+              width={50}
+              height={50}
+              className="rounded-full object-cover"
+              sizes="50px"
             />
           </Link>
         </div>

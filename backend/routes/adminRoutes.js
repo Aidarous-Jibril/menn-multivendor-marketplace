@@ -108,31 +108,7 @@ router.patch("/orders/:id/refund", isAdmin, refundOrder);
 router.delete("/orders/:id", isAdmin, deleteOrder);
 
 
-// // Configure multer to use memory storage
-// const storage = multer.memoryStorage();  
-
-// const upload = multer({
-//   storage: storage,
-//   limits: {
-//     fileSize: 10 * 1024 * 1024, // 10 MB per file
-//     fieldSize: 25 * 1024 * 1024, // 25 MB for fields (text, etc.)
-//     files: 5, // Limit the number of files uploaded to 5
-//   },
-//   fileFilter: function (req, file, cb) {
-//     // You can add file type validation here if needed
-//     const filetypes = /jpeg|jpg|png/;
-//     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-//     const mimetype = filetypes.test(file.mimetype);
-
-//     if (mimetype && extname) {
-//       return cb(null, true);
-//     } else {
-//       cb(new Error('Only images are allowed (jpeg, jpg, png)'));
-//     }
-//   }
-// });
-
-
+// Configure multer to use memory storage
 const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
@@ -146,7 +122,6 @@ const upload = multer({
     cb(isValid ? null : new Error("Only images are allowed"), isValid);
   },
 });
-
 
 
 // Product Management

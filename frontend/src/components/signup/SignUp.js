@@ -6,6 +6,7 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
 import { registerUser } from '@/redux/slices/userSlice';
+import Image from 'next/image';
 
 const SignUp = () => {
   const router = useRouter();
@@ -145,10 +146,13 @@ const SignUp = () => {
               <div className="mt-2 flex items-center">
                 <span className="inline-block h-8 w-8 rounded-full overflow-hidden">
                   {avatar ? (
-                    <img
-                      src={avatar}
-                      alt="avatar"
-                      className="h-full w-full object-cover rounded-full"
+                   <Image
+                      src={avatar}               
+                      alt="Avatar preview"
+                      width={32}
+                      height={32}
+                      className="rounded-full object-cover"
+                      sizes="32px"
                     />
                   ) : (
                     <RxAvatar className="h-8 w-8" />

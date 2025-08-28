@@ -1,14 +1,14 @@
-// pages/admin/register.js
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
 import { RxAvatar } from 'react-icons/rx';
 import Link from 'next/link';
+import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/router';
-import { registerAdmin } from '@/redux/slices/adminSlice';
+import { registerAdmin } from '@/redux/adminSlice';
 
 const AdminSignUp = () => {
   const router = useRouter();
@@ -148,10 +148,14 @@ const AdminSignUp = () => {
               <div className="mt-2 flex items-center">
                 <span className="inline-block h-8 w-8 rounded-full overflow-hidden">
                   {avatar ? (
-                    <img
-                      src={avatar}
-                      alt="avatar"
-                      className="h-full w-full object-cover rounded-full"
+                    <Image
+                      src={avatar}                
+                      alt="Avatar preview"
+                      width={32}
+                      height={32}
+                      className="rounded-full object-cover"
+                      unoptimized                 
+                      priority
                     />
                   ) : (
                     <RxAvatar className="h-8 w-8" />

@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { resetAdminPassword } from "@/redux/slices/adminSlice";
+import { resetUserPassword } from "@/redux/slices/userSlice";
 
 const UserResetPassword = () => {
   const router = useRouter();
@@ -24,7 +24,7 @@ const UserResetPassword = () => {
 
     try {
       setLoading(true);
-      const result = await dispatch(resetAdminPassword({ token, newPassword, confirmPassword }));
+      const result = await dispatch(resetUserPassword({ token, newPassword, confirmPassword }));
       if (result.type.includes("fulfilled")) {
         toast.success("Password reset successfully");
         router.push("/admin/login");

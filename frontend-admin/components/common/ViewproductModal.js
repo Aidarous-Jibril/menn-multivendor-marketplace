@@ -96,13 +96,14 @@ const ViewProductModal = ({
                 <Divider style={{ margin: "10px 0" }} />
                 <div style={{ display: "flex", gap: "10px" }}>
                   {singleProduct.images.map((img, index) => (
-                    <img
-                      key={index}
-                      src={img.url}
+                    <Image
+                      key={img?._id || index}
+                      src={img?.url || "/images/product-placeholder.jpg"}
                       alt={`Product Image ${index + 1}`}
-                      width="100"
-                      height="100"
-                      style={{ borderRadius: "5px" }}
+                      width={100}
+                      height={100}
+                      sizes="100px"
+                      className="rounded-[5px] object-cover"
                     />
                   ))}
                 </div>

@@ -8,6 +8,7 @@ import { AiOutlineDelete, AiOutlineEdit } from 'react-icons/ai';
 import ProductTable from '../common/ProductTable';
 import EditSubcategoryModal from '../common/EditSubcategoryModal';
 import SearchProducts from '../common/SearchProducts';
+import Image from 'next/image';
 
 const SubcategoryTable = () => {
   const dispatch = useDispatch();
@@ -117,7 +118,13 @@ const SubcategoryTable = () => {
       flex: 1,
       renderCell: (params) =>
         params.value ? (
-          <img src={params.value} alt="subcategory" width="40" height="40" />
+          <Image src={params.value}
+            alt="Category"
+            width={50}
+            height={50}
+            style={{ borderRadius: 4, objectFit: "cover" }}
+            sizes="50px"
+          />
         ) : (
           'No Image'
         ),

@@ -64,7 +64,8 @@ const HeaderBottom = ({ categories, handleSearchChange, searchData }) => {
         <ul className="flex items-center gap-2 text-sm tracking-wide">
           <li
             onClick={() => setSidebar(true)}
-            className="flex items-center gap-1 cursor-pointer border border-transparent hover:border-white px-3.5 py-1"
+            className="flex items-center gap-1 cursor-pointer border border-transparent hover:border-white px-3.5 py-1 
+              text-sm sm:text-base md:text-[15px] lg:text-[16px] xl:text-[17px] font-medium text-white transition duration-200"
           >
             <IoIosMenu size={24} />
             All
@@ -74,22 +75,24 @@ const HeaderBottom = ({ categories, handleSearchChange, searchData }) => {
             {windowWidth >= 768 && (
               <div className={`block ${styles.normalFlex}`}>
                 {navItems.map((item) => (
-                  <Link
-                    key={item.url}
-                    href={item.url}
-                    className={`${
-                      currentPath === item.url
-                        ? "text-yellow-500 border-b-2 border-yellow-500 font-semibold text-base"
-                        : "text-white hover:border-white font-medium"
-                    } px-4 cursor-pointer border-b border-transparent transition duration-200`}
-                  >
-                    {item.title}
-                  </Link>
+              <Link
+                key={item.url}
+                href={item.url}
+                className={`px-6 cursor-pointer border-b border-transparent transition duration-200
+                  ${
+                    currentPath === item.url
+                      ? "text-yellow-500 border-b-2 border-yellow-500 font-semibold text-sm sm:text-base md:text-[15px] lg:text-[16px] xl:text-[17px]"
+                      : "text-white hover:border-white font-medium text-sm sm:text-base md:text-[15px] lg:text-[16px] xl:text-[17px]"
+                  }`}
+              >
+                {item.title}
+              </Link>
+
                 ))}
 
                 <Link
                   href={vendorInfo ? "/vendor/dashboard" : "/vendor/login"}
-                  className="nav-link text-white"
+                  className="text-gray-300 hover:text-yellow-400 font-medium text-sm sm:text-base md:text-[15px] lg:text-[16px] xl:text-[17px] px-6 cursor-pointer transition duration-200"
                 >
                   {vendorInfo ? "Dashboard" : "Sell"}
                 </Link>

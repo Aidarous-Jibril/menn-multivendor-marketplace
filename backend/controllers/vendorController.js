@@ -1,6 +1,6 @@
 const { Readable } = require("stream");
 const validator = require("validator");
-const asyncHandler = require("express-async-handler");
+const expressAsyncHandler = require("express-async-handler");
 const Vendor = require("../models/vendorModel");
 const createVendorToken = require("../utils/vendorToken");
 const cloudinary = require("../utils/cloudinary");
@@ -11,7 +11,7 @@ const Notification = require("../models/notificationModel");
 const VendorNotification = require("../models/vendorNotificationModel"); 
 
 // Register a new vendor with file upload
-const registerVendor = asyncHandler(async (req, res) => {
+const registerVendor = expressAsyncHandler(async (req, res) => {
   const { name, email, phoneNumber, address, zipCode, password } = req.body;
 
   try {
@@ -76,7 +76,7 @@ const registerVendor = asyncHandler(async (req, res) => {
 });
 
 // Log in a vendor
-const loginVendor = asyncHandler(async (req, res) => {
+const loginVendor = expressAsyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -100,7 +100,7 @@ const loginVendor = asyncHandler(async (req, res) => {
 });
 
 // Forgot Vendor Password
-const forgotVendorPassword = asyncHandler(async (req, res) => {
+const forgotVendorPassword = expressAsyncHandler(async (req, res) => {
   const { email } = req.body;
   const vendor = await Vendor.findOne({ email });
   if (!vendor) {
@@ -125,7 +125,7 @@ const forgotVendorPassword = asyncHandler(async (req, res) => {
 });
 
 // Reset Vendor Password
-const resetVendorPassword = asyncHandler(async (req, res) => {
+const resetVendorPassword = expressAsyncHandler(async (req, res) => {
   const hashedToken = crypto.createHash("sha256").update(req.body.token).digest("hex");
 
   const vendor = await Vendor.findOne({
@@ -147,7 +147,7 @@ const resetVendorPassword = asyncHandler(async (req, res) => {
 });
 
 // Log out a vendor
-const logoutVendor = asyncHandler(async (req, res) => {
+const logoutVendor = expressAsyncHandler(async (req, res) => {
   res.cookie("vendor_token", null, {
     httpOnly: true,
     expires: new Date(0),
@@ -156,7 +156,7 @@ const logoutVendor = asyncHandler(async (req, res) => {
 });
 
 // Get all vendors
-const getAllVendors = asyncHandler(async (req, res) => {
+const getAllVendors = expressAsyncHandler(async (req, res) => {
   try {
     const vendors = await Vendor.find().select("-password"); // Exclude the password field
     res.status(200).json({ success: true, vendors });
@@ -166,7 +166,7 @@ const getAllVendors = asyncHandler(async (req, res) => {
 });
 
 // Get vendor profile information
-const getVendorInfo = asyncHandler(async (req, res) => {
+const getVendorInfo = expressAsyncHandler(async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.params.id).select("-password");
     if (!vendor) {
@@ -182,8 +182,18 @@ const getVendorInfo = asyncHandler(async (req, res) => {
   }
 });
 
+
+// Get Admin Profile
+const getVendorProfile = expressAsyncHandler(async (req, res) => {
+  const vendor = await Vendor.findById(req.vendor._id).select("-password"); 
+  if (vendor) {
+    res.status(200).json({ success: true, vendor });
+  } else {
+    return res.status(404).json({ message: "Vendor not found" });
+  }
+});
 // Update vendor profile
-const updateVendorProfile = asyncHandler(async (req, res) => {
+const updateVendorProfile = expressAsyncHandler(async (req, res) => {
   try {
 
     const vendor = await Vendor.findById(req.body.id); 
@@ -212,7 +222,7 @@ const updateVendorProfile = asyncHandler(async (req, res) => {
 });
 
 // Update vendor avatar
-const updateVendorAvatar = asyncHandler(async (req, res) => {
+const updateVendorAvatar = expressAsyncHandler(async (req, res) => {
   try {
     const vendor = await Vendor.findById(req.params.id);
     if (!vendor) {
@@ -251,7 +261,7 @@ const updateVendorAvatar = asyncHandler(async (req, res) => {
 });
 
 // Combined function to get product count and average rating for a vendor
-const getVendorStatistics = asyncHandler(async (req, res) => {
+const getVendorStatistics = expressAsyncHandler(async (req, res) => {
   try {
     const vendorId = req.params.id;
 
@@ -286,7 +296,7 @@ const getVendorStatistics = asyncHandler(async (req, res) => {
 });
 
 //create & update bank info
-const createOrUpdateBankInfo = asyncHandler(async (req, res) => {
+const createOrUpdateBankInfo = expressAsyncHandler(async (req, res) => {
 
   try {
     const { vendorId } = req.params;
@@ -305,7 +315,7 @@ const createOrUpdateBankInfo = asyncHandler(async (req, res) => {
 });
 
 // Get all notifications for a vendor
-const getVendorNotifications = asyncHandler(async (req, res) => {
+const getVendorNotifications = expressAsyncHandler(async (req, res) => {
   const vendorId = req.vendor?._id || req.query.vendorId;
   if (!vendorId) {
     return res.status(400).json({ message: "Vendor ID required" });
@@ -316,7 +326,7 @@ const getVendorNotifications = asyncHandler(async (req, res) => {
 });
 
 // Get unread count for vendor
-const getVendorNotificationCount = asyncHandler(async (req, res) => {
+const getVendorNotificationCount = expressAsyncHandler(async (req, res) => {
   const vendorId = req.vendor?._id || req.query.vendorId;
 
   if (!vendorId) {
@@ -328,7 +338,7 @@ const getVendorNotificationCount = asyncHandler(async (req, res) => {
 });
 
 // Mark a vendor notification as read
-const markVendorNotificationAsRead = asyncHandler(async (req, res) => {
+const markVendorNotificationAsRead = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
 
   await VendorNotification.findByIdAndUpdate(id, { isRead: true });
@@ -336,7 +346,7 @@ const markVendorNotificationAsRead = asyncHandler(async (req, res) => {
 });
 
 // Delete a vendor notification
-const deleteVendorNotification = asyncHandler(async (req, res) => {
+const deleteVendorNotification = expressAsyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const deleted = await VendorNotification.findByIdAndDelete(id);
@@ -356,6 +366,7 @@ module.exports = {
   logoutVendor,
   getAllVendors,
   getVendorInfo,
+  getVendorProfile,
   updateVendorProfile,
   updateVendorAvatar,
   getVendorStatistics,

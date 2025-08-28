@@ -1,14 +1,17 @@
 // Third-party library imports
 import "quill/dist/quill.snow.css";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 // Local imports (Redux slices and other components)
 import { createSale } from "@/redux/slices/saleSlice";
 import { fetchCategories } from "@/redux/slices/categorySlice";
 import { fetchAllBrands } from "@/redux/slices/brandSlice";
+import { AiOutlinePlus } from "react-icons/ai";
+import RichTextEditor from "../common/RichTextEditor";
 
 // Category-specific attributes
 const categoryAttributes = {
@@ -56,18 +59,17 @@ const CreateFlashSale = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (productData.mainCategory) {
-      const mainCategoryObj = categories.find(
-        (cat) => cat.slug === productData.mainCategory
-      );
-      setSubcategories(mainCategoryObj?.subcategories || []);
-      setProductData({
-        ...productData,
-        subCategory: "",
-        subSubCategory: "",
-        attributes: {},
-      });
-    }
+    if (!productData.mainCategory) return;
+
+    const main = categories.find((c) => c.slug === productData.mainCategory);
+    setSubcategories(main?.subcategories || []);
+
+    setProductData((prev) => ({
+      ...prev,
+      subCategory: "",
+      subSubCategory: "",
+      attributes: {},
+    }));
   }, [productData.mainCategory, categories]);
 
   useEffect(() => {
@@ -91,14 +93,12 @@ const CreateFlashSale = () => {
       attributes: {},
     });
   };
-  
-  const handleDescriptionChange = (content) => {
-    const cleanContent = content.replace(/<\/?p>/g, '');
-    setProductData((prevData) => ({
-      ...prevData,
-      description: cleanContent,
-    }));
+
+  const handleDescriptionChange = (text) => {
+    // text is already plain; sanitize on submit if you like
+    setProductData((prev) => ({ ...prev, description: text }));
   };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setProductData({
@@ -218,6 +218,7 @@ const CreateFlashSale = () => {
               Description:
             </label>
             <RichTextEditor
+              as="text"
               value={productData.description}
               onChange={handleDescriptionChange}
               className="w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -417,10 +418,13 @@ const CreateFlashSale = () => {
           <div className="flex space-x-2">
             {images.map((image, index) => (
               <div key={index} className="relative">
-                <img
+                <Image
                   src={image}
                   alt={`preview ${index}`}
-                  className="w-20 h-20 object-cover rounded-md"
+                  width={80}
+                  height={80}
+                  className="rounded-md object-cover"
+                  unoptimized
                 />
               </div>
             ))}
@@ -453,51 +457,4 @@ const CreateFlashSale = () => {
   );
 };
 
-import "quill/dist/quill.snow.css"; // Import Quill CSS
-import { AiOutlinePlus } from "react-icons/ai";
-
-let Quill;
-
-const RichTextEditor = ({ value, onChange }) => {
-  const editorRef = useRef(null);
-  const quillRef = useRef(null);
-
-  const loadQuill = async () => {
-    if (typeof window !== "undefined") {
-      const QuillImport = await import("quill");
-      Quill = QuillImport.default;
-    }
-  };
-
-  useEffect(() => {
-    loadQuill().then(() => {
-      if (Quill && quillRef.current && !editorRef.current) {
-        editorRef.current = new Quill(quillRef.current, {
-          theme: "snow",
-          modules: {
-            toolbar: [
-              [{ header: "1" }, { header: "2" }, { font: [] }],
-              [{ list: "ordered" }, { list: "bullet" }],
-              ["bold", "italic", "underline"],
-              ["link", "image"],
-            ],
-          },
-        });
-
-        // Set the initial content and listen for changes
-        editorRef.current.root.innerHTML = value;
-        editorRef.current.on("text-change", () => {
-          onChange(editorRef.current.root.innerHTML);
-        });
-      }
-    });
-  }, []);
-
-  return (
-    <div style={{ border: "1px solid #ccc", minHeight: "150px" }}>
-      <div ref={quillRef} />
-    </div>
-  );
-};
-
-export default CreateFlashSale;
+ export default CreateFlashSale;

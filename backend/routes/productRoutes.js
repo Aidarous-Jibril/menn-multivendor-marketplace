@@ -26,7 +26,7 @@ const upload = multer({
     files: 5, // Limit the number of files uploaded to 5
   },
   fileFilter: function (req, file, cb) {
-    // You can add file type validation here if needed
+    // file type validation
     const filetypes = /jpeg|jpg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
@@ -42,12 +42,9 @@ const upload = multer({
 
 router.get('/:id', getProductById);
 router.get('/', async (req, res, next) => {
-  console.log("Received query parameters:", req.query);  
   if (req.query.subSubCategory) {
-    console.log("subSubCategory found, calling controller");
     return getProductsBySubSubCategory(req, res, next); 
   }
-  console.log("No subSubCategory, fetching all products");
   return getAllProducts(req, res, next);  
 });
 

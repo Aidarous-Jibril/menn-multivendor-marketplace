@@ -1,6 +1,5 @@
 // // wishListSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
 
 // Helper function to check if we are in the browser environment
 const isBrowser = () => typeof window !== "undefined";

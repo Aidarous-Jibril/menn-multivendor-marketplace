@@ -1,11 +1,11 @@
-
 const mongoose = require('mongoose');
 const MainCategory = require("../models/mainCategory");
 const SubCategory = require('../models/subCategory');
 const slugify = require('slugify');
+const expressAsyncHandler = require("express-async-handler");
 
 // Create SubCategory with Slug
-const createSubCategory = async (req, res) => {
+const createSubCategory = expressAsyncHandler (async (req, res) => {
     try {
         const { name, imageUrl, mainCategory, subsubcategories } = req.body;
 
@@ -42,10 +42,10 @@ const createSubCategory = async (req, res) => {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 // Get SubCategories by Main Category Slug
-const getSubCategories = async (req, res) => {
+const getSubCategories = expressAsyncHandler (async (req, res) => {
     try {
         const { categorySlug } = req.query;
         let subcategories = [];
@@ -67,10 +67,10 @@ const getSubCategories = async (req, res) => {
         console.error('Error fetching subcategories:', error);
         res.status(500).json({ msg: 'Internal Server Error' });
     }
-};
+});
 
 // Get SubCategory by Slug
-const getSubCategoryBySlug = async (req, res) => {
+const getSubCategoryBySlug = expressAsyncHandler (async (req, res) => {
     try {
         const { slug } = req.params;
         const subcategory = await SubCategory.findOne({ slug }).populate('subsubcategories');
@@ -83,10 +83,10 @@ const getSubCategoryBySlug = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 // Update SubCategory with Slug
-const updateSubCategory = async (req, res) => {
+const updateSubCategory = expressAsyncHandler (async (req, res) => {
     try {
         const { slug } = req.params;
         const { name, imageUrl, mainCategory, subsubcategories } = req.body;
@@ -110,10 +110,10 @@ const updateSubCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 // Delete SubCategory by Slug
-const deleteSubCategory = async (req, res) => {
+const deleteSubCategory = expressAsyncHandler (async (req, res) => {
     try {
         const { slug } = req.params;
         const deletedSubCategory = await SubCategory.findOneAndDelete({ slug });
@@ -132,7 +132,7 @@ const deleteSubCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
-};
+});
 
 module.exports = {
     createSubCategory,
