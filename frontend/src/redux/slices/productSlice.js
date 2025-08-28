@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axiosInstance from '@/utils/axiosInstance';
+import api from '@/utils/axiosInstance';
 
 
 // Async thunks
@@ -10,7 +10,7 @@ export const createProduct = createAsyncThunk(
       const config = {
         headers: { 'Content-Type': 'multipart/form-data' },
       };
-      const { data } = await axiosInstance.post('/api/products/create-product', newForm, config);
+      const { data } = await api.post('/api/products/create-product', newForm, config);
       return data;
     } catch (error) {
       console.log("error.response.data:", error.response.data.message)
@@ -23,7 +23,7 @@ export const getAllProducts = createAsyncThunk(
   'products/getAllProducts',
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.get(`/api/products`);
+      const { data } = await api.get(`/api/products`);
       return data.products;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -36,7 +36,7 @@ export const vendorGetAllProducts = createAsyncThunk(
   'products/vendorGetAllProducts',
   async (vendorId, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.get(`/api/products/${vendorId}/products`);
+      const { data } = await api.get(`/api/products/${vendorId}/products`);
       return data.products; 
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -48,7 +48,7 @@ export const fetchProductsBySubSubCategory = createAsyncThunk(
   'products/fetchProductsBySubSubCategory',
   async ({ subSubCategory }, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get(`/api/products?subSubCategory=${subSubCategory}`);
+      const response = await api.get(`/api/products?subSubCategory=${subSubCategory}`);
       
       return response.data.products;
     } catch (error) {
@@ -61,7 +61,7 @@ export const vendorDeleteProduct = createAsyncThunk(
   'products/vendorDeleteProduct',
   async (id, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.delete(`/api/products/${id}`, { withCredentials: true });
+      const { data } = await api.delete(`/api/products/${id}`, { withCredentials: true });
       return id;
     } catch (error) {
       return rejectWithValue(error.response.data.message);
@@ -73,7 +73,7 @@ export const vendorUpdateProduct = createAsyncThunk(
   'products/vendorUpdateProduct',
   async (payload, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.put(
+      const { data } = await api.put(
         `/api/products/update-product/${payload.id}`,
         payload, 
         { withCredentials: true }
@@ -88,7 +88,7 @@ export const fetchVendorSingleProduct = createAsyncThunk(
   "products/fetchVendorSingleProduct",
   async (productId, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.get(`/api/products/vendor/product/${productId}`, {
+      const { data } = await api.get(`/api/products/vendor/product/${productId}`, {
         withCredentials: true,
       });
       return data.product;
@@ -102,7 +102,7 @@ export const createProductReview = createAsyncThunk(
   'products/createProductReview',
   async ({ user, rating, comment, productId }, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.post(
+      const { data } = await api.post(
         "/api/products/reviews",
         { user, rating, comment, productId },
         { withCredentials: true }
