@@ -1,4 +1,4 @@
-cat > .gitignore <<'EOF'
+cat > backend/.gitignore <<'EOF'
 # OS
 .DS_Store
 
@@ -12,14 +12,10 @@ backend/.env*
 # Node / builds / caches
 node_modules/
 **/node_modules/
-**/.next/
 **/dist/
 **/.turbo/
 **/coverage/
 **/.vercel/
+**/.next/
 **/uploads/
 EOF
-
-# envs (global)
-**/.env
-**/.env.*
