@@ -23,3 +23,4 @@ EOF
 # envs (global)
 **/.env
 **/.env.*
+frontend/.env.local
