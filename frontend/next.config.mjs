@@ -8,12 +8,12 @@ const nextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
       { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/**" },
     ],
-    // Optional: let optimized images be cached a bit by the image optimizer
+    // Optional: let optimized images be cached a bit by the image optimizer 
     minimumCacheTTL: 60, // seconds
   },
 
   async rewrites() {
-    return [
+    return [  
       {
         source: "/api/:path((?!auth).*)",
         destination: `${NEXT_API_URL}/api/:path*`,

@@ -22,7 +22,9 @@ const SignUp = () => {
   useEffect(() => {
     if (success) {
       toast.success(userInfo?.msg);
-      router.push('/');
+      // redirect to where user came from, fallback "/"
+      const nextPath = router.query.next || "/";
+      router.push(nextPath);
     }
     if (error) {
       toast.error(error);
@@ -176,8 +178,9 @@ const SignUp = () => {
             </div>
 
             <div>
-              <button className="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
-                Sign in
+              <button href={`/user/signup?next=${encodeURIComponent(router.asPath)}`}
+                  className="w-full px-6 py-3 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-600 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
+                Sign up
               </button>
             </div>
           </form>
