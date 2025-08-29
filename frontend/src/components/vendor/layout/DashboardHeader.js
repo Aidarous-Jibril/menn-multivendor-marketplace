@@ -74,7 +74,7 @@ const DashboardHeader = () => {
     <div className="w-full h-[80px] bg-white shadow sticky top-0 left-0 z-30 flex items-center justify-between px-4">
       {/* Logo */}
       <Image
-        src="/sahanso.svg"
+        src="/logo.svg"
         alt="Store Logo"
         width={140}
         height={80}

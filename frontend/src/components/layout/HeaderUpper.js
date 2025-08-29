@@ -36,7 +36,7 @@ const HeaderUpper = ({ handleSearchChange, searchData }) => {
         {/* Logo */}
         <Link href="/">
           <Image
-            src="/sahanso.svg"
+            src="/logo.svg"
             alt="Store Logo"
             width={140}
             height={80}

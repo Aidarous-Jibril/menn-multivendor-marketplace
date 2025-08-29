@@ -107,7 +107,7 @@ const HeaderBottom = ({ categories, handleSearchChange, searchData }) => {
             <>
               <Link href="/" className="w-24 cursor-pointer">
                 <Image
-                  src="/sahanso.svg"
+                  src="/logo.svg"
                   alt="Logo"
                   width={100}
                   height={40}
