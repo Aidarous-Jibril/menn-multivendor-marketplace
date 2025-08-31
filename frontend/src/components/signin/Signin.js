@@ -49,7 +49,7 @@ const SignIn = () => {
       const session = await getSession(); // from next-auth/react
       if (session?.user?.email) {
         try {
-          // const res = await fetch( "http://localhost:8000/api/users/google-login", {
+          // const res = await fetch( "/api/users/google-login", {
             const res = await fetch("/api/users/google-login", {
               method: "POST",
               headers: {
