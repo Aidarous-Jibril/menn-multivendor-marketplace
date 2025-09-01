@@ -49,10 +49,11 @@ export default NextAuth({
     }),
   ],
 
-  // Do NOT gate sign-in at all.
+  // Do NOT gate sign-in.
   callbacks: {
     async signIn() {
-      return true;               // <- never block
+      // never block OAuth on our side
+      return true;
     },
     async jwt({ token }) {
       return token;
@@ -69,6 +70,7 @@ export default NextAuth({
         const base =
           (process.env.NEXTAUTH_URL || "").replace(/\/$/, "") ||
           "http://localhost:3000"; // dev safety
+
         await fetch(`${base}/api/users/google-login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -77,7 +79,7 @@ export default NextAuth({
             email: user?.email,
             image: user?.image,
           }),
-        }).catch(() => {});
+        }).catch(() => {}); // ignore network failures on purpose
       } catch (err) {
         // don't throw — this must never block sign-in
         console.error("events.signIn sync failed:", err);
@@ -85,19 +87,11 @@ export default NextAuth({
     },
   },
 
+  secret: process.env.NEXTAUTH_SECRET,
+
   // Optional UX
   pages: {
     signIn: "/user/login",
     error: "/user/login",
   },
-
-  // Helpful logs in Vercel “Functions” tab
-  debug: true,
-  logger: {
-    error(code, meta) { console.error("nextauth error:", code, meta); },
-    warn(code) { console.warn("nextauth warn:", code); },
-    debug(code, meta) { console.log("nextauth debug:", code, meta); }
-  },
-
-  secret: process.env.NEXTAUTH_SECRET,
 });
