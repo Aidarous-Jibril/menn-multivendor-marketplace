@@ -48,28 +48,11 @@ export default NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
   ],
+
+  // Do NOT gate sign-in.
   callbacks: {
-    async signIn({ user }) {
-      try {
-        const base = process.env.NEXTAUTH_URL?.replace(/\/$/, ""); // no trailing slash
-        const res = await fetch(`${base}/api/users/google-login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          // credentials is harmless here but not required server-side
-          body: JSON.stringify({
-            name: user.name,
-            email: user.email,
-            image: user.image,
-          }),
-        });
-        if (!res.ok) {
-          const t = await res.text().catch(() => "");
-          console.error("google-login sync failed", res.status, t);
-        }
-      } catch (err) {
-        console.error("google-login sync threw", err);
-      }
-      // IMPORTANT: never block OAuth, even if sync errored
+    async signIn() {
+      // never block OAuth on our side
       return true;
     },
     async jwt({ token }) {
@@ -79,11 +62,36 @@ export default NextAuth({
       return session;
     },
   },
+
+  // Fire-and-forget user sync AFTER sign-in succeeded.
+  events: {
+    async signIn({ user }) {
+      try {
+        const base =
+          (process.env.NEXTAUTH_URL || "").replace(/\/$/, "") ||
+          "http://localhost:3000"; // dev safety
+
+        await fetch(`${base}/api/users/google-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: user?.name,
+            email: user?.email,
+            image: user?.image,
+          }),
+        }).catch(() => {}); // ignore network failures on purpose
+      } catch (err) {
+        // don't throw — this must never block sign-in
+        console.error("events.signIn sync failed:", err);
+      }
+    },
+  },
+
   secret: process.env.NEXTAUTH_SECRET,
-  // Optional: send users back to your UI on errors
+
+  // Optional UX
   pages: {
     signIn: "/user/login",
     error: "/user/login",
   },
 });
-
