@@ -24,3 +24,4 @@ EOF
 **/.env
 **/.env.*
 frontend/.env.local
+frontend/.env.local
