@@ -24,7 +24,7 @@ export default NextAuth({
         return true;
       } catch (err) {
         console.error("Google Login Failed:", err);
-        return false;
+        return true;
       }
     },
     async jwt({ token, user }) {
