@@ -19,7 +19,7 @@ export const loginUser = createAsyncThunk(
   "user/loginUser",
   async (userData, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.post("http://localhost:8000/api/users/login", userData, { withCredentials: true, });
+      const { data } = await axiosInstance.post("/api/users/login", userData, { withCredentials: true, });
       if (isBrowser()) {
         localStorage.setItem("userInfo", JSON.stringify(data.user));
       }
@@ -38,7 +38,7 @@ export const resetUserPassword = createAsyncThunk(
     console.log("password", password)
     try {
       const { data } = await axiosInstance.post(
-        `http://localhost:8000/api/users/reset-password/${token}`,
+        `/api/users/reset-password/${token}`,
         { password }
       );
       return data;
