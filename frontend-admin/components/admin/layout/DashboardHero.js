@@ -10,11 +10,15 @@ const DashboardHero = () => {
   const dispatch = useDispatch();
   const { dashboardStats, weeklyTrends, isLoading } = useSelector((state) => state.admin);
   const { adminInfo } = useSelector((state) => state.admin);
+  const displayName = adminInfo?.name?.split(" ")[0] || adminInfo?.email;
 
   useEffect(() => {
     if (!adminInfo) return;
     dispatch(fetchAdminDashboardStats());
     dispatch(fetchWeeklyTrends());
+     if (!adminInfo.name) {
+    dispatch(fetchAdminProfile());
+  }
   }, [dispatch, adminInfo]);
 
 
@@ -24,7 +28,7 @@ const DashboardHero = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
         <div className="mb-3 sm:mb-0">
-          <h1 className="text-lg sm:text-xl font-semibold">Welcome Admin</h1>
+          <h1 className="text-lg sm:text-xl font-semibold">Welcome {displayName}</h1>
           <p className="text-xs sm:text-sm text-gray-600">Monitor overall site statistics.</p>
         </div>
         <Link href="/admin/products">

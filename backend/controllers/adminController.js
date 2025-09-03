@@ -33,9 +33,6 @@ const registerAdmin = expressAsyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Admin already exists" });
   }
 
-  // Hash the password
-  const hashedPassword = await bcrypt.hash(password, 10);
-
   let avatarData = {};
   if (avatar) {
     try {
@@ -54,7 +51,7 @@ const registerAdmin = expressAsyncHandler(async (req, res) => {
   const admin = await Admin.create({
     name,
     email,
-    password: hashedPassword,
+    password,
     phoneNumber,
     avatar: avatarData,
   });
@@ -81,6 +78,7 @@ const registerAdmin = expressAsyncHandler(async (req, res) => {
 
 // Admin Login
 const loginAdmin = expressAsyncHandler(async (req, res) => {
+  console.log("req", req.body)
   try {
     const { email, password } = req.body;
     
@@ -94,8 +92,10 @@ const loginAdmin = expressAsyncHandler(async (req, res) => {
       message: "Admin logged in successfully",
       admin: {
         _id: admin._id,
+        name: admin.name,
         email: admin.email,
         role: admin.role,
+        avatar: admin.avatar,
       },
     });
   } catch (error) {

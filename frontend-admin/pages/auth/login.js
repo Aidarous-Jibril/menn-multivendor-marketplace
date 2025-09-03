@@ -127,6 +127,13 @@ const Login = () => {
               Sign in
             </button>
           </form>
+
+           {/* Demo account info */}
+          <div className="mt-6 p-4 bg-gray-100 rounded-md text-sm text-gray-700">
+            <p className="font-semibold text-gray-800 mb-2">Demo Admin Account:</p>
+            <p><span className="font-medium">Email:</span> admin@gmail.com</p>
+            <p><span className="font-medium">Password:</span> Test1234!</p>
+          </div>
         </div>
       </div>
     </div>
