@@ -17,7 +17,7 @@ import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/product/ProductCard";
 
 
-const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
+const SaleProductDetails = ({ sale,  relatedSales, vendorSales}) => {
   const router = useRouter();
   const { id } = router.query;
   const dispatch = useDispatch();
@@ -156,7 +156,6 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
             </div>
           </div>
 
-
           {/* Right Section: sale Details */}
           <div className="flex-1 p-4 flex flex-col justify-between">
             {/* Wishlist Button */}
@@ -173,7 +172,9 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
 
             {/* sale Details Content */}
             <div>
-              <h1 className="text-gray-800 text-3xl font-semibold">{sale?.name}</h1>
+              <h1 className="text-gray-800 text-3xl font-semibold">
+                {sale?.name}
+              </h1>
               {/* Countdown Timer */}
               <div className="mt-3">
                 <CountdownTimer
@@ -201,7 +202,9 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
                     <FaStar
                       key={index}
                       className={`${
-                        sale?.rating >= index + 1 ? "text-yellow-500" : "text-gray-300"
+                        sale?.rating >= index + 1
+                          ? "text-yellow-500"
+                          : "text-gray-300"
                       }`}
                     />
                   ))}
@@ -277,7 +280,7 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
                 className="px-4 py-2 bg-blue-500 text-white text-sm sm:text-base rounded shadow hover:bg-blue-600 w-full sm:w-auto"
               >
                 Leave a Review
-            </button>
+              </button>
             </div>
           </div>
         </div>
@@ -304,7 +307,7 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
             <Typography id="review-modal-title" variant="h6" component="h2">
               Leave a Review
             </Typography>
-            
+
             {/* Rating Selection */}
             <div className="flex items-center mt-4">
               <span className="mr-2">Rating:</span>
@@ -316,7 +319,9 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
                       ? "text-yellow-500"
                       : "text-gray-300"
                   }`}
-                  onClick={() => setReview((prev) => ({ ...prev, rating: ratingValue }))}
+                  onClick={() =>
+                    setReview((prev) => ({ ...prev, rating: ratingValue }))
+                  }
                 />
               ))}
             </div>
@@ -328,13 +333,19 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
               rows={4}
               placeholder="Write your review here..."
               value={review.comment}
-              onChange={(e) => setReview({ ...review, comment: e.target.value })}
+              onChange={(e) =>
+                setReview({ ...review, comment: e.target.value })
+              }
               sx={{ mt: 2 }}
             />
 
             {/* Modal Actions */}
             <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-              <Button onClick={closeReviewModal} sx={{ mr: 2 }} variant="outlined">
+              <Button
+                onClick={closeReviewModal}
+                sx={{ mr: 2 }}
+                variant="outlined"
+              >
                 Cancel
               </Button>
               <Button onClick={submitReview} variant="contained">
@@ -344,32 +355,23 @@ const SaleProductDetails = ({ sale, similarProducts, vendorProducts }) => {
           </Box>
         </Modal>
 
-        {/* Related Products and More from Store */}
-        <div className="mt-12 flex flex-col md:flex-row justify-between gap-6">
-          {/* More from the Store Section */}
-          <div className="mt-12">
-            <h3 className="text-xl font-semibold">Related Products</h3>
-            <div className="mt-6 flex flex-row gap-4">
-              {similarProducts?.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
-            </div>
-          </div>
 
-          {/* More from the Store Section */}
-          <div className="mt-12">
-            <h3 className="text-xl font-semibold">More From The Store</h3>
-            <div className="mt-6 flex flex-col gap-4">
-              {vendorProducts?.map((product) => (
-                <ProductCard
-                  key={product._id}
-                  product={product}
-                  isMoreFromSeller={true}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+<div
+  className="
+    mt-6 -mx-2 px-2 grid gap-4
+    grid-flow-col auto-cols-[minmax(220px,1fr)] overflow-x-auto pb-2 snap-x snap-mandatory
+    md:grid-flow-row md:auto-cols-auto md:grid-cols-3 lg:grid-cols-4 md:overflow-visible
+  "
+>
+  {(relatedSales || []).slice(0, 12).map((s) => (
+    <div key={s._id} className="snap-start md:snap-none">
+      <ProductCard product={s} />
+    </div>
+  ))}
+</div>
+
+
+
         <div className="mt-12"></div>
       </div>
       <Footer />
@@ -480,22 +482,15 @@ export async function getServerSideProps({ params }) {
       return { notFound: true };
     }
 
-    // Now fetch the other data using Promise.allSettled
-    const results = await Promise.allSettled([
-      axios.get(`${baseURL}/api/products?subSubCategory=${sale.subSubCategory}`),
-      axios.get(`${baseURL}/api/products?vendorId=${sale.vendorId}`)
-    ]);
+    const rel = await axios.get(
+      `${baseURL}/api/sales?subSubCategory=${encodeURIComponent(sale.subSubCategory)}`
+    );
+    const relatedSales = (rel.data.sales || []).filter((s) => s._id !== id);
 
-    // Destructure the results; if a promise was rejected, fallback to an empty array
-    const similarProducts =
-      results[0].status === "fulfilled" ? results[0].value.data.products : [];
-    const vendorProducts =
-      results[1].status === "fulfilled" ? results[1].value.data.products : [];
     return {
       props: {
         sale,
-        similarProducts,
-        vendorProducts,
+        relatedSales
       },
     };
   } catch (error) {

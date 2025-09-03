@@ -9,8 +9,8 @@ const SubSubCategory = require("../models/subSubCategory");
 const MainCategory = require("../models/mainCategory");
 
 // Create product
-const createSale = expressAsyncHandler(async (req, res, next) => {
-
+const createSale = expressAsyncHandler(async (req, res) => {
+console.log("BODY ", req.body)
   const { mainCategory, subCategory, subSubCategory, vendorId } = req.body;
 
   try {
@@ -71,8 +71,8 @@ const createSale = expressAsyncHandler(async (req, res, next) => {
       stock: req.body.stock,
       vendorId: vendorId,
       vendor: vendor,
-      startDate: req.body.startDate,
-      endDate: req.body.endDate,
+      saleStart: req.body.startDate || null,
+      saleEnd:   req.body.endDate   || null,
       isFeatured: req.body.isFeatured,
       attributes: new Map(Object.entries(req.body.attributes)),
       images: images,

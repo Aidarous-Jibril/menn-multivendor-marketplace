@@ -19,8 +19,9 @@ export const getExchangeRates = createAsyncThunk(
   "currency/getExchangeRates",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.get("https://api.exchangerate-api.com/v4/latest/USD");
-      console.log("data:", data)
+      const { data } = await axiosInstance.get("https://api.exchangerate-api.com/v4/latest/USD", {
+         withCredentials: false,
+      });
       return data.rates;
     } catch (error) {
       return rejectWithValue("Failed to fetch exchange rates");

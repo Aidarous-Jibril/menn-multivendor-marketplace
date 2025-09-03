@@ -2,9 +2,35 @@ const expressAsyncHandler = require("express-async-handler");
 const SiteSettings = require("../models/siteSettingModel");
 const cloudinary = require("../utils/cloudinary");
 
+// Public, read-only settings (no auth)
+const getPublicSiteSettings = expressAsyncHandler(async (req, res) => {
+  let settings = await SiteSettings.findOne().lean();
+  if (!settings) {
+    settings = await SiteSettings.create({});
+  }
+console.log("settings", settings)
+  // Only expose what the storefront needs
+  const payload = {
+    siteName: settings.siteName || "ShopO",
+    logo: settings.logo || null,
+    notifications: settings.notifications || {},
+    advanced: {
+      maintenanceMode: !!settings.advanced?.maintenanceMode,
+      maintenanceEndTime: settings.advanced?.maintenanceEndTime || null,
+      adminOnlyMode: !!settings.advanced?.adminOnlyMode,
+      enableErrorLogging: !!settings.advanced?.enableErrorLogging,
+      defaultMetaTitle: settings.advanced?.defaultMetaTitle || "",
+      defaultMetaDescription: settings.advanced?.defaultMetaDescription || "",
+    },
+  };
+
+  res.status(200).json(payload);
+});
+
 // Get Site Settings
 const getSiteSettings = expressAsyncHandler(async (req, res) => {
   let settings = await SiteSettings.findOne();
+  console.log('settings', settings)
   if (!settings) {
     settings = await SiteSettings.create({});
   }
@@ -26,7 +52,7 @@ const updateSiteSettings = expressAsyncHandler(async (req, res) => {
 
 
   
-  // ✅ Handle notifications (JSON string from frontend)
+  // Handle notifications (JSON string from frontend)
   if (req.body.notifications) {
     try {
       const incoming =
@@ -119,6 +145,7 @@ const updateSiteSettings = expressAsyncHandler(async (req, res) => {
 });
 
 module.exports = {
+  getPublicSiteSettings,
   getSiteSettings,
   updateSiteSettings,
 };

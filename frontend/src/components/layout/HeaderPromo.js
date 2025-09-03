@@ -14,6 +14,7 @@ const HeaderPromo = () => {
 
   const currencyMap = useMemo(() => ({
     USD: { symbol: "$", label: "USD $", flag: "/flags/us.svg" },
+    SEK: { symbol: "kr", label: "SEK kr", flag: "/flags/se.svg" }, 
     ETB: { symbol: "Br", label: "ETB Br", flag: "/flags/et.svg" },
     EUR: { symbol: "€", label: "EUR €", flag: "/flags/eu.svg" },
   }), []);

@@ -6,9 +6,8 @@ export const fetchSiteSettings = createAsyncThunk(
   "settings/fetchSiteSettings",
   async (_, { rejectWithValue }) => {
     try {
-      // Uses your Next.js rewrite: /api/* -> backend
-      const { data } = await axiosInstance.get("/api/settings");
-      return data; // expect full settings object
+      const { data } = await axiosInstance.get("/api/settings/public");
+      return data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || error.message || "Failed to load settings"

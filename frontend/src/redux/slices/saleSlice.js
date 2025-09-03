@@ -11,7 +11,7 @@ export const createSale = createAsyncThunk(
         headers: { 'Content-Type': 'multipart/form-data' },
       };
       const { data } = await axiosInstance.post(
-        '/api/Sales/create-Sale',
+        '/api/sales/create-Sale',
         newForm,
         config
       );

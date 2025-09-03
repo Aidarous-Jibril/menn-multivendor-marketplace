@@ -45,7 +45,8 @@ const SaleProductsPage = ({ categories }) => {
           ) : error ? (
             <p className="text-red-500 text-center">Error: {error}</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
+            // <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6">
               {validSales?.map((product) => (
                 <ProductCard
                   key={product._id}
