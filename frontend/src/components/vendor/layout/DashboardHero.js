@@ -11,13 +11,15 @@ import {
 } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
+import { useSelector } from "react-redux";
 
 const DashboardHero = () => {
+  const { vendorInfo } = useSelector((state) => state.vendors);
   return (
     <div className="w-full p-4 md:p-8 rounded-md bg-gray-100">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6">
         <div className="mb-3 sm:mb-0">
-          <h1 className="text-lg sm:text-xl font-semibold">Welcome X</h1>
+          <h1 className="text-lg sm:text-xl font-semibold">Welcome {vendorInfo?.name || vendorInfo?.email}</h1>
           <p className="text-xs sm:text-sm text-gray-600">
             Monitor your business analytics and statistics.
           </p>

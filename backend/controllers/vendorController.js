@@ -44,31 +44,34 @@ const registerVendor = expressAsyncHandler(async (req, res) => {
       url: result.secure_url,
     };
 
-    const newVendor = {
+    const vendor = await Vendor.create({
       name,
       email,
       password,
-      avatar: avatarData,
+      avatar: { public_id: result.public_id, url: result.secure_url },
       address,
       phoneNumber,
       zipCode,
-    };
-
-    const vendor = await Vendor.create(newVendor);
+    });
 
     // Generate JWT token
     const token = createVendorToken(res, vendor._id);
-    // ✅ Create a notification for admins when new user registers
+    // Create a notification for admins when new user registers
     await Notification.create({
       type: "new_vendor",
       message: `👤 New vendor registered: ${name}`,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      token,
       message: "Vendor registered successfully",
-      vendor,
+      token,
+      vendor: {
+        _id: vendor._id,
+        name: vendor.name,
+        email: vendor.email,
+        avatar: vendor.avatar,
+      },
     });
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -93,8 +96,16 @@ const loginVendor = expressAsyncHandler(async (req, res) => {
     }
   
     createVendorToken(res, vendor._id);
-    res.status(200).json({ success: true, vendor, message: "Vendor logged in successfully!" });
-  } catch (error) {
+     return res.status(200).json({
+        success: true,
+        message: "Vendor logged in successfully!",
+        vendor: {
+          _id: vendor._id,
+          name: vendor.name,
+          email: vendor.email,
+          avatar: vendor?.avatar,
+      },
+    });  } catch (error) {
     res.status(400).json({ error: error.message || "Login failed" });
   }
 });
