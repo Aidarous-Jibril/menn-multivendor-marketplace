@@ -305,6 +305,13 @@ const getVendorSingleProduct = expressAsyncHandler(async (req, res) => {
 const createProductReview = expressAsyncHandler(async (req, res) => {
   const { user, rating, comment, productId } = req.body;
 
+  if (!req.user?._id) {
+    return res.status(401).json({ message: "Please log in to review this product." });
+  }
+  if (!rating) {
+    return res.status(400).json({ message: "Rating is required" });
+  }
+
   if (!rating) {
     return res.status(400).json({ message: "Rating is required" });
   }

@@ -13,7 +13,7 @@ const {
 } = require('../controllers/productController');
 const multer = require('multer');
 const path = require('path');
-const { isVendor } = require('../middleware/authMiddleware');
+const { isVendor, isAuthenticated } = require('../middleware/authMiddleware');
 
 // Configure multer to use memory storage
 const storage = multer.memoryStorage();  
@@ -54,6 +54,6 @@ router.get("/vendor/product/:id", isVendor, getVendorSingleProduct);
 router.post('/create-product',isVendor,  upload.array("images", 5), createProduct); 
 router.delete('/:id', isVendor, deleteProduct);
 router.put("/update-product/:id", isVendor, updateProduct); 
-router.post('/reviews', createProductReview);
+router.post('/reviews', isAuthenticated, createProductReview);
 
 module.exports = router;
