@@ -11,7 +11,7 @@ import ProductCard from "@/components/product/ProductCard";
 
 const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
   const dispatch = useDispatch();
-
+console.log("Vendor", vendor)
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mainCategory, setMainCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
@@ -225,7 +225,7 @@ const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
 
 export const getServerSideProps = async (context) => {
   const { id: vendorId } = context.query;
-  const baseURL = process.env.API_URL || "http://localhost:8000"; 
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const fetchData = async (url) => {
     try {
