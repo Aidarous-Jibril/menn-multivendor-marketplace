@@ -11,7 +11,6 @@ import ProductCard from "@/components/product/ProductCard";
 
 const VendorProfile = ({ vendor, vendorProducts, brands, categories }) => {
   const dispatch = useDispatch();
-console.log("Vendor", vendor)
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [mainCategory, setMainCategory] = useState("");
   const [subCategory, setSubCategory] = useState("");
