@@ -35,15 +35,11 @@ const ProductDetailPage = ({ product, similarProducts, vendorProducts, categorie
   const { wishListItems } = useSelector((s) => s.wishList);
   const { userInfo } = useSelector((s) => s.user);
 
+  //convert into a strict boolean (true or false).
   const isLoggedIn = !!userInfo?._id;
 
 // review was saved with `user` object; be defensive about shapes:
   const hasReviewed = product?.reviews?.some(r => r?.user?._id === userInfo?._id);
-
-// const hasReviewed =
-//   isLoggedIn &&
-//   Array.isArray(product?.reviews) &&
-//   product.reviews.some(r => String(r?.user?._id ?? r?.user?.id ?? r?.user) === String(userInfo._id));
 
   // currency, 
   const { symbol, code, rates } = useSelector((s) => s.currency);

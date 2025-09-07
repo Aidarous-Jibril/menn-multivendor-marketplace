@@ -2,8 +2,10 @@ import Image from 'next/image';
 import Head from 'next/head';
 import { useSelector } from 'react-redux';
 import { useEffect, useState, useMemo } from 'react';
+import { useRouter } from "next/router";
 
 const MaintenancePage = () => {
+  const { basePath } = useRouter();
   const maintenanceEndTime = useSelector( (state) => state.settings.siteSettings?.advanced?.maintenanceEndTime );
 
   const [timeLeft, setTimeLeft] = useState({});
@@ -31,7 +33,7 @@ const MaintenancePage = () => {
         const minutes = Math.floor((diff / 1000 / 60) % 60);
         const seconds = Math.floor((diff / 1000) % 60);
       
-        setTimeLeft({ days, hours, minutes, seconds }); // ✅ This is enough
+        setTimeLeft({ days, hours, minutes, seconds }); 
       };
       
 
@@ -47,11 +49,11 @@ const MaintenancePage = () => {
       </Head>
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-4 bg-gray-50">
         <Image
-        src="/animations/maintenance-bro.svg"
-        alt="Maintenance Mode"
-        width={600}
-        height={400}
-        className="w-full max-w-md mb-6"
+          src={`${basePath}/animations/maintenance-bro.svg`}
+          alt="Maintenance Mode"
+          width={600}
+          height={400}
+          className="w-full max-w-md mb-6"
         />
 
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gray-800">
