@@ -17,7 +17,6 @@ import ProductTable from '../common/ProductTable';
 const AllOrders = () => {
   const { userInfo } = useSelector((state) => state.user);
   const { orders, isLoading, error } = useSelector((state) => state.orders);
-
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const dispatch = useDispatch();
 
@@ -26,7 +25,7 @@ const AllOrders = () => {
       dispatch(getUserAllOrders(userInfo._id));
       dispatch(setOrderItems([]));
     }    
-  }, [dispatch, userInfo, isLoading]);
+  }, [dispatch, userInfo?._id]);
 
   const mockOrders = orders.length === 0 ? [] : orders;
 
