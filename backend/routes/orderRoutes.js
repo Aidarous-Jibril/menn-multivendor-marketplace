@@ -1,10 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { getVendorOrders, getSingleOrder, updateOrderStatus, deleteOrder, createOrder, getUserOrders, refundOrder, getVendorRefundedOrders,} = require("../controllers/orderController");
+const { getVendorOrders, getMyOrderById, getSingleOrder, updateOrderStatus, deleteOrder, createOrder, getUserOrders, refundOrder, getVendorRefundedOrders,} = require("../controllers/orderController");
 const { isVendor, isAuthenticated } = require("../middleware/authMiddleware");
 
 router.post("/", createOrder);  
 router.get("/vendor-orders/:vendorId", isVendor, getVendorOrders);
+// Customer route
+router.get("/my/:orderId", isAuth, getMyOrderById);
+// Vendor route (unchanged)
 router.get("/:orderId", isVendor, getSingleOrder);
 router.put("/update-status/:orderId", isVendor, updateOrderStatus);
 router.delete("/:orderId", isVendor, deleteOrder);
