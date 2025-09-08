@@ -6,7 +6,7 @@ const { isVendor, isAuthenticated } = require("../middleware/authMiddleware");
 router.post("/", createOrder);  
 router.get("/vendor-orders/:vendorId", isVendor, getVendorOrders);
 // Customer route
-router.get("/my/:orderId", isAuth, getMyOrderById);
+router.get("/my/:orderId", isAuthenticated, getMyOrderById);
 // Vendor route (unchanged)
 router.get("/:orderId", isVendor, getSingleOrder);
 router.put("/update-status/:orderId", isVendor, updateOrderStatus);
