@@ -51,7 +51,7 @@ export const updateOrderStatus = createAsyncThunk(
 );
 
 
-// Fetch single order (vendor can see single order)
+// Fetch single order (vendor)
 export const fetchSingleOrder = createAsyncThunk(
   "orders/fetchSingleOrder",
   async (orderId, { rejectWithValue }) => {
@@ -62,6 +62,20 @@ export const fetchSingleOrder = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch order details."
+      );
+    }
+  }
+);
+// Fetch single order (user)
+export const fetchMyOrder = createAsyncThunk(
+  "orders/fetchMyOrder",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.get(`/api/orders/my/${orderId}`);
+      return data.order;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch order details."
       );
     }
   }
@@ -174,6 +188,18 @@ const orderSlice = createSlice({
         state.singleOrder = action.payload;  
       })
       .addCase(fetchSingleOrder.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMyOrder.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyOrder.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.singleOrder = action.payload;
+      })
+      .addCase(fetchMyOrder.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })

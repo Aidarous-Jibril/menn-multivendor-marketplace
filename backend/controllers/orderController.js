@@ -46,7 +46,7 @@ const createOrder = expressAsyncHandler(async (req, res) => {
       const savedOrder = await newOrder.save();
       orders.push(savedOrder);
 
-      // ✅ Create a notification for the vendor
+      //Create a notification for the vendor
       await VendorNotification.create({
         vendor: vendorId,
         type: "new_order",
@@ -54,7 +54,7 @@ const createOrder = expressAsyncHandler(async (req, res) => {
       });
     }
 
-    // ✅ Create a single admin notification
+    //Create a single admin notification
     await Notification.create({
       type: "new_order",
       message: `📦 New order placed with ${items.length} item(s)!`,
@@ -82,7 +82,6 @@ const getVendorOrders = expressAsyncHandler(async (req, res) => {
   }
 });
 
-
 // Get a single order
 const getSingleOrder = expressAsyncHandler(async (req, res) => {
   try {
@@ -101,7 +100,16 @@ const getSingleOrder = expressAsyncHandler(async (req, res) => {
   }
 });
 
- 
+// Get a single order for user
+ const getMyOrderById = expressAsyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await Order.findOne({ _id: orderId, user: req.user._id }).lean();
+  if (!order) return res.status(404).json({ message: "Order not found" });
+
+  res.status(200).json({ success: true, order });
+});
+
 // Update order status (vendor can only update their own orders)
 const updateOrderStatus = expressAsyncHandler(async (req, res) => {
   try {
@@ -189,7 +197,7 @@ const refundOrder = expressAsyncHandler(async (req, res) => {
     order.status = status;
     await order.save();
 
-    // ✅ Create a refund request notification for admin
+    //Create a refund request notification for admin
     await Notification.create({
       type: "refund_request",
       message: `💸 Refund requested for Order #${order._id}`,
@@ -226,6 +234,7 @@ module.exports = {
   createOrder,
   getVendorOrders,
   getSingleOrder,
+  getMyOrderById,
   updateOrderStatus,
   deleteOrder,
   getUserOrders,
