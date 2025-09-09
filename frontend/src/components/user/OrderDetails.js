@@ -8,7 +8,7 @@ import { IoIosArrowRoundBack } from 'react-icons/io';
 import { toast } from 'react-toastify';
 
 // Local imports
-import { fetchSingleOrder, refundOrderRequest, getUserAllOrders } from '@/redux/slices/orderSlice';
+import { fetchMyOrder, refundOrderRequest, getUserAllOrders } from '@/redux/slices/orderSlice';
 import styles from '@/styles/styles';
 
 
@@ -22,7 +22,7 @@ const OrderDetails = () => {
   const { userInfo } = useSelector(state => state.user);
 
   useEffect(() => {
-    if (id) dispatch(fetchSingleOrder(id));
+    if (id) dispatch(fetchMyOrder(id));
   }, [dispatch, id]);
 
   useEffect(() => {
