@@ -7,6 +7,8 @@ import Footer from "@/components/layout/Footer";
 import Header from "@/components/layout/Header";
 
 const CategoriesPage = () => {
+  const fallbackImage = "/images/category-placeholder.png";
+  
   const dispatch = useDispatch();
   const { categories } = useSelector((state) => state.categories);
 
@@ -34,7 +36,7 @@ const CategoriesPage = () => {
             <Link href={`/category/${category.slug}`} key={category._id} className="bg-white p-2 rounded-lg shadow cursor-pointer hover:shadow-lg transition transform hover:scale-105">
               <div className="relative mx-auto mb-2 h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 lg:h-24 lg:w-24">
                 <Image
-                  src={category.imageUrl || "/images/category-placeholder.jpg"}
+                  src={category.imageUrl || fallbackImage }
                   alt={category.name}
                   fill
                   className="rounded-full object-cover"
