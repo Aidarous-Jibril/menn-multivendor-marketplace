@@ -4,6 +4,7 @@ import { ChevronRightIcon } from "@heroicons/react/solid";
 import Image from "next/image";
 
 const Categories = ({ categories }) => {
+  const fallbackImage = "/images/category-placeholder.png";
 
   return (
      <div className="container mx-auto px-2 md:px-4 py-4 relative max-w-[95%] lg:max-w-[90%]"> 
@@ -28,7 +29,7 @@ const Categories = ({ categories }) => {
                 <a className="cursor-pointer">
                   <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full bg-white flex items-center justify-center">
                     <Image
-                      src={category.imageUrl || '/images/placeholder-100.png'}
+                      src={category.imageUrl || fallbackImage}
                       alt={category.name}
                       width={40}
                       height={40}

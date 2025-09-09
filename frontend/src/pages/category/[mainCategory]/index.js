@@ -12,6 +12,8 @@ import HeaderPromo from "@/components/layout/HeaderPromo";
 import Image from "next/image";
 
 const CategoryPage = ({ categories, subcategories }) => {
+  const fallbackImage = "/images/category-placeholder.png";
+
   const router = useRouter();
   const { mainCategory } = router.query;
 
@@ -51,10 +53,7 @@ const CategoryPage = ({ categories, subcategories }) => {
                       <a className="cursor-pointer">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full bg-white flex items-center justify-center">
                           <Image
-                            src={
-                              subcat.imageUrl ||
-                              '/images/placeholder-100.png'
-                            }
+                            src={ subcat.imageUrl || fallbackImage }
                             alt={subcat.name}
                             width={40}
                             height={40}
