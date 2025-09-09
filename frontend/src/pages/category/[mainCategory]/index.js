@@ -53,7 +53,7 @@ const CategoryPage = ({ categories, subcategories }) => {
                           <Image
                             src={
                               subcat.imageUrl ||
-                              "https://placehold.co/100x100/cccccc/000000?text=No+Image"
+                              '/images/placeholder-100.png'
                             }
                             alt={subcat.name}
                             width={40}

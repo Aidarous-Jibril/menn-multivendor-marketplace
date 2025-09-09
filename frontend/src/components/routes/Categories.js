@@ -28,7 +28,7 @@ const Categories = ({ categories }) => {
                 <a className="cursor-pointer">
                   <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full bg-white flex items-center justify-center">
                     <Image
-                      src={category.imageUrl || "https://placehold.co/100x100/cccccc/000000?text=No+Image"}
+                      src={category.imageUrl || '/images/placeholder-100.png'}
                       alt={category.name}
                       width={40}
                       height={40}
