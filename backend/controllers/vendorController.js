@@ -67,10 +67,15 @@ const registerVendor = expressAsyncHandler(async (req, res) => {
       message: "Vendor registered successfully",
       token,
       vendor: {
-        _id: vendor._id,
+         _id: vendor._id,
         name: vendor.name,
         email: vendor.email,
         avatar: vendor.avatar,
+        description: vendor.description || "",
+        address: vendor.address || "",
+        phoneNumber: vendor.phoneNumber || "",
+        zipCode: vendor.zipCode || "",
+        vendorBankInfo: vendor.vendorBankInfo || null,
       },
     });
   } catch (error) {
@@ -100,10 +105,15 @@ const loginVendor = expressAsyncHandler(async (req, res) => {
         success: true,
         message: "Vendor logged in successfully!",
         vendor: {
-          _id: vendor._id,
-          name: vendor.name,
-          email: vendor.email,
-          avatar: vendor?.avatar,
+         _id: vendor._id,
+        name: vendor.name,
+        email: vendor.email,
+        avatar: vendor.avatar,
+        description: vendor.description || "",
+        address: vendor.address || "",
+        phoneNumber: vendor.phoneNumber || "",
+        zipCode: vendor.zipCode || "",
+        vendorBankInfo: vendor.vendorBankInfo || null,
       },
     });  } catch (error) {
     res.status(400).json({ error: error.message || "Login failed" });

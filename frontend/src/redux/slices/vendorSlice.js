@@ -392,7 +392,7 @@ const vendorSlice = createSlice({
       })
       .addCase(getVendorInfo.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.vendorInfo = action.payload.vendor;
+        state.vendorInfo = action.payload;
         state.success = true;
       })
       .addCase(getVendorInfo.rejected, (state, action) => {

@@ -13,6 +13,7 @@ import Image from 'next/image';
 
 const VendorSettings = () => {
   const { vendorInfo, isLoading } = useSelector((state) => state.vendors);
+  console.log("vendorInfo", vendorInfo)
   const [avatar, setAvatar] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -26,13 +27,13 @@ const VendorSettings = () => {
   // Initialize local state from vendorInfo
   useEffect(() => {
     if (vendorInfo) {
-        setAvatar(vendorInfo.avatar?.url || "");
-        setName(vendorInfo.name || "");
-        setDescription(vendorInfo.description || "");
-        setAddress(vendorInfo.address || "");
-        setPhoneNumber(vendorInfo.phoneNumber || "");
-        setZipCode(vendorInfo.zipCode || "");
-        setEmail(vendorInfo.email || "");
+      setAvatar(vendorInfo.avatar?.url || "");
+      setName(vendorInfo.name || "");
+      setDescription(vendorInfo.description || "");
+      setAddress(vendorInfo.address || "");
+      setPhoneNumber(vendorInfo.phoneNumber || "");
+      setZipCode(vendorInfo.zipCode || "");
+      setEmail(vendorInfo.email || "");
     }
   }, [vendorInfo]);
 
