@@ -2,8 +2,8 @@
 A full-featured multivendor ecommerce marketplace built with the MENN stack (MongoDB, Express.js, Next.js, Node.js). 
 
 ## Live Demo
-- Storefront: [menn-multivendor-marketplace-store.vercel.app](https://menn-multivendor-marketplace.vercel.app)  
-- Admin Dashboard: [menn-multivendor-marketplace-admin.vercel.app](https://menn-multivendor-marketplace-9f9v.vercel.app/)  
+- Storefront: [menn-multivendor-marketplace-store.vercel.app](https://sahanso.vercel.app)  
+- Admin Dashboard: [menn-multivendor-marketplace-admin.vercel.app](https://sahanso-admin.vercel.app/)  
 
 ## Screenshots
 ![Storefront](docs/screenshots/homepage.png)
