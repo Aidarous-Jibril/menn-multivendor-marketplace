@@ -22,6 +22,7 @@ const HeaderBottom = ({ categories, handleSearchChange, searchData }) => {
 
   const { vendorInfo } = useSelector((state) => state.vendors);
   const { userInfo } = useSelector((state) => state.user);
+  const isVendorLoggedIn = !!(vendorInfo && vendorInfo._id);
 
   const [sidebar, setSidebar] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -91,10 +92,10 @@ const HeaderBottom = ({ categories, handleSearchChange, searchData }) => {
                 ))}
 
                 <Link
-                  href={vendorInfo ? "/vendor/dashboard" : "/vendor/login"}
+                  href={isVendorLoggedIn ? "/vendor/dashboard" : "/vendor/login"}
                   className="text-gray-300 hover:text-yellow-400 font-medium text-sm sm:text-base md:text-[15px] lg:text-[16px] xl:text-[17px] px-6 cursor-pointer transition duration-200"
                 >
-                  {vendorInfo ? "Dashboard" : "Sell"}
+                  {isVendorLoggedIn ? "Dashboard" : "Sell"}
                 </Link>
               </div>
             )}
