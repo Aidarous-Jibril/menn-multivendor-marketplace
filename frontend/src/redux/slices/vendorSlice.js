@@ -11,7 +11,7 @@ const isBrowser = () => typeof window !== "undefined";
 const getVendorInfoFromLocalStorage = () => {
   if (isBrowser()) {
     const vendorInfo = localStorage.getItem("vendorInfo");
-    return vendorInfo ? JSON.parse(vendorInfo) : {};
+    return vendorInfo ? JSON.parse(vendorInfo) : null;
   }
   return null;
 };
