@@ -1,351 +1,184 @@
-# name: CI + Build/Push (GHCR) + Deploy (Azure)
+# ---------- CI ----------
+ci:
+  name: ci (${{ matrix.id }})
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      include:
+        - id: backend
+          dir: backend
+        - id: frontend
+          dir: frontend
+        - id: frontend-admin
+          dir: frontend-admin
+  steps:
+    - uses: actions/checkout@v4
 
-# on:
-#   push:
-#     branches: ["**"]
-#   pull_request:
-#   workflow_dispatch:
+    - name: Setup Node 20 (with npm cache)
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+        cache-dependency-path: ${{ matrix.dir }}/package-lock.json
 
-# permissions:
-#   contents: read
-#   packages: write
+    - name: Install
+      working-directory: ${{ matrix.dir }}
+      run: npm ci
 
-# env:
-#   IMAGE_PREFIX: menn-multivendor-marketplace
+    - name: Lint (if present)
+      working-directory: ${{ matrix.dir }}
+      run: npm run -s lint || true
 
-# concurrency: docker-${{ github.ref }}
+    - name: Typecheck (if present)
+      working-directory: ${{ matrix.dir }}
+      run: npm run -s typecheck || true
 
-# jobs:
-#   # ---------- CI: install/lint/build both Next apps + API ----------
-#   ci:
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         project: [backend, frontend, frontend-admin]
-#     steps:
-#       - uses: actions/checkout@v4
-#       - uses: actions/setup-node@v4
-#         with:
-#           node-version: 20
-#           cache: npm
-#           cache-dependency-path: ${{ matrix.project }}/package-lock.json
-#       - name: Install
-#         working-directory: ${{ matrix.project }}
-#         run: npm ci
-#       - name: Lint (if any)
-#         working-directory: ${{ matrix.project }}
-#         run: npm run -s lint || true
-#       - name: Build (Next & API)
-#         working-directory: ${{ matrix.project }}
-#         env:
-#           # Next client bundle needs this at build time
-#           NEXT_PUBLIC_API_URL: /api
-#         run: npm run -s build || true
+    - name: Build (if present)
+      working-directory: ${{ matrix.dir }}
+      env:
+        # harmless for backend; needed for Next during CI builds
+        NEXT_PUBLIC_API_URL: /api
+      run: npm run -s build || true
 
-#   # ---------- Build & Push all 4 images to GHCR ----------
-#   build-and-push:
-#     needs: ci
-#     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         app: [backend, frontend, frontend_admin, edge]
-#     steps:
-#       - uses: actions/checkout@v4
+# ---------- Build & Push to GHCR ----------
+build-and-push:
+  needs: ci
+  if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+  runs-on: ubuntu-latest
+  strategy:
+    matrix:
+      include:
+        - app: backend
+          context: ./backend
+          file: ./backend/Dockerfile.prod
+        - app: frontend
+          context: ./frontend
+          file: ./frontend/Dockerfile.prod
+          build_args: |
+            NEXT_PUBLIC_API_URL=/api
+        - app: frontend_admin
+          context: ./frontend-admin
+          file: ./frontend-admin/Dockerfile.prod
+          build_args: |
+            NEXT_PUBLIC_API_URL=/api
+        - app: edge
+          context: ./edge
+          file: ./edge/Dockerfile
+  steps:
+    - uses: actions/checkout@v4
 
-#       - name: Derive owner/tags
-#         run: |
-#           echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
-#           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
-#           SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/ ' '--')
-#           echo "BRANCH_TAG=$SAFE_BRANCH" >> "$GITHUB_ENV"
+    - name: Derive owner/tags
+      run: |
+        echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+        echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+        SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/ ' '--')
+        echo "BRANCH_TAG=$SAFE_BRANCH" >> "$GITHUB_ENV"
 
-#       - uses: docker/setup-qemu-action@v3
-#       - uses: docker/setup-buildx-action@v3
+    - uses: docker/setup-qemu-action@v3
+    - uses: docker/setup-buildx-action@v3
 
-#       - name: Login to GHCR
-#         uses: docker/login-action@v3
-#         with:
-#           registry: ghcr.io
-#           username: ${{ github.actor }}
-#           password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-#       - name: Build & push ${{ matrix.app }}
-#         uses: docker/build-push-action@v6
-#         with:
-#           context: ./${{ matrix.app == 'frontend_admin' && 'frontend-admin' || matrix.app }}
-#           file: ./${{ matrix.app == 'frontend_admin' && 'frontend-admin' || matrix.app }}/Dockerfile.prod
-#           # Multi-arch for portability
-#           platforms: linux/amd64,linux/arm64
-#           push: true
-#           tags: |
-#             ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:latest
-#             ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ env.BRANCH_TAG }}
-#             ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ env.SHORT_SHA }}
-#           # Only Next builds need the public API URL at build time
-#           build-args: |
-#             ${{ (matrix.app == 'frontend' || matrix.app == 'frontend_admin') && 'NEXT_PUBLIC_API_URL=/api' || '' }}
-#           provenance: false
-#           sbom: false
+    - name: Build & push ${{ matrix.app }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.file }}
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ghcr.io/${{ env.OWNER_LC }}/menn-multivendor-marketplace-${{ matrix.app }}:latest
+          ghcr.io/${{ env.OWNER_LC }}/menn-multivendor-marketplace-${{ matrix.app }}:${{ env.BRANCH_TAG }}
+          ghcr.io/${{ env.OWNER_LC }}/menn-multivendor-marketplace-${{ matrix.app }}:${{ env.SHORT_SHA }}
+        build-args: ${{ matrix.build_args }}
+        provenance: false
+        sbom: false
 
-#   # ---------- Deploy to Azure Web App (compose pinned to :short-sha) ----------
-#   deploy-azure:
-#     needs: build-and-push
-#     if: github.ref == 'refs/heads/main'
-#     runs-on: ubuntu-latest
-#     env:
-#       AZURE_RG: tsmern-rg # change if different
-#       AZURE_WEBAPP: tsmern-webapp-aidarous # change to your web app name
-#     steps:
-#       - uses: actions/checkout@v4
+# ---------- Deploy (compose pinned to SHA) ----------
+deploy-azure:
+  needs: build-and-push
+  if: github.ref == 'refs/heads/main'
+  runs-on: ubuntu-latest
+  env:
+    AZURE_RG: tsmern-rg
+    AZURE_WEBAPP: tsmern-webapp-aidarous
+  steps:
+    - uses: actions/checkout@v4
 
-#       - name: Azure login
-#         uses: azure/login@v2
-#         with:
-#           creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Azure login (service principal)
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-#       - name: Create compose.yaml with pinned SHA (workspace)
-#         run: |
-#           SHA=${GITHUB_SHA::7}
-#           OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}
-#           PREFIX=menn-multivendor-marketplace
+    - name: Create compose.yaml (pinned)
+      run: |
+        SHA=${GITHUB_SHA::7}
+        OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}
+        cat > compose.yaml <<EOF
+        version: "3.9"
+        services:
+          edge:
+            image: ghcr.io/${OWNER_LC}/menn-multivendor-marketplace-edge:${SHA}
+            depends_on: [backend, frontend, frontend_admin]
+            restart: unless-stopped
+            expose: ["80"]
+          backend:
+            image: ghcr.io/${OWNER_LC}/menn-multivendor-marketplace-backend:${SHA}
+            restart: unless-stopped
+            environment:
+              NODE_ENV: production
+              PORT: "8000"
+              MONGO_URI: \${MONGO_URI}
+              JWT_SECRET: \${JWT_SECRET}
+              SMTP_SERVICE: \${SMTP_SERVICE}
+              SMTP_PORT: \${SMTP_PORT}
+              SMTP_EMAIL: \${SMTP_EMAIL}
+              SMTP_PASSWORD: \${SMTP_PASSWORD}
+              CLOUD_NAME: \${CLOUD_NAME}
+              CLOUDINARY_API_KEY: \${CLOUDINARY_API_KEY}
+              CLOUDINARY_API_SECRET: \${CLOUDINARY_API_SECRET}
+            expose: ["8000"]
+          frontend:
+            image: ghcr.io/${OWNER_LC}/menn-multivendor-marketplace-frontend:${SHA}
+            restart: unless-stopped
+            environment:
+              NODE_ENV: production
+              PORT: "3000"
+            expose: ["3000"]
+          frontend_admin:
+            image: ghcr.io/${OWNER_LC}/menn-multivendor-marketplace-frontend_admin:${SHA}
+            restart: unless-stopped
+            environment:
+              NODE_ENV: production
+              PORT: "3001"
+            expose: ["3001"]
+        EOF
+        echo "Using images:"; grep 'image:' compose.yaml
 
-#           cat > compose.yaml <<'YAML'
-#           version: "3.9"
-#           services:
-#             edge:
-#               image: ghcr.io/OWNER/PREFIX-edge:SHA
-#               depends_on: [backend, frontend, frontend_admin]
-#               ports: ["80:80"]
-#               restart: unless-stopped
+    - name: Apply compose to Web App
+      uses: azure/cli@v2
+      with:
+        inlineScript: |
+          az webapp config container set \
+            -g "$AZURE_RG" -n "$AZURE_WEBAPP" \
+            --multicontainer-config-type compose \
+            --multicontainer-config-file "./compose.yaml"
 
-#             backend:
-#               image: ghcr.io/OWNER/PREFIX-backend:SHA
-#               restart: unless-stopped
-#               environment:
-#                 NODE_ENV: production
-#                 PORT: "8000"
-#                 MONGO_URI: ${MONGO_URI}
-#                 JWT_SECRET: ${JWT_SECRET}
-#                 SMTP_SERVICE: ${SMTP_SERVICE}
-#                 SMTP_PORT: ${SMTP_PORT}
-#                 SMTP_EMAIL: ${SMTP_EMAIL}
-#                 SMTP_PASSWORD: ${SMTP_PASSWORD}
-#                 CLOUD_NAME: ${CLOUD_NAME}
-#                 CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-#                 CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-#               expose: ["8000"]
-
-#             frontend:
-#               image: ghcr.io/OWNER/PREFIX-frontend:SHA
-#               restart: unless-stopped
-#               environment:
-#                 NODE_ENV: production
-#                 PORT: "3000"
-#               expose: ["3000"]
-
-#             frontend_admin:
-#               image: ghcr.io/OWNER/PREFIX-frontend_admin:SHA
-#               restart: unless-stopped
-#               environment:
-#                 NODE_ENV: production
-#                 PORT: "3001"
-#               expose: ["3001"]
-#           YAML
-
-#           sed -i "s/OWNER/${OWNER_LC}/g; s/PREFIX/${PREFIX}/g; s/SHA/${SHA}/g" compose.yaml
-#           echo "Resolved images:"; grep 'image:' compose.yaml
-
-#       - name: Apply compose to Web App
-#         uses: azure/cli@v2
-#         with:
-#           inlineScript: |
-#             az webapp config container set \
-#               -g "$AZURE_RG" -n "$AZURE_WEBAPP" \
-#               --multicontainer-config-type compose \
-#               --multicontainer-config-file "./compose.yaml"
-
-#       - name: Restart and smoke test
-#         uses: azure/cli@v2
-#         with:
-#           inlineScript: |
-#             az webapp restart -g "$AZURE_RG" -n "$AZURE_WEBAPP"
-#             URL="https://$(az webapp show -g "$AZURE_RG" -n "$AZURE_WEBAPP" --query defaultHostName -o tsv)"
-#             echo "App URL: https://$URL"
-#             API="$URL/api/health"
-#             echo "Polling $API for 200..."
-#             for i in {1..30}; do
-#               code=$(curl -s -o /dev/null -w "%{http_code}" "https://$API" || true)
-#               echo "Attempt $i: $code"
-#               [ "$code" = "200" ] && exit 0
-#               sleep 5
-#             done
-#             echo "Smoke test failed" ; exit 1
-
-name: CI + Build/Push (GHCR) + Deploy (Azure)
-
-on:
-  push:
-    branches: ["**"] # CI on all branches
-  pull_request:
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  packages: write
-
-env:
-  IMAGE_PREFIX: menn-multivendor-marketplace
-
-concurrency: docker-${{ github.ref }}
-
-jobs:
-  ci:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        project: [backend, frontend, frontend_admin]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ matrix.project }}/package-lock.json
-      - name: Install
-        working-directory: ${{ matrix.project }}
-        run: npm ci
-      - name: Build (if present)
-        working-directory: ${{ matrix.project }}
-        run: npm run -s build || echo "no build script"
-
-  build-and-push:
-    needs: ci
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app: [backend, frontend, frontend_admin, edge]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Derive owner/tags
-        run: |
-          echo "OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
-          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
-          SAFE_BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/ ' '--')
-          echo "BRANCH_TAG=$SAFE_BRANCH" >> "$GITHUB_ENV"
-
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & push ${{ matrix.app }}
-        uses: docker/build-push-action@v6
-        with:
-          context: ./${{ matrix.app == 'frontend_admin' && 'frontend-admin' || matrix.app }}
-          file: ./${{ matrix.app == 'frontend_admin' && 'frontend-admin' || matrix.app }}/Dockerfile.prod
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:latest
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ env.BRANCH_TAG }}
-            ghcr.io/${{ env.OWNER_LC }}/${{ env.IMAGE_PREFIX }}-${{ matrix.app }}:${{ env.SHORT_SHA }}
-          build-args: |
-            ${{ matrix.app == 'frontend' && 'NEXT_PUBLIC_API_URL=/api' || '' }}
-            ${{ matrix.app == 'frontend_admin' && 'NEXT_PUBLIC_API_URL=/api' || '' }}
-          provenance: false
-          sbom: false
-
-  deploy-azure:
-    needs: build-and-push
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    env:
-      AZURE_RG: tsmern-rg
-      AZURE_WEBAPP: tsmern-webapp-aidarous
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Azure login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Create compose.yaml pinned to short SHA
-        run: |
-          SHA=${GITHUB_SHA::7}
-          OWNER_LC=${GITHUB_REPOSITORY_OWNER,,}
-          cat > compose.yaml <<EOF
-          version: "3.9"
-          services:
-            edge:
-              image: ghcr.io/${OWNER_LC}/${IMAGE_PREFIX}-edge:${SHA}
-              depends_on: [backend, frontend, frontend_admin]
-              ports: ["80:80"]
-              restart: unless-stopped
-
-            backend:
-              image: ghcr.io/${OWNER_LC}/${IMAGE_PREFIX}-backend:${SHA}
-              restart: unless-stopped
-              environment:
-                NODE_ENV: production
-                PORT: "8000"
-                MONGO_URI: \${MONGO_URI}
-                JWT_SECRET: \${JWT_SECRET}
-                SMTP_SERVICE: \${SMTP_SERVICE}
-                SMTP_PORT: \${SMTP_PORT}
-                SMTP_EMAIL: \${SMTP_EMAIL}
-                SMTP_PASSWORD: \${SMTP_PASSWORD}
-                CLOUD_NAME: \${CLOUD_NAME}
-                CLOUDINARY_API_KEY: \${CLOUDINARY_API_KEY}
-                CLOUDINARY_API_SECRET: \${CLOUDINARY_API_SECRET}
-              expose: ["8000"]
-
-            frontend:
-              image: ghcr.io/${OWNER_LC}/${IMAGE_PREFIX}-frontend:${SHA}
-              restart: unless-stopped
-              environment:
-                NODE_ENV: production
-                PORT: "3000"
-              expose: ["3000"]
-
-            frontend_admin:
-              image: ghcr.io/${OWNER_LC}/${IMAGE_PREFIX}-frontend_admin:${SHA}
-              restart: unless-stopped
-              environment:
-                NODE_ENV: production
-                PORT: "3001"
-              expose: ["3001"]
-          EOF
-          grep 'image:' compose.yaml
-
-      - name: Apply compose to Web App
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az webapp config container set \
-              -g "$AZURE_RG" -n "$AZURE_WEBAPP" \
-              --multicontainer-config-type compose \
-              --multicontainer-config-file "./compose.yaml"
-
-      - name: Restart + smoke test
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az webapp restart -g "$AZURE_RG" -n "$AZURE_WEBAPP"
-            URL="https://$(az webapp show -g "$AZURE_RG" -n "$AZURE_WEBAPP" --query defaultHostName -o tsv)"
-            echo "Deployed: https://$URL"
-            for i in {1..30}; do
-              c=$(curl -s -o /dev/null -w "%{http_code}" "https://$URL/api/health" || true)
-              echo "health attempt $i: $c"
-              [ "$c" = "200" ] && exit 0
-              sleep 5
-            done
-            echo "Smoke test failed"; exit 1
+    - name: Restart & smoke test
+      uses: azure/cli@v2
+      with:
+        inlineScript: |
+          az webapp restart -g "$AZURE_RG" -n "$AZURE_WEBAPP"
+          URL="https://$(az webapp show -g "$AZURE_RG" -n "$AZURE_WEBAPP" --query defaultHostName -o tsv)/api/health"
+          for i in {1..30}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+            echo "Attempt $i: $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 5
+          done
+          echo "Smoke test failed"; exit 1
