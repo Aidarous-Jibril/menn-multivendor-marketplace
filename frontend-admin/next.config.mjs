@@ -1,21 +1,21 @@
 /** @type {import('next').NextConfig} */
-const NEXT_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const NEXT_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://backend:8000";
 
 const nextConfig = {
+  output: 'standalone',
+  basePath: '/admin',
   reactStrictMode: true,
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'res.cloudinary.com', pathname: '/**' },
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
     ],
   },
   async rewrites() {
     return [
-      {
-        source: "/api/:path*",
-        destination: `${NEXT_API_URL}/api/:path*`,
-      },
+      { source: "/api/:path((?!auth).*)", destination: `${NEXT_API_URL}/api/:path*` },
     ];
   },
+  compress: true,
 };
 
 export default nextConfig;
