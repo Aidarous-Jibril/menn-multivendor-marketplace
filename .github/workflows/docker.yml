@@ -330,8 +330,8 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
-      AZURE_RG: tsmern-rg
-      AZURE_WEBAPP: tsmern-webapp-aidarous
+      AZURE_RG: menn-rg
+      AZURE_WEBAPP: menn-webapp-aidarous
     steps:
       - uses: actions/checkout@v4
 
