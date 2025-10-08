@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  # Single public entry. Nginx listens on 80 and reverse-proxies to the app services.
+  edge:
+    image: ghcr.io/aidarous-jibril/menn-multivendor-marketplace-edge:latest
+    depends_on: [backend, frontend, frontend_admin]   # hint only; Azure may not honor ordering strictly
+    restart: unless-stopped
+    ports: ["80:80"]        # Azure serves this container on port 80
+
+  backend:
+    image: ghcr.io/aidarous-jibril/menn-multivendor-marketplace-backend:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "8000"
+      # read from Azure App Settings (don’t bake secrets into images)
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      SMTP_SERVICE: ${SMTP_SERVICE}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_EMAIL: ${SMTP_EMAIL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      CLOUD_NAME: ${CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+    expose:
+      - "8000"
+
+  frontend:
+    image: ghcr.io/aidarous-jibril/menn-multivendor-marketplace-frontend:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      # NOTE: for Next.js, NEXT_PUBLIC_* must be present at BUILD time to affect the client bundle.
+      # Make sure your CI builds this image with NEXT_PUBLIC_API_URL=/api
+    expose:
+      - "3000"
+
+  frontend_admin:
+    image: ghcr.io/aidarous-jibril/menn-multivendor-marketplace-frontend-admin:latest
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      # Also build with NEXT_PUBLIC_API_URL=/api in CI.
+      # If you serve admin under /admin, set basePath:'/admin' in next.config.mjs prior to build.
+    expose:
+      - "3001"

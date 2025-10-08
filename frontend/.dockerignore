@@ -1,0 +1,19 @@
+# dependencies & builds
+node_modules
+.next
+out
+dist
+
+# vcs & docker
+.git
+.gitignore
+Dockerfile*
+docker-compose*
+**/*.log
+
+# env & caches
+.env*
+.npmrc
+.cache
+coverage
+tmp
