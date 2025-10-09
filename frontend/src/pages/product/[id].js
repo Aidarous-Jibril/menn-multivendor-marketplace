@@ -494,11 +494,11 @@ const ProductAttributes = ({ attributes }) => {
 
 export async function getServerSideProps({ params }) {
   const { id } = params;
-  const INTERNAL_API_URL = process.env.INTERNAL_API_URL || (process.env.NODE_ENV === "production" ? "http://backend:8000" : "http://localhost:8000");
+  // const INTERNAL_API_URL = process.env.INTERNAL_API_URL || (process.env.NODE_ENV === "production" ? "http://backend:8000" : "http://localhost:8000");
 
-  const baseURL = INTERNAL_API_URL;
+  // const baseURL = INTERNAL_API_URL;
 
-  // const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   try {
     const productRes = await axios.get(`${baseURL}/api/products/${id}`).catch(() => null);
