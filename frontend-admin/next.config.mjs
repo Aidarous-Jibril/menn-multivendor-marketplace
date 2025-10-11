@@ -3,7 +3,6 @@ const NEXT_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://backend:8000";
 
 const nextConfig = {
   output: 'standalone',
-  basePath: '/admin',
   reactStrictMode: true,
   images: {
     remotePatterns: [
